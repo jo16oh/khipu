@@ -1,28 +1,15 @@
-use eyre::{Result, eyre};
+use eyre::Result;
 use sqlx::{
     Sqlite, SqlitePool,
     migrate::{MigrateDatabase, Migrator},
 };
-use tauri::{AppHandle, Manager};
 
 static MIGRATOR: Migrator = sqlx::migrate!("./migrations");
 
-pub async fn open_connection(app_handle: AppHandle, db_name: String) -> Result<SqlitePool> {
-    let dbs_path = app_handle.path().app_data_dir()?.join("databases");
-
-    if !dbs_path.exists() {
-        std::fs::create_dir_all(dbs_path.as_path())?;
-    }
-
-    let db_path = dbs_path.join(db_name + ".sqlite3");
-
-    let url = db_path.to_str().ok_or(eyre!("invalid sqlite url"))?;
+pub async fn open_connection(url: &str) -> Result<SqlitePool> {
     Sqlite::create_database(url).await?;
-
     let pool = SqlitePool::connect(url).await?;
-
     MIGRATOR.run(&pool).await?;
-
     Ok(pool)
 }
 
