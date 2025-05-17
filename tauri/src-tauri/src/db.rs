@@ -38,6 +38,12 @@ pub mod test {
 
     #[tokio::test]
     async fn test() {
-        open_connection_in_memory().await;
+        let pool = open_connection_in_memory().await;
+
+        let r = sqlx::query!("SELECT * FROM outlines;")
+            .fetch_all(&pool)
+            .await;
+
+        assert!(r.is_ok());
     }
 }
