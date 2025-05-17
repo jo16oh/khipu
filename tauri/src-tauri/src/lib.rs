@@ -51,7 +51,7 @@ pub fn run() {
 fn get_specta_builder() -> tauri_specta::Builder {
     let builder = tauri_specta::Builder::new()
         .commands(commands::commands())
-        .error_handling(tauri_specta::ErrorHandlingMode::Result);
+        .error_handling(tauri_specta::ErrorHandlingMode::Throw);
 
     #[cfg(debug_assertions)]
     builder
