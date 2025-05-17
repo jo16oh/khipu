@@ -1,5 +1,6 @@
 mod commands;
 mod db;
+mod error;
 mod util;
 
 use specta_typescript::Typescript;

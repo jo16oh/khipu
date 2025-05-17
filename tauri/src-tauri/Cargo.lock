@@ -2110,6 +2110,7 @@ dependencies = [
  "derive_more 1.0.0",
  "eyre",
  "itertools",
+ "macros",
  "serde",
  "serde_json",
  "specta",
@@ -2121,6 +2122,7 @@ dependencies = [
  "tauri-plugin-single-instance",
  "tauri-plugin-window-state",
  "tauri-specta",
+ "thiserror 2.0.12",
  "tokio",
  "uuid",
  "yrs",
@@ -2254,6 +2256,16 @@ name = "mac"
 version = "0.1.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "c41e0c4fef86961ac6d6f8a82609f55f31b05e4fce149ac5710e439df7619ba4"
+
+[[package]]
+name = "macros"
+version = "0.1.0"
+dependencies = [
+ "heck 0.5.0",
+ "quote",
+ "regex",
+ "syn 2.0.101",
+]
 
 [[package]]
 name = "markup5ever"

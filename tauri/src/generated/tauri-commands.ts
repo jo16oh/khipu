@@ -20,7 +20,7 @@ async greet(name: string) : Promise<string> {
 
 /** user-defined types **/
 
-
+export type KhipuError = { anyError: { rootCause: string; msg: string } }
 
 /** tauri-specta globals **/
 
