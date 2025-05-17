@@ -1,3 +1,5 @@
+mod db;
+
 use tauri::{TitleBarStyle, WebviewUrl, WebviewWindowBuilder};
 use tauri_plugin_window_state::{AppHandleExt, StateFlags};
 
