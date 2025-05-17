@@ -1,17 +1,15 @@
+mod commands;
 mod db;
 mod util;
 
+use specta_typescript::Typescript;
 use tauri::{TitleBarStyle, WebviewUrl, WebviewWindowBuilder};
 use tauri_plugin_window_state::{AppHandleExt, StateFlags};
 
-// Learn more about Tauri commands at https://tauri.app/develop/calling-rust/
-#[tauri::command]
-fn greet(name: &str) -> String {
-    format!("Hello, {}! You've been greeted from Rust!", name)
-}
-
 #[cfg_attr(mobile, tauri::mobile_entry_point)]
 pub fn run() {
+    let specta_builder = get_specta_builder();
+
     let app = tauri::Builder::default()
         .plugin(tauri_plugin_opener::init())
         .plugin(
@@ -20,7 +18,7 @@ pub fn run() {
                 .build(),
         )
         .plugin(tauri_plugin_single_instance::init(|_, _, _| {}))
-        .invoke_handler(tauri::generate_handler![greet])
+        .invoke_handler(specta_builder.invoke_handler())
         .setup(|app| {
             let win_builder = WebviewWindowBuilder::new(app, "main", WebviewUrl::default())
                 .hidden_title(true)
@@ -40,9 +38,37 @@ pub fn run() {
         .build(tauri::generate_context!())
         .expect("error while running tauri application");
 
+    specta_builder.mount_events(&app);
+
     app.run(|app_handle, event| {
         if let tauri::RunEvent::Exit = event {
             app_handle.save_window_state(StateFlags::all()).unwrap();
         }
     });
+}
+
+fn get_specta_builder() -> tauri_specta::Builder {
+    let builder = tauri_specta::Builder::new()
+        .commands(commands::commands())
+        .error_handling(tauri_specta::ErrorHandlingMode::Result);
+
+    #[cfg(debug_assertions)]
+    builder
+        .export(
+            Typescript::default().bigint(specta_typescript::BigIntExportBehavior::Number),
+            "../src/generated/tauri-commands.ts",
+        )
+        .expect("Failed to export typescript bindings");
+
+    builder
+}
+
+#[cfg(test)]
+mod test {
+    use super::*;
+
+    #[test]
+    fn export_specta() {
+        get_specta_builder();
+    }
 }
