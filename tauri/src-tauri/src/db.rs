@@ -5,7 +5,7 @@ use sqlx::{
 };
 use tauri::{AppHandle, Manager};
 
-static MIGRATOR: Migrator = sqlx::migrate!("db/migrations");
+static MIGRATOR: Migrator = sqlx::migrate!("./migrations");
 
 pub async fn open_connection(app_handle: AppHandle, db_name: String) -> Result<SqlitePool> {
     let dbs_path = app_handle.path().app_data_dir()?.join("databases");
