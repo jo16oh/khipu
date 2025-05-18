@@ -1,3 +1,5 @@
+mod query;
+
 use eyre::Result;
 use sqlx::{
     Sqlite, SqlitePool,
