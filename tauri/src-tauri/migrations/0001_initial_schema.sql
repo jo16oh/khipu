@@ -35,8 +35,8 @@ CREATE TABLE outline_updates (
 CREATE INDEX IDX_outline_updates$outline_id ON outline_updates(outline_id);
 
 CREATE TABLE outline_links(
-  id_from BLOB REFERENCES outlines(id) ON DELETE CASCADE,
-  id_to BLOB NOT NULL, -- implicitly referes to outlines(id)
+  id_from TEXT REFERENCES outlines(id) ON DELETE CASCADE NOT NULL,
+  id_to TEXT NOT NULL, -- implicitly referes to outlines(id)
   type TEXT NOT NULL,
   PRIMARY KEY (id_from, id_to)
 ) STRICT;
@@ -77,7 +77,7 @@ CREATE TABLE fts_outline_rel(
   outline_id TEXT REFERENCES outlines(id) ON DELETE CASCADE NOT NULL,
   fts_rowid INTEGER REFERENCES fts(rowid) ON DELETE CASCADE NOT NULL,
   PRIMARY KEY (outline_id, fts_rowid)
-);
+) STRICT;
 
 -- Deletion from virtual tables is possible with triggers
 CREATE TRIGGER after_delete_outlines BEFORE DELETE ON outlines BEGIN
