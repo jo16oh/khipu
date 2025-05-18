@@ -10,6 +10,12 @@ async greet(name: string) : Promise<string> {
 },
 async openDb(dbName: string) : Promise<null> {
     return await TAURI_INVOKE("open_db", { dbName });
+},
+async closeDb() : Promise<null> {
+    return await TAURI_INVOKE("close_db");
+},
+async deleteDb(dbName: string) : Promise<null> {
+    return await TAURI_INVOKE("delete_db", { dbName });
 }
 }
 
