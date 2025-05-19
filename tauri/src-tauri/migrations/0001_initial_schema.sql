@@ -89,14 +89,14 @@ WHERE
 
 END;
 
-CREATE TABLE outline_updates (
+CREATE TABLE y_updates (
   id TEXT PRIMARY KEY NOT NULL,
   outline_id TEXT REFERENCES outlines (id) ON DELETE CASCADE NOT NULL,
   data BLOB NOT NULL,
   timestamp INTEGER NOT NULL
 ) STRICT;
 
-CREATE INDEX "IDX$outline_updates.outline_id" ON outline_updates (outline_id);
+CREATE INDEX "IDX$y_updates.outline_id" ON y_updates (outline_id);
 
 CREATE TABLE outline_links (
   id_from TEXT REFERENCES outlines (id) ON DELETE CASCADE NOT NULL,
