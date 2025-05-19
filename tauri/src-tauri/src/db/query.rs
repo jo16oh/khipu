@@ -1,6 +1,16 @@
 use crate::model::Outline;
 use sqlx::SqliteExecutor;
 
+pub async fn outline_tree<'a>(
+    conn: impl SqliteExecutor<'a>,
+    id: &str,
+) -> eyre::Result<Vec<Outline>> {
+    sqlx::query_file_as_unchecked!(Outline, "src/db/fetch_outline_tree.sql", id, id, id)
+        .fetch_all(conn)
+        .await
+        .map_err(eyre::Error::from)
+}
+
 pub async fn upsert_outline<'a>(
     conn: impl SqliteExecutor<'a>,
     outline: &Outline,
@@ -42,5 +52,12 @@ mod test {
         upsert_outline(&pool, &o2).await.unwrap();
         upsert_outline(&pool, &o3).await.unwrap();
 
+        let start = Instant::now();
+
+        let r = outline_tree(&pool, &o2.id).await.unwrap();
+
+        println!("{}", start.elapsed().as_micros());
+
+        assert_eq!(r.len(), 3);
     }
 }
