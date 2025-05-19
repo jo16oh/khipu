@@ -34,7 +34,7 @@ CREATE INDEX "IDX$outlines.updated_at" ON outlines (updated_at DESC);
 
 CREATE INDEX "IDX$outlines.path" ON outlines (path ASC);
 
-CREATE TRIGGER IF NOT EXISTS set_path AFTER INSERT ON outlines FOR EACH ROW BEGIN
+CREATE TRIGGER set_path AFTER INSERT ON outlines FOR EACH ROW BEGIN
 UPDATE outlines
 SET
   path = CASE
@@ -53,7 +53,7 @@ WHERE
 
 END;
 
-CREATE TRIGGER IF NOT EXISTS reconsile_path AFTER
+CREATE TRIGGER reconsile_path AFTER
 UPDATE ON outlines FOR EACH ROW WHEN OLD.parent_id IS DISTINCT
 FROM
   NEW.parent_id BEGIN
