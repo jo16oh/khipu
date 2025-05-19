@@ -124,35 +124,12 @@ CREATE TABLE outline_asset_rel (
 
 -- # FTS
 CREATE VIRTUAL TABLE fts USING fts5 (
-  id UNINDEXED,
-  type UNINDEXED,
-  content,
-  content = '', -- don't store content
+  doc,
+  content = 'outlines', -- specify external content table
+  content_rowid = 'rowid',
   tokenize = "trigram"
 );
 
 -- Table for searching one or two character queries with term prefix matching
 -- To include the last one or two characters in the search target, meaningless 2 characters need to be added by application logic
 CREATE VIRTUAL TABLE fts_vocab USING fts5vocab (fts, ROW);
-
--- Since triggers cannot be set on virtual tables, relations need to be managed manually
-CREATE TABLE fts_outline_rel (
-  outline_id TEXT REFERENCES outlines (id) ON DELETE CASCADE NOT NULL,
-  fts_rowid INTEGER REFERENCES fts (rowid) ON DELETE CASCADE NOT NULL,
-  PRIMARY KEY (outline_id, fts_rowid)
-) STRICT;
-
--- Deletion from virtual tables is possible with triggers
-CREATE TRIGGER after_delete_outlines BEFORE DELETE ON outlines BEGIN
-DELETE FROM fts
-WHERE
-  rowid IN (
-    SELECT
-      rowid
-    FROM
-      fts_outline_rel
-    WHERE
-      id = OLD.id
-  );
-
-END;
