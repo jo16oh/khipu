@@ -69,3 +69,46 @@ impl From<i64> for SqliteBool {
         Self(value != 0)
     }
 }
+
+pub fn extract_text_from_doc(doc: &str) -> eyre::Result<String> {
+    use serde::Deserialize;
+
+    #[derive(Deserialize, Debug)]
+    struct Document {
+        #[serde(default)]
+        content: Vec<Document>,
+        #[serde(default)]
+        text: Option<String>,
+    }
+
+    let document: Document = serde_json::from_str(doc)?;
+
+    fn extract_text(document: &Document, result: &mut String) {
+        if let Some(ref text) = document.text {
+            result.push_str(text);
+        }
+
+        for item in &document.content {
+            extract_text(item, result);
+        }
+    }
+
+    let mut result = String::new();
+    extract_text(&document, &mut result);
+
+    Ok(result)
+}
+
+#[cfg(test)]
+pub mod test {
+    use crate::model::Outline;
+
+    use super::extract_text_from_doc;
+
+    #[test]
+    fn test_extract_text_from_doc() {
+        let o = Outline::new();
+        let result = extract_text_from_doc(&o.doc).unwrap();
+        assert_eq!(result, "Example Content".to_string());
+    }
+}

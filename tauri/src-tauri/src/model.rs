@@ -29,8 +29,8 @@ pub struct Links(HashSet<Link>);
 #[derive(Serialize, Deserialize, specta::Type, PartialEq, Eq, Hash, Clone, Debug)]
 #[serde(rename_all = "camelCase")]
 pub struct Link {
-    id: String,
-    r#type: LinkType,
+    pub id: String,
+    pub r#type: LinkType,
 }
 
 #[derive(Serialize, Deserialize, specta::Type, PartialEq, Eq, Hash, Clone, Debug)]
@@ -72,7 +72,7 @@ impl Outline {
             id: uuidv7bs58(),
             parent_id: None,
             findex: String::new(),
-            doc: String::new(),
+            doc: SAMPLE_DOC.to_string(),
             links: Links::default(),
             created_at: Local::now().timestamp_millis(),
             updated_at: Local::now().timestamp_millis(),
@@ -87,7 +87,7 @@ impl Outline {
             id: uuidv7bs58(),
             parent_id: Some(self.id.clone()),
             findex: String::new(),
-            doc: String::new(),
+            doc: SAMPLE_DOC.to_string(),
             links: Links::default(),
             created_at: Local::now().timestamp_millis(),
             updated_at: Local::now().timestamp_millis(),
@@ -97,3 +97,36 @@ impl Outline {
         }
     }
 }
+
+#[cfg(test)]
+pub const SAMPLE_DOC: &str = r#"
+    {
+        "type": "doc",
+        "content": [
+          {
+            "type": "paragraph",
+            "content": [
+              {
+                "type": "text",
+                "text": "Example "
+              }
+            ]
+          },
+          {
+            "type": "paragraph"
+          },
+          {
+            "type": "paragraph",
+            "content": [
+              {
+                "type": "text",
+                "text": "Content"
+              },
+              {
+                "type": "other"
+              }
+            ]
+          }
+        ]
+    }
+"#;
