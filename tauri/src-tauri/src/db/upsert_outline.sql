@@ -24,4 +24,4 @@ SET
   collapsed = excluded.collapsed,
   deleted = excluded.deleted
 WHERE
-  id = excluded.id;
+  id = excluded.id RETURNING rowid;

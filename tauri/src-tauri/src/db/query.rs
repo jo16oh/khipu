@@ -1,5 +1,9 @@
-use crate::model::Outline;
-use sqlx::SqliteExecutor;
+use crate::{
+    model::{Links, Outline},
+    util::{extract_text_from_doc, uuidv7bs58},
+};
+use serde::Deserialize;
+use sqlx::{SqliteExecutor, SqliteTransaction};
 
 pub async fn outline_tree<'a>(
     conn: impl SqliteExecutor<'a>,
@@ -11,11 +15,40 @@ pub async fn outline_tree<'a>(
         .map_err(eyre::Error::from)
 }
 
-pub async fn upsert_outline<'a>(
-    conn: impl SqliteExecutor<'a>,
-    outline: &Outline,
-) -> eyre::Result<()> {
-    sqlx::query_file!(
+pub async fn upsert_outline(tx: &mut SqliteTransaction<'_>, outline: &Outline) -> eyre::Result<()> {
+    #[derive(Deserialize)]
+    struct Res {
+        rowid: i64,
+        doc: String,
+    }
+
+    // delete index of old document
+    if let Some(res) =
+        sqlx::query_file_as!(Res, "src/db/fetch_outline_rowid_and_doc.sql", outline.id)
+            .fetch_optional(&mut **tx)
+            .await?
+    {
+        let text = extract_text_from_doc(&res.doc)?;
+        sqlx::query_file!("src/db/delete_fts_index.sql", res.rowid, text)
+            .execute(&mut **tx)
+            .await?;
+    }
+
+    let old_links =
+        sqlx::query_file_scalar_unchecked!("src/db/fetch_outline_links.sql", outline.id)
+            .fetch_optional(&mut **tx)
+            .await?
+            .map(|json| serde_json::from_str::<Links>(&json))
+            .transpose()?
+            .unwrap_or(Links::default());
+
+    for l in old_links.difference(&outline.links) {
+        sqlx::query_file!("src/db/delete_outline_link.sql", outline.id, l.id)
+            .execute(&mut **tx)
+            .await?;
+    }
+
+    let rowid = sqlx::query_file_scalar!(
         "src/db/upsert_outline.sql",
         outline.id,
         outline.parent_id,
@@ -26,6 +59,45 @@ pub async fn upsert_outline<'a>(
         outline.hidden,
         outline.collapsed,
         outline.deleted
+    )
+    .fetch_one(&mut **tx)
+    .await?;
+
+    let text = extract_text_from_doc(&outline.doc)?;
+
+    sqlx::query_file_scalar!("src/db/insert_fts_index.sql", rowid, text)
+        .execute(&mut **tx)
+        .await?;
+
+    for l in outline.links.difference(&old_links) {
+        let link_type = l.r#type.to_string();
+        sqlx::query_file!(
+            "src/db/insert_outline_link.sql",
+            outline.id,
+            l.id,
+            link_type
+        )
+        .execute(&mut **tx)
+        .await?;
+    }
+
+    eyre::Ok(())
+}
+
+pub async fn insert_y_update<'a>(
+    conn: impl SqliteExecutor<'a>,
+    update: &[u8],
+    outline_id: &str,
+    timestamp: i64,
+) -> eyre::Result<()> {
+    let id = uuidv7bs58();
+
+    sqlx::query_file!(
+        "src/db/insert_y_update.sql",
+        id,
+        outline_id,
+        update,
+        timestamp
     )
     .execute(conn)
     .await?;
@@ -38,21 +110,109 @@ mod test {
     use serde::{Deserialize, Serialize};
 
     use super::*;
-    use crate::db::test::open_connection_in_memory;
+    use crate::{
+        db::test::open_connection_in_memory,
+        model::{Link, LinkType},
+    };
+
+    #[tokio::test]
+    async fn test() {
+        let pool = open_connection_in_memory().await;
+        let mut tx = pool.begin().await.unwrap();
+
+        let mut o1 = Outline::new();
+        o1.doc = r#"{ "text": "test1" }"#.to_string();
+        let o2 = Outline::new();
+        let o3 = Outline::new();
+        upsert_outline(&mut tx, &o1).await.unwrap();
+        upsert_outline(&mut tx, &o2).await.unwrap();
+        upsert_outline(&mut tx, &o3).await.unwrap();
+
+        o1.doc = r#"{ "text": "test2" }"#.to_string();
+        upsert_outline(&mut tx, &o1).await.unwrap();
+
+        // Is old index removed?
+        {
+            let r = sqlx::query_scalar!(
+                r#"
+                SELECT id 
+                FROM outlines o 
+                INNER JOIN fts ON o.rowid = fts.rowid 
+                WHERE fts MATCH 'test1';
+            "#
+            )
+            .fetch_all(&mut *tx)
+            .await
+            .unwrap();
+
+            assert_eq!(r.len(), 0);
+        }
+
+        // Is new document indexed?
+        {
+            let r = sqlx::query_scalar!(
+                r#"
+                SELECT id 
+                FROM outlines o 
+                INNER JOIN fts ON o.rowid = fts.rowid 
+                WHERE fts MATCH 'test2';
+            "#
+            )
+            .fetch_all(&mut *tx)
+            .await
+            .unwrap();
+
+            assert_eq!(r.len(), 1);
+        }
+
+        let mut links = Links::default();
+        links.insert(Link {
+            id: o2.id.clone(),
+            r#type: LinkType::Link,
+        });
+        links.insert(Link {
+            id: o3.id,
+            r#type: LinkType::Link,
+        });
+
+        o1.links = links.clone();
+        upsert_outline(&mut tx, &o1).await.unwrap();
+
+        // Is new links registared?
+        {
+            let r = outline_tree(&mut *tx, &o1.id).await.unwrap();
+            assert_eq!(r[0].links.len(), 2);
+        }
+
+        links.remove(&Link {
+            id: o2.id,
+            r#type: LinkType::Link,
+        });
+
+        o1.links = links.clone();
+        upsert_outline(&mut tx, &o1).await.unwrap();
+
+        // Is old link removed?
+        {
+            let r = outline_tree(&mut *tx, &o1.id).await.unwrap();
+            assert_eq!(r[0].links.len(), 1);
+        }
+    }
 
     #[tokio::test]
     async fn test_outline_tree() {
         let pool = open_connection_in_memory().await;
+        let mut tx = pool.begin().await.unwrap();
 
         let o1 = Outline::new();
         let o2 = o1.new_child();
         let o3 = o2.new_child();
 
-        upsert_outline(&pool, &o1).await.unwrap();
-        upsert_outline(&pool, &o2).await.unwrap();
-        upsert_outline(&pool, &o3).await.unwrap();
+        upsert_outline(&mut tx, &o1).await.unwrap();
+        upsert_outline(&mut tx, &o2).await.unwrap();
+        upsert_outline(&mut tx, &o3).await.unwrap();
 
-        let r = outline_tree(&pool, &o2.id).await.unwrap();
+        let r = outline_tree(&mut *tx, &o2.id).await.unwrap();
 
         assert_eq!(r.len(), 3);
     }
@@ -66,14 +226,15 @@ mod test {
         }
 
         let pool = open_connection_in_memory().await;
+        let mut tx = pool.begin().await.unwrap();
 
         let o1 = Outline::new();
         let o2 = o1.new_child();
         let o3 = o2.new_child();
 
-        upsert_outline(&pool, &o1).await.unwrap();
-        upsert_outline(&pool, &o2).await.unwrap();
-        upsert_outline(&pool, &o3).await.unwrap();
+        upsert_outline(&mut tx, &o1).await.unwrap();
+        upsert_outline(&mut tx, &o2).await.unwrap();
+        upsert_outline(&mut tx, &o3).await.unwrap();
 
         // initial path construction
         {
@@ -81,7 +242,7 @@ mod test {
                 QueryResult,
                 "SELECT id, path FROM outlines ORDER BY path ASC;"
             )
-            .fetch_all(&pool)
+            .fetch_all(&mut *tx)
             .await
             .unwrap();
 
@@ -101,12 +262,12 @@ mod test {
                 Option::<String>::None,
                 o2.id
             )
-            .execute(&pool)
+            .execute(&mut *tx)
             .await
             .unwrap();
 
             let r = sqlx::query_scalar!("SELECT path FROM outlines WHERE id = ?;", o2.id)
-                .fetch_one(&pool)
+                .fetch_one(&mut *tx)
                 .await
                 .unwrap();
 
@@ -116,14 +277,14 @@ mod test {
         // update parent_id to o4.id
         {
             let o4 = Outline::new();
-            upsert_outline(&pool, &o4).await.unwrap();
+            upsert_outline(&mut tx, &o4).await.unwrap();
 
             sqlx::query!(
                 "UPDATE outlines SET parent_id = ? WHERE id = ?;",
                 o4.id,
                 o2.id
             )
-            .execute(&pool)
+            .execute(&mut *tx)
             .await
             .unwrap();
 
@@ -132,7 +293,7 @@ mod test {
                 "SELECT id, path FROM outlines WHERE path LIKE ? || '%' ORDER BY path ASC;",
                 o4.id
             )
-            .fetch_all(&pool)
+            .fetch_all(&mut *tx)
             .await
             .unwrap();
 

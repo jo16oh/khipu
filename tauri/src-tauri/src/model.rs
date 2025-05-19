@@ -1,6 +1,6 @@
-use std::collections::HashSet;
+use std::{collections::HashSet, fmt::Display};
 
-use derive_more::derive::Deref;
+use derive_more::derive::{Deref, DerefMut};
 use serde::{Deserialize, Serialize};
 use sqlx::{Database, Decode, Sqlite, prelude::FromRow, sqlite::SqliteValueRef};
 
@@ -21,7 +21,7 @@ pub struct Outline {
     pub deleted: SqliteBool,
 }
 
-#[derive(Serialize, Deserialize, specta::Type, Deref, Default, Clone, Debug)]
+#[derive(Serialize, Deserialize, specta::Type, Deref, DerefMut, Default, Clone, Debug)]
 #[serde(rename_all = "camelCase")]
 #[serde(transparent)]
 pub struct Links(HashSet<Link>);
@@ -41,6 +41,17 @@ pub enum LinkType {
     Quote,
 }
 
+impl Display for LinkType {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        let str = match self {
+            Self::Tag => "tag".to_string(),
+            Self::Link => "link".to_string(),
+            Self::Quote => "quote".to_string(),
+        };
+        write!(f, "{}", str)
+    }
+}
+
 impl sqlx::Type<Sqlite> for Links {
     fn type_info() -> <Sqlite as Database>::TypeInfo {
         <&str as sqlx::Type<Sqlite>>::type_info()
@@ -52,6 +63,7 @@ impl<'r> Decode<'r, Sqlite> for Links {
         value: SqliteValueRef<'r>,
     ) -> Result<Self, Box<dyn std::error::Error + 'static + Send + Sync>> {
         let json = <&str as Decode<Sqlite>>::decode(value)?;
+        dbg!(json);
         let set: HashSet<Link> = serde_json::from_str::<Vec<Link>>(json)?
             .into_iter()
             .collect();
