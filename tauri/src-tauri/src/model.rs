@@ -1,8 +1,9 @@
-use std::{collections::HashSet, fmt::Display};
+use std::collections::HashSet;
 
 use derive_more::derive::{Deref, DerefMut};
 use serde::{Deserialize, Serialize};
-use sqlx::{Database, Decode, Sqlite, prelude::FromRow, sqlite::SqliteValueRef};
+use sqlx::{Database, Decode, Encode, Sqlite, prelude::FromRow, sqlite::SqliteValueRef};
+use strum::{Display, EnumString};
 
 use crate::util::SqliteBool;
 
@@ -12,6 +13,7 @@ pub struct Outline {
     pub id: String,
     pub parent_id: Option<String>,
     pub findex: String,
+    pub r#type: OutlineType,
     pub doc: String,
     pub links: Links,
     pub created_at: i64,
@@ -19,6 +21,40 @@ pub struct Outline {
     pub hidden: SqliteBool,
     pub collapsed: SqliteBool,
     pub deleted: SqliteBool,
+}
+
+#[derive(Serialize, Deserialize, specta::Type, Display, EnumString, Clone, Debug)]
+#[serde(rename_all = "camelCase")]
+#[strum(serialize_all = "lowercase")]
+pub enum OutlineType {
+    Heading,
+    Bullet,
+    Paragraph,
+}
+
+impl sqlx::Type<Sqlite> for OutlineType {
+    fn type_info() -> <Sqlite as Database>::TypeInfo {
+        <&str as sqlx::Type<Sqlite>>::type_info()
+    }
+}
+
+impl<'r> Decode<'r, Sqlite> for OutlineType {
+    fn decode(
+        value: SqliteValueRef<'r>,
+    ) -> Result<Self, Box<dyn std::error::Error + 'static + Send + Sync>> {
+        let str = <&str as Decode<Sqlite>>::decode(value)?;
+        OutlineType::try_from(str).map_err(|e| e.into())
+    }
+}
+
+impl<'r> Encode<'r, Sqlite> for OutlineType {
+    fn encode_by_ref(
+        &self,
+        buf: &mut <Sqlite as Database>::ArgumentBuffer<'r>,
+    ) -> Result<sqlx::encode::IsNull, sqlx::error::BoxDynError> {
+        let string: String = self.to_string();
+        <String as Encode<Sqlite>>::encode(string, buf)
+    }
 }
 
 #[derive(Serialize, Deserialize, specta::Type, Deref, DerefMut, Default, Clone, Debug)]
@@ -33,23 +69,13 @@ pub struct Link {
     pub r#type: LinkType,
 }
 
-#[derive(Serialize, Deserialize, specta::Type, PartialEq, Eq, Hash, Clone, Debug)]
+#[derive(Serialize, Deserialize, specta::Type, Display, PartialEq, Eq, Hash, Clone, Debug)]
 #[serde(rename_all = "camelCase")]
+#[strum(serialize_all = "lowercase")]
 pub enum LinkType {
     Tag,
     Link,
     Quote,
-}
-
-impl Display for LinkType {
-    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        let str = match self {
-            Self::Tag => "tag".to_string(),
-            Self::Link => "link".to_string(),
-            Self::Quote => "quote".to_string(),
-        };
-        write!(f, "{}", str)
-    }
 }
 
 impl sqlx::Type<Sqlite> for Links {
@@ -85,6 +111,7 @@ impl Outline {
             id: uuidv7bs58(),
             parent_id: None,
             findex: String::new(),
+            r#type: OutlineType::Bullet,
             doc: SAMPLE_DOC.to_string(),
             links: Links::default(),
             created_at: now,
@@ -102,6 +129,7 @@ impl Outline {
             id: uuidv7bs58(),
             parent_id: Some(self.id.clone()),
             findex: String::new(),
+            r#type: OutlineType::Bullet,
             doc: SAMPLE_DOC.to_string(),
             links: Links::default(),
             created_at: now,

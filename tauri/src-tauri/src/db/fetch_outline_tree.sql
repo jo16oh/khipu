@@ -4,6 +4,7 @@ WITH RECURSIVE
       parent.id,
       parent.parent_id,
       parent.findex,
+      parent.type,
       parent.doc,
       parent.created_at,
       parent.updated_at,
@@ -21,6 +22,7 @@ WITH RECURSIVE
       parent.id,
       parent.parent_id,
       parent.findex,
+      parent.type,
       parent.doc,
       parent.created_at,
       parent.updated_at,
@@ -34,15 +36,16 @@ WITH RECURSIVE
   ),
   tree AS (
     SELECT
-      id,
-      parent_id,
-      findex,
-      doc,
-      created_at,
-      updated_at,
-      hidden,
-      collapsed,
-      deleted
+      o.id,
+      o.parent_id,
+      o.findex,
+      o.type,
+      o.doc,
+      o.created_at,
+      o.updated_at,
+      o.hidden,
+      o.collapsed,
+      o.deleted
     FROM
       outlines o
     WHERE
@@ -53,6 +56,7 @@ WITH RECURSIVE
       child.id,
       child.parent_id,
       child.findex,
+      child.type,
       child.doc,
       child.created_at,
       child.updated_at,
@@ -73,6 +77,7 @@ WITH RECURSIVE
       `to`.id,
       `to`.parent_id,
       `to`.findex,
+      `to`.type,
       `to`.doc,
       `to`.created_at,
       `to`.updated_at,
@@ -89,6 +94,7 @@ WITH RECURSIVE
       parent.id,
       parent.parent_id,
       parent.findex,
+      parent.type,
       parent.doc,
       parent.created_at,
       parent.updated_at,
@@ -103,15 +109,16 @@ WITH RECURSIVE
       AND l.type = "tag"
   )
 SELECT
-  id,
-  parent_id,
-  findex,
-  doc,
-  created_at,
-  updated_at,
-  hidden,
-  collapsed,
-  deleted,
+  o.id,
+  o.parent_id,
+  o.findex,
+  o.type,
+  o.doc,
+  o.created_at,
+  o.updated_at,
+  o.hidden,
+  o.collapsed,
+  o.deleted,
   json_group_array(
     json_object('id', links.id_to, 'type', links.type)
   ) FILTER (
@@ -125,15 +132,16 @@ GROUP BY
   (id)
 UNION ALL
 SELECT
-  id,
-  parent_id,
-  findex,
-  doc,
-  created_at,
-  updated_at,
-  hidden,
-  collapsed,
-  deleted,
+  o.id,
+  o.parent_id,
+  o.findex,
+  o.type,
+  o.doc,
+  o.created_at,
+  o.updated_at,
+  o.hidden,
+  o.collapsed,
+  o.deleted,
   json_group_array(
     json_object('id', links.id_to, 'type', links.type)
   ) FILTER (
@@ -147,15 +155,16 @@ GROUP BY
   (id)
 UNION ALL
 SELECT
-  id,
-  parent_id,
-  findex,
-  doc,
-  created_at,
-  updated_at,
-  hidden,
-  collapsed,
-  deleted,
+  o.id,
+  o.parent_id,
+  o.findex,
+  o.type,
+  o.doc,
+  o.created_at,
+  o.updated_at,
+  o.hidden,
+  o.collapsed,
+  o.deleted,
   json_group_array(
     json_object('id', links.id_to, 'type', links.type)
   ) FILTER (
