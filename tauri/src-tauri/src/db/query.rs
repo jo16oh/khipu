@@ -53,48 +53,7 @@ pub async fn timeline<'a>(
 }
 
 pub async fn upsert_outline(tx: &mut SqliteTransaction<'_>, outline: &Outline) -> eyre::Result<()> {
-
-pub async fn delete_outline(tx: &mut SqliteTransaction<'_>, outline_id: &str) -> eyre::Result<()> {
-    delete_fts_index(tx, outline_id).await?;
-
-    sqlx::query_file_scalar!("src/db/delete_outline.sql", outline_id)
-        .fetch_one(&mut **tx)
-        .await?;
-
-    eyre::Ok(())
-}
-
-    #[derive(Deserialize)]
-    struct Res {
-        rowid: i64,
-        doc: String,
-    }
-
-    // delete index of old document
-    if let Some(res) =
-        sqlx::query_file_as!(Res, "src/db/fetch_outline_rowid_and_doc.sql", outline.id)
-            .fetch_optional(&mut **tx)
-            .await?
-    {
-        let text = extract_text_from_doc(&res.doc)?;
-        sqlx::query_file!("src/db/delete_fts_index.sql", res.rowid, text)
-            .execute(&mut **tx)
-            .await?;
-    }
-
-    let old_links =
-        sqlx::query_file_scalar_unchecked!("src/db/fetch_outline_links.sql", outline.id)
-            .fetch_optional(&mut **tx)
-            .await?
-            .map(|json| serde_json::from_str::<Links>(&json))
-            .transpose()?
-            .unwrap_or(Links::default());
-
-    for l in old_links.difference(&outline.links) {
-        sqlx::query_file!("src/db/delete_outline_link.sql", outline.id, l.id)
-            .execute(&mut **tx)
-            .await?;
-    }
+    delete_fts_index(tx, &outline.id).await?;
 
     let rowid = sqlx::query_file_scalar!(
         "src/db/upsert_outline.sql",
@@ -111,11 +70,72 @@ pub async fn delete_outline(tx: &mut SqliteTransaction<'_>, outline_id: &str) ->
     .fetch_one(&mut **tx)
     .await?;
 
-    let text = extract_text_from_doc(&outline.doc)?;
+    insert_fts_index(tx, rowid, &outline.doc).await?;
+    sync_outline_links(tx, outline).await?;
+
+    eyre::Ok(())
+}
+
+pub async fn delete_outline(tx: &mut SqliteTransaction<'_>, outline_id: &str) -> eyre::Result<()> {
+    delete_fts_index(tx, outline_id).await?;
+
+    sqlx::query_file_scalar!("src/db/delete_outline.sql", outline_id)
+        .fetch_one(&mut **tx)
+        .await?;
+
+    eyre::Ok(())
+}
+
+async fn delete_fts_index(tx: &mut SqliteTransaction<'_>, outline_id: &str) -> eyre::Result<()> {
+    #[derive(Deserialize)]
+    struct Res {
+        rowid: i64,
+        doc: String,
+    }
+
+    // delete index of old document
+    if let Some(res) =
+        sqlx::query_file_as!(Res, "src/db/fetch_outline_rowid_and_doc.sql", outline_id)
+            .fetch_optional(&mut **tx)
+            .await?
+    {
+        let text = extract_text_from_doc(&res.doc)?;
+        sqlx::query_file!("src/db/delete_fts_index.sql", res.rowid, text)
+            .execute(&mut **tx)
+            .await?;
+    }
+
+    eyre::Ok(())
+}
+
+async fn insert_fts_index(
+    tx: &mut SqliteTransaction<'_>,
+    rowid: i64,
+    doc: &str,
+) -> eyre::Result<()> {
+    let text = extract_text_from_doc(doc)?;
 
     sqlx::query_file_scalar!("src/db/insert_fts_index.sql", rowid, text)
         .execute(&mut **tx)
         .await?;
+
+    eyre::Ok(())
+}
+
+async fn sync_outline_links(tx: &mut SqliteTransaction<'_>, outline: &Outline) -> eyre::Result<()> {
+    let old_links =
+        sqlx::query_file_scalar_unchecked!("src/db/fetch_outline_links.sql", outline.id)
+            .fetch_optional(&mut **tx)
+            .await?
+            .map(|json| serde_json::from_str::<Links>(&json))
+            .transpose()?
+            .unwrap_or(Links::default());
+
+    for l in old_links.difference(&outline.links) {
+        sqlx::query_file!("src/db/delete_outline_link.sql", outline.id, l.id)
+            .execute(&mut **tx)
+            .await?;
+    }
 
     for l in outline.links.difference(&old_links) {
         let link_type = l.r#type.to_string();
@@ -161,10 +181,27 @@ mod test {
     use crate::{
         db::test::open_connection_in_memory,
         model::{Link, LinkType},
+        util::SqliteBool,
     };
 
     #[tokio::test]
-    async fn test() {
+    async fn test_outline_tree() {
+        let pool = open_connection_in_memory().await;
+        let mut tx = pool.begin().await.unwrap();
+
+        let o1 = Outline::new();
+        let o2 = o1.new_child();
+        let o3 = o2.new_child();
+
+        upsert_outline(&mut tx, &o1).await.unwrap();
+        upsert_outline(&mut tx, &o2).await.unwrap();
+        upsert_outline(&mut tx, &o3).await.unwrap();
+
+        let r = outline_tree(&mut *tx, &o2.id).await.unwrap();
+
+        assert_eq!(r.len(), 3);
+    }
+
     #[tokio::test]
     async fn test_timeline() {
         let pool = open_connection_in_memory().await;
@@ -191,6 +228,11 @@ mod test {
         assert_eq!(r.len(), 5);
     }
 
+    #[tokio::test]
+    async fn test_upsert_outline() {
+        let pool = open_connection_in_memory().await;
+        let mut tx = pool.begin().await.unwrap();
+
         let mut o1 = Outline::new();
         o1.doc = r#"{ "text": "test1" }"#.to_string();
         let o2 = Outline::new();
@@ -206,11 +248,11 @@ mod test {
         {
             let r = sqlx::query_scalar!(
                 r#"
-                SELECT id 
-                FROM outlines o 
-                INNER JOIN fts ON o.rowid = fts.rowid 
-                WHERE fts MATCH 'test1';
-            "#
+                    SELECT id 
+                    FROM outlines o 
+                    INNER JOIN fts ON o.rowid = fts.rowid 
+                    WHERE fts MATCH 'test1';
+                "#
             )
             .fetch_all(&mut *tx)
             .await
@@ -223,11 +265,11 @@ mod test {
         {
             let r = sqlx::query_scalar!(
                 r#"
-                SELECT id 
-                FROM outlines o 
-                INNER JOIN fts ON o.rowid = fts.rowid 
-                WHERE fts MATCH 'test2';
-            "#
+                    SELECT id 
+                    FROM outlines o 
+                    INNER JOIN fts ON o.rowid = fts.rowid 
+                    WHERE fts MATCH 'test2';
+                "#
             )
             .fetch_all(&mut *tx)
             .await
@@ -268,24 +310,6 @@ mod test {
             let r = outline_tree(&mut *tx, &o1.id).await.unwrap();
             assert_eq!(r[0].links.len(), 1);
         }
-    }
-
-    #[tokio::test]
-    async fn test_outline_tree() {
-        let pool = open_connection_in_memory().await;
-        let mut tx = pool.begin().await.unwrap();
-
-        let o1 = Outline::new();
-        let o2 = o1.new_child();
-        let o3 = o2.new_child();
-
-        upsert_outline(&mut tx, &o1).await.unwrap();
-        upsert_outline(&mut tx, &o2).await.unwrap();
-        upsert_outline(&mut tx, &o3).await.unwrap();
-
-        let r = outline_tree(&mut *tx, &o2.id).await.unwrap();
-
-        assert_eq!(r.len(), 3);
     }
 
     #[tokio::test]
