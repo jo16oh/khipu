@@ -53,6 +53,17 @@ pub async fn timeline<'a>(
 }
 
 pub async fn upsert_outline(tx: &mut SqliteTransaction<'_>, outline: &Outline) -> eyre::Result<()> {
+
+pub async fn delete_outline(tx: &mut SqliteTransaction<'_>, outline_id: &str) -> eyre::Result<()> {
+    delete_fts_index(tx, outline_id).await?;
+
+    sqlx::query_file_scalar!("src/db/delete_outline.sql", outline_id)
+        .fetch_one(&mut **tx)
+        .await?;
+
+    eyre::Ok(())
+}
+
     #[derive(Deserialize)]
     struct Res {
         rowid: i64,
