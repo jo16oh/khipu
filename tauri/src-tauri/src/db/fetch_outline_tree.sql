@@ -80,8 +80,7 @@ WITH RECURSIVE
       `to`.collapsed,
       `to`.deleted
     FROM
-      outlines `from`
-      INNER JOIN tree ON tree.id = `from`.id
+      tree `from`
       INNER JOIN outline_links links ON links.id_from = `from`.id
       INNER JOIN outlines `to` ON links.id_to = `to`.id
       AND `to`.deleted = false
