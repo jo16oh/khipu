@@ -63,7 +63,6 @@ impl<'r> Decode<'r, Sqlite> for Links {
         value: SqliteValueRef<'r>,
     ) -> Result<Self, Box<dyn std::error::Error + 'static + Send + Sync>> {
         let json = <&str as Decode<Sqlite>>::decode(value)?;
-        dbg!(json);
         let set: HashSet<Link> = serde_json::from_str::<Vec<Link>>(json)?
             .into_iter()
             .collect();
@@ -72,7 +71,7 @@ impl<'r> Decode<'r, Sqlite> for Links {
 }
 
 #[cfg(test)]
-use chrono::Local;
+use chrono::Utc;
 
 #[cfg(test)]
 use crate::util::uuidv7bs58;
@@ -80,14 +79,16 @@ use crate::util::uuidv7bs58;
 #[cfg(test)]
 impl Outline {
     pub fn new() -> Self {
+        let now = Utc::now().timestamp_millis();
+
         Outline {
             id: uuidv7bs58(),
             parent_id: None,
             findex: String::new(),
             doc: SAMPLE_DOC.to_string(),
             links: Links::default(),
-            created_at: Local::now().timestamp_millis(),
-            updated_at: Local::now().timestamp_millis(),
+            created_at: now,
+            updated_at: now,
             hidden: SqliteBool(false),
             collapsed: SqliteBool(false),
             deleted: SqliteBool(false),
@@ -95,18 +96,52 @@ impl Outline {
     }
 
     pub fn new_child(&self) -> Self {
+        let now = Utc::now().timestamp_millis();
+
         Outline {
             id: uuidv7bs58(),
             parent_id: Some(self.id.clone()),
             findex: String::new(),
             doc: SAMPLE_DOC.to_string(),
             links: Links::default(),
-            created_at: Local::now().timestamp_millis(),
-            updated_at: Local::now().timestamp_millis(),
+            created_at: now,
+            updated_at: now,
             hidden: SqliteBool(false),
             collapsed: SqliteBool(false),
             deleted: SqliteBool(false),
         }
+    }
+
+    pub fn create_tree(width: u8, depth: u8) -> Vec<Outline> {
+        let mut buf: Vec<Outline> = Vec::new();
+
+        let root = Outline::new();
+        buf.push(root.clone());
+
+        fn create_tree_impl(
+            buf: &mut Vec<Outline>,
+            parents: Vec<Outline>,
+            width: u8,
+            max_depth: u8,
+            current_depth: u8,
+        ) {
+            if current_depth < max_depth {
+                let children: Vec<Outline> = parents
+                    .iter()
+                    .flat_map(|parent| (0..width).map(|_| parent.new_child()))
+                    .collect();
+
+                for c in children.iter() {
+                    buf.push(c.clone())
+                }
+
+                create_tree_impl(buf, children, width, max_depth, current_depth + 1);
+            }
+        }
+
+        create_tree_impl(&mut buf, vec![root], width, depth, 1);
+
+        buf
     }
 }
 

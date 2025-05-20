@@ -2,8 +2,17 @@ use crate::{
     model::{Links, Outline},
     util::{extract_text_from_doc, uuidv7bs58},
 };
-use serde::Deserialize;
+use chrono::{DateTime, Duration, Utc};
+use eyre::OptionExt;
+use serde::{Deserialize, Serialize};
 use sqlx::{SqliteExecutor, SqliteTransaction};
+
+#[derive(Serialize, Deserialize, specta::Type, Clone, Debug)]
+#[serde(rename_all = "camelCase")]
+pub enum TimelineOption {
+    CreatedAt,
+    UpdatedAt,
+}
 
 pub async fn outline_tree<'a>(
     conn: impl SqliteExecutor<'a>,
@@ -13,6 +22,34 @@ pub async fn outline_tree<'a>(
         .fetch_all(conn)
         .await
         .map_err(eyre::Error::from)
+}
+
+pub async fn timeline<'a>(
+    conn: impl SqliteExecutor<'a>,
+    day_start: i64,
+    opt: TimelineOption,
+) -> eyre::Result<Vec<Outline>> {
+    let day_end = (DateTime::<Utc>::from_timestamp_millis(day_start)
+        .ok_or_eyre("invaild timestamp")?
+        + Duration::days(1))
+    .timestamp_millis();
+
+    let (created_at_start, created_at_end, updated_at_start, updated_at_end) = match opt {
+        TimelineOption::CreatedAt => (Some(day_start), Some(day_end), None, None),
+        TimelineOption::UpdatedAt => (None, None, Some(day_start), Some(day_end)),
+    };
+
+    sqlx::query_file_as_unchecked!(
+        Outline,
+        "src/db/fetch_timeline.sql",
+        created_at_start,
+        created_at_end,
+        updated_at_start,
+        updated_at_end
+    )
+    .fetch_all(conn)
+    .await
+    .map_err(eyre::Error::from)
 }
 
 pub async fn upsert_outline(tx: &mut SqliteTransaction<'_>, outline: &Outline) -> eyre::Result<()> {
@@ -117,8 +154,31 @@ mod test {
 
     #[tokio::test]
     async fn test() {
+    #[tokio::test]
+    async fn test_timeline() {
         let pool = open_connection_in_memory().await;
         let mut tx = pool.begin().await.unwrap();
+
+        let mut tree = Outline::create_tree(2, 3);
+        tree[1].updated_at = (Utc::now() - Duration::days(1)).timestamp_millis();
+        tree[2].collapsed = SqliteBool(true);
+
+        for o in tree {
+            upsert_outline(&mut tx, &o).await.unwrap();
+        }
+
+        tx.commit().await.unwrap();
+
+        let r = timeline(
+            &pool,
+            (Utc::now() - Duration::minutes(1)).timestamp_millis(),
+            TimelineOption::UpdatedAt,
+        )
+        .await
+        .unwrap();
+
+        assert_eq!(r.len(), 5);
+    }
 
         let mut o1 = Outline::new();
         o1.doc = r#"{ "text": "test1" }"#.to_string();
