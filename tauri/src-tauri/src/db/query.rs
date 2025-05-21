@@ -14,6 +14,16 @@ pub enum TimelineOption {
     UpdatedAt,
 }
 
+pub async fn fetch_forwardlinks<'a>(
+    conn: impl SqliteExecutor<'a>,
+    id: &str,
+) -> eyre::Result<Vec<Outline>> {
+    sqlx::query_file_as_unchecked!(Outline, "src/db/fetch_forwardlinks.sql", id)
+        .fetch_all(conn)
+        .await
+        .map_err(eyre::Error::from)
+}
+
 pub async fn fetch_backlinks<'a>(
     conn: impl SqliteExecutor<'a>,
     id: &str,
@@ -237,6 +247,52 @@ mod test {
         .unwrap();
 
         assert_eq!(r.len(), 5);
+    }
+
+    #[tokio::test]
+    async fn test_fetch_forwardlinks() {
+        let pool = open_connection_in_memory().await;
+        let mut tx = pool.begin().await.unwrap();
+
+        let mut o1 = Outline::new();
+        o1.r#type = OutlineType::Heading;
+        let mut o2 = Outline::new();
+        o2.r#type = OutlineType::Heading;
+        let mut o3 = Outline::new();
+        o3.r#type = OutlineType::Heading;
+        o3.parent_id = Some(o1.id.clone());
+        upsert_outline(&mut tx, &o1).await.unwrap();
+        upsert_outline(&mut tx, &o2).await.unwrap();
+        upsert_outline(&mut tx, &o3).await.unwrap();
+
+        let mut t1 = Outline::create_tree(2, 3);
+        t1[0].r#type = OutlineType::Heading;
+        t1[1].links.insert(Link {
+            id: o1.id.clone(),
+            r#type: LinkType::Link,
+        });
+        t1[2].links.insert(Link {
+            id: o2.id.clone(),
+            r#type: LinkType::Link,
+        });
+        t1[3].links.insert(Link {
+            id: o3.id.clone(),
+            r#type: LinkType::Link,
+        });
+
+        for o in t1.iter() {
+            upsert_outline(&mut tx, o).await.unwrap();
+        }
+
+        tx.commit().await.unwrap();
+
+        let r = fetch_forwardlinks(&pool, &t1[0].id).await.unwrap();
+
+        // forwardlinks in the same tree should be grouped together
+        assert_eq!(r.len(), 2);
+        // results should be ordered by the order of appearance in the tree
+        assert_eq!(r[0].id, o1.id);
+        assert_eq!(r[1].id, o2.id);
     }
 
     #[tokio::test]
