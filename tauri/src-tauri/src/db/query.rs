@@ -14,6 +14,16 @@ pub enum TimelineOption {
     UpdatedAt,
 }
 
+pub async fn fetch_backlinks<'a>(
+    conn: impl SqliteExecutor<'a>,
+    id: &str,
+) -> eyre::Result<Vec<Outline>> {
+    sqlx::query_file_as_unchecked!(Outline, "src/db/fetch_backlinks.sql", id, id)
+        .fetch_all(conn)
+        .await
+        .map_err(eyre::Error::from)
+}
+
 pub async fn outline_tree<'a>(
     conn: impl SqliteExecutor<'a>,
     id: &str,
@@ -181,7 +191,7 @@ mod test {
     use super::*;
     use crate::{
         db::test::open_connection_in_memory,
-        model::{Link, LinkType},
+        model::{Link, LinkType, OutlineType},
         util::SqliteBool,
     };
 
@@ -227,6 +237,52 @@ mod test {
         .unwrap();
 
         assert_eq!(r.len(), 5);
+    }
+
+    #[tokio::test]
+    async fn test_fetch_backlinks() {
+        let pool = open_connection_in_memory().await;
+        let mut tx = pool.begin().await.unwrap();
+
+        let o = Outline::new();
+        upsert_outline(&mut tx, &o).await.unwrap();
+
+        let mut t1 = Outline::create_tree(1, 4);
+        t1[0].r#type = OutlineType::Heading;
+        t1[1].links.insert(Link {
+            id: o.id.clone(),
+            r#type: LinkType::Link,
+        });
+        t1[2].r#type = OutlineType::Heading;
+        t1[3].links.insert(Link {
+            id: o.id.clone(),
+            r#type: LinkType::Link,
+        });
+
+        for o in t1.iter() {
+            upsert_outline(&mut tx, o).await.unwrap();
+        }
+
+        let mut t2 = Outline::create_tree(1, 4);
+        t2[0].r#type = OutlineType::Heading;
+        t2[3].links.insert(Link {
+            id: o.id.clone(),
+            r#type: LinkType::Link,
+        });
+
+        for o in t2.iter() {
+            upsert_outline(&mut tx, o).await.unwrap();
+        }
+
+        tx.commit().await.unwrap();
+
+        let r = fetch_backlinks(&pool, &o.id).await.unwrap();
+
+        // backlinks in the same tree should be grouped together
+        assert_eq!(r.len(), 2);
+        // results should be ordered by the number of same links contained in the tree
+        assert_eq!(r[0].id, t1[0].id);
+        assert_eq!(r[1].id, t2[0].id);
     }
 
     #[tokio::test]
