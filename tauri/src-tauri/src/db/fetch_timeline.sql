@@ -1,17 +1,7 @@
 WITH RECURSIVE
   tree AS (
     SELECT
-      id,
-      parent_id,
-      findex,
-      type,
-      doc,
-      created_at,
-      updated_at,
-      hidden,
-      collapsed,
-      deleted,
-      path
+      *
     FROM
       outlines
     WHERE
@@ -22,17 +12,7 @@ WITH RECURSIVE
       AND deleted = false
     UNION ALL
     SELECT
-      parent.id,
-      parent.parent_id,
-      parent.findex,
-      parent.type,
-      parent.doc,
-      parent.created_at,
-      parent.updated_at,
-      parent.hidden,
-      parent.collapsed,
-      parent.deleted,
-      parent.path
+      parent.*
     FROM
       outlines parent
       INNER JOIN tree child ON parent.parent_id = child.id
@@ -109,16 +89,7 @@ GROUP BY
   (id)
 UNION ALL
 SELECT
-  o.id,
-  o.parent_id,
-  o.findex,
-  o.type,
-  o.doc,
-  o.created_at,
-  o.updated_at,
-  o.hidden,
-  o.collapsed,
-  o.deleted,
+  o.*,
   json_group_array(
     json_object('id', links.id_to, 'type', links.type)
   ) FILTER (

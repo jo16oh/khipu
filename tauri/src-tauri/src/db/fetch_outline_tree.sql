@@ -109,16 +109,7 @@ WITH RECURSIVE
       AND l.type = "tag"
   )
 SELECT
-  o.id,
-  o.parent_id,
-  o.findex,
-  o.type,
-  o.doc,
-  o.created_at,
-  o.updated_at,
-  o.hidden,
-  o.collapsed,
-  o.deleted,
+  o.*,
   json_group_array(
     json_object('id', links.id_to, 'type', links.type)
   ) FILTER (
@@ -132,16 +123,7 @@ GROUP BY
   (id)
 UNION ALL
 SELECT
-  o.id,
-  o.parent_id,
-  o.findex,
-  o.type,
-  o.doc,
-  o.created_at,
-  o.updated_at,
-  o.hidden,
-  o.collapsed,
-  o.deleted,
+  o.*,
   json_group_array(
     json_object('id', links.id_to, 'type', links.type)
   ) FILTER (
@@ -155,16 +137,7 @@ GROUP BY
   (id)
 UNION ALL
 SELECT
-  o.id,
-  o.parent_id,
-  o.findex,
-  o.type,
-  o.doc,
-  o.created_at,
-  o.updated_at,
-  o.hidden,
-  o.collapsed,
-  o.deleted,
+  o.*,
   json_group_array(
     json_object('id', links.id_to, 'type', links.type)
   ) FILTER (
