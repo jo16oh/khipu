@@ -25,6 +25,62 @@ pub enum TimelinePosition {
     Latest,
 }
 
+impl TimelinePosition {
+    fn into_query_params(self) -> (&'static str, i64) {
+        match self {
+            Self::Latest => ("before", Utc::now().timestamp_millis()),
+            Self::Before(ts) => ("before", ts),
+            Self::After(ts) => ("after", ts),
+        }
+    }
+}
+
+pub async fn timeline<'a>(
+    conn: impl SqliteExecutor<'a> + Send + Copy,
+    position: TimelinePosition,
+    opt: TimelineOption,
+) -> eyre::Result<Vec<Outline>> {
+    let opt = opt.to_string();
+
+    let day_start = {
+        let (pos, ts) = position.into_query_params();
+        sqlx::query_file_scalar!("src/db/fetch_latest_timestamp.sql", pos, ts, opt)
+            .fetch_one(conn)
+            .await
+            .map(day_start)?
+    };
+
+    sqlx::query_file_as_unchecked!(Outline, "src/db/fetch_timeline.sql", day_start, opt)
+        .fetch_all(conn)
+        .await
+        .map_err(eyre::Error::from)
+}
+
+pub async fn search<'a>(
+    conn: impl SqliteExecutor<'a> + Send + Copy,
+    query: &str,
+    position: TimelinePosition,
+    opt: TimelineOption,
+) -> eyre::Result<Vec<Outline>> {
+    let sql = query_parser::parse_query(query)?.into_sql();
+    let opt = opt.to_string();
+
+    let day_start = {
+        let (pos, ts) = position.into_query_params();
+        sqlx::query_file_scalar!("src/db/fetch_latest_timestamp.sql", pos, ts, opt)
+            .fetch_one(conn)
+            .await
+            .map(day_start)?
+    };
+
+    sqlx::query_as::<_, Outline>(&sql)
+        .bind(day_start)
+        .bind(opt)
+        .fetch_all(conn)
+        .await
+        .map_err(eyre::Error::from)
+}
+
 pub async fn fetch_forwardlinks<'a>(
     conn: impl SqliteExecutor<'a>,
     id: &str,
@@ -50,39 +106,6 @@ pub async fn outline_tree<'a>(
     id: &str,
 ) -> eyre::Result<Vec<Outline>> {
     sqlx::query_file_as_unchecked!(Outline, "src/db/fetch_outline_tree.sql", id, id, id)
-        .fetch_all(conn)
-        .await
-        .map_err(eyre::Error::from)
-}
-
-pub async fn timeline<'a>(
-    conn: impl SqliteExecutor<'a> + Send + Copy,
-    position: TimelinePosition,
-    opt: TimelineOption,
-) -> eyre::Result<Vec<Outline>> {
-    let opt = opt.to_string();
-
-    let day_start = match position {
-        TimelinePosition::Latest => {
-            let now = Utc::now().timestamp_millis();
-            sqlx::query_file_scalar!("src/db/fetch_latest_timestamp.sql", "before", now, opt)
-                .fetch_one(conn)
-                .await
-        }
-        TimelinePosition::Before(ts) => {
-            sqlx::query_file_scalar!("src/db/fetch_latest_timestamp.sql", "before", ts, opt)
-                .fetch_one(conn)
-                .await
-        }
-        TimelinePosition::After(ts) => {
-            sqlx::query_file_scalar!("src/db/fetch_latest_timestamp.sql", "after", ts, opt)
-                .fetch_one(conn)
-                .await
-        }
-    }
-    .map(day_start)?;
-
-    sqlx::query_file_as_unchecked!(Outline, "src/db/fetch_timeline.sql", day_start, opt)
         .fetch_all(conn)
         .await
         .map_err(eyre::Error::from)
