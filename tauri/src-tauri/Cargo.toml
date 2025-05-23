@@ -46,3 +46,4 @@ uuid = { version = "1", features = ["v7"] }
 chrono = { version = "0.4", features = ["serde"] }
 base64 = "0.22"
 bs58 = "0.5"
+combine = "4.6.7"

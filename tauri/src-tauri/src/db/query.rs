@@ -7,6 +7,8 @@ use serde::{Deserialize, Serialize};
 use sqlx::{SqliteExecutor, SqliteTransaction};
 use strum::{Display, EnumString};
 
+mod query_parser;
+
 #[derive(Serialize, Deserialize, specta::Type, Display, EnumString, Clone, Debug)]
 #[serde(rename_all = "camelCase")]
 #[strum(serialize_all = "snake_case")]
