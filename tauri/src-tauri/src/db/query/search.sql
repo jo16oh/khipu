@@ -1,5 +1,5 @@
 WITH RECURSIVE
-  tree AS (
+  matches_in_range AS (
     SELECT
       o.*
     FROM
@@ -13,12 +13,59 @@ WITH RECURSIVE
         ELSE false
       END
       AND deleted = false
+  ),
+  root_ids AS (
+    SELECT DISTINCT
+      CASE
+        WHEN parent_id IS NULL THEN id
+        ELSE substr(path, 1, instr(path, "/") - 1)
+      END AS 'id'
+    FROM
+      matches_in_range
+    WHERE
+      path NOT IN ($ex)
+  ),
+  matches AS (
+    SELECT
+      o.id,
+      o.parent_id,
+      o.findex,
+      o.type,
+      o.doc,
+      o.created_at,
+      o.updated_at,
+      o.hidden,
+      o.collapsed,
+      o.deleted
+    FROM
+      outlines o
+      INNER JOIN fts ON o.rowid = fts.rowid
+    WHERE
+      fts MATCH $q
+      AND EXISTS (
+        SELECT
+          1
+        FROM
+          root_ids
+        WHERE
+          o.path LIKE root_ids.id || "%"
+      )
+      AND o.deleted = false
     UNION ALL
     SELECT
-      parent.*
+      parent.id,
+      parent.parent_id,
+      parent.findex,
+      parent.type,
+      parent.doc,
+      parent.created_at,
+      parent.updated_at,
+      parent.hidden,
+      parent.collapsed,
+      parent.deleted
     FROM
       outlines parent
-      INNER JOIN tree child ON parent.parent_id = child.id
+      INNER JOIN matches ON parent.id = matches.parent_id
     WHERE
       parent.deleted = false
   ),
@@ -35,7 +82,7 @@ WITH RECURSIVE
       `to`.collapsed,
       `to`.deleted
     FROM
-      tree `from`
+      matches `from`
       INNER JOIN outline_links links ON links.id_from = `from`.id
       INNER JOIN outlines `to` ON links.id_to = `to`.id
       AND `to`.deleted = false
@@ -59,16 +106,7 @@ WITH RECURSIVE
       AND l.type = "tag"
   )
 SELECT
-  o.id,
-  o.parent_id,
-  o.findex,
-  o.type,
-  o.doc,
-  o.created_at,
-  o.updated_at,
-  o.hidden,
-  o.collapsed,
-  o.deleted,
+  o.*,
   json_group_array(
     json_object('id', links.id_to, 'type', links.type)
   ) FILTER (
@@ -76,21 +114,11 @@ SELECT
       links.id_to IS NOT NULL
   ) AS links
 FROM
-  tree o
+  matches o
   LEFT JOIN outline_links links ON links.id_from = o.id
-WHERE
-  NOT EXISTS (
-    SELECT
-      1
-    FROM
-      tree
-    WHERE
-      o.path LIKE tree.path || '/%'
-      AND tree.collapsed = true
-  )
 GROUP BY
   (id)
-UNION ALL
+UNION
 SELECT
   o.*,
   json_group_array(

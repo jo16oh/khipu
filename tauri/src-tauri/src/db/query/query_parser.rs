@@ -1,6 +1,7 @@
 use combine::parser::char::{char, spaces, string};
 use combine::stream::Stream;
 use combine::{Parser, attempt, between, choice, many, many1, parser, satisfy, sep_by};
+use itertools::Itertools;
 
 #[derive(Debug, PartialEq, Clone)]
 pub enum Query {
@@ -167,7 +168,7 @@ impl Query {
         buf
     }
 
-    pub fn into_sql(self) -> String {
+    pub fn into_sql(self, exclude_ids: &[String]) -> String {
         let flatten_query_items = self
             .flatten()
             .into_iter()
@@ -233,47 +234,26 @@ impl Query {
             result
         };
 
-        SQL.replace("$q", &fts_match_expr)
+        let excludes = exclude_ids.iter().map(|id| format!("'{}'", id)).join(", ");
+
+        SQL.replace("$q", &fts_match_expr).replace("$ex", &excludes)
     }
 }
 
 #[cfg(test)]
 mod test {
-    use chrono::Utc;
-
-    use crate::{
-        db::{query::upsert_outline, test::open_connection_in_memory},
-        model::Outline,
-    };
-
     use super::*;
+    use crate::db::test::open_connection_in_memory;
+    use chrono::Utc;
 
     #[tokio::test]
     async fn test_query_to_sql() {
         let pool = open_connection_in_memory().await;
-        let mut tx = pool.begin().await.unwrap();
         let now = Utc::now().timestamp_millis();
-
-        let mut o = Outline::new();
-        o.doc = r#"{ "text": "終わりで草" }"#.to_string();
-        upsert_outline(&mut tx, &o).await.unwrap();
-        tx.commit().await.unwrap();
-
-        let input = r#"(終わり AND 草) OR "(unbaranced parentheses))""#;
-        let sql = parse_query(input).unwrap();
-        dbg!(sql.clone().into_sql());
-        let r = sqlx::query(&sql.into_sql())
-            .bind(now)
-            .bind("created_at")
-            .fetch_all(&pool)
-            .await
-            .unwrap();
-        assert_eq!(r.len(), 1);
 
         let input = r#"(草)"#;
         let sql = parse_query(input).unwrap();
-        dbg!(sql.clone().into_sql());
-        let r = sqlx::query(&sql.into_sql())
+        let r = sqlx::query(&sql.into_sql(&[]))
             .bind(now)
             .bind("created_at")
             .fetch_all(&pool)
@@ -282,8 +262,7 @@ mod test {
 
         let input = r#"("#;
         let sql = parse_query(input).unwrap();
-        dbg!(sql.clone().into_sql());
-        let r = sqlx::query(&sql.into_sql())
+        let r = sqlx::query(&sql.into_sql(&[]))
             .bind(now)
             .bind("created_at")
             .fetch_all(&pool)
@@ -292,8 +271,7 @@ mod test {
 
         let input = r#")"#;
         let sql = parse_query(input).unwrap();
-        dbg!(sql.clone().into_sql());
-        let r = sqlx::query(&sql.into_sql())
+        let r = sqlx::query(&sql.into_sql(&[]))
             .bind(now)
             .bind("created_at")
             .fetch_all(&pool)
@@ -302,8 +280,7 @@ mod test {
 
         let input = r#"""#;
         let sql = parse_query(input).unwrap();
-        dbg!(sql.clone().into_sql());
-        let r = sqlx::query(&sql.into_sql())
+        let r = sqlx::query(&sql.into_sql(&[]))
             .bind(now)
             .bind("created_at")
             .fetch_all(&pool)
@@ -312,8 +289,7 @@ mod test {
 
         let input = r#""""#;
         let sql = parse_query(input).unwrap();
-        dbg!(sql.clone().into_sql());
-        let r = sqlx::query(&sql.into_sql())
+        let r = sqlx::query(&sql.into_sql(&[]))
             .bind(now)
             .bind("created_at")
             .fetch_all(&pool)
@@ -322,8 +298,7 @@ mod test {
 
         let input = r#"""""#;
         let sql = parse_query(input).unwrap();
-        dbg!(sql.clone().into_sql());
-        let r = sqlx::query(&sql.into_sql())
+        let r = sqlx::query(&sql.into_sql(&[]))
             .bind(now)
             .bind("created_at")
             .fetch_all(&pool)

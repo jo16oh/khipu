@@ -61,8 +61,9 @@ pub async fn search<'a>(
     query: &str,
     position: TimelinePosition,
     opt: TimelineOption,
+    exclude_ids: &[String],
 ) -> eyre::Result<Vec<Outline>> {
-    let sql = query_parser::parse_query(query)?.into_sql();
+    let sql = query_parser::parse_query(query)?.into_sql(exclude_ids);
     let opt = opt.to_string();
 
     let day_start = {
@@ -247,6 +248,31 @@ mod test {
         model::{Link, LinkType, OutlineType},
         util::SqliteBool,
     };
+
+    #[tokio::test]
+    async fn test_search() {
+        let pool = open_connection_in_memory().await;
+        let mut tx = pool.begin().await.unwrap();
+
+        let mut o = Outline::new();
+        o.doc = r#"{ "text": "終わりで草" }"#.to_string();
+
+        upsert_outline(&mut tx, &o).await.unwrap();
+        tx.commit().await.unwrap();
+
+        let query = r#"(終わり AND 草) OR "(unbaranced parentheses))""#;
+        let r = search(
+            &pool,
+            query,
+            TimelinePosition::Latest,
+            TimelineOption::CreatedAt,
+            &[uuidv7bs58()],
+        )
+        .await
+        .unwrap();
+
+        assert_eq!(r.len(), 1);
+    }
 
     #[tokio::test]
     async fn test_outline_tree() {
