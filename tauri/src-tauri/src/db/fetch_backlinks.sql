@@ -15,7 +15,7 @@ WITH RECURSIVE
     FROM
       outlines o
     WHERE
-      id = ?
+      id = ?1
       AND deleted = false
     UNION ALL
     SELECT
@@ -112,7 +112,7 @@ ORDER BY
       outline_links
       INNER JOIN outlines ON outlines.id = outline_links.id_from
     WHERE
-      outline_links.id_to = ?
+      outline_links.id_to = ?1
       AND outlines.path like o.path || '%'
   ) DESC,
   o.updated_at DESC;

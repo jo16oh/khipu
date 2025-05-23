@@ -15,7 +15,7 @@ WITH RECURSIVE
       outlines o
       INNER JOIN outlines parent ON parent.id = o.parent_id
     WHERE
-      o.id = ?
+      o.id = ?1
       AND parent.deleted = false
     UNION ALL
     SELECT
@@ -49,7 +49,7 @@ WITH RECURSIVE
     FROM
       outlines o
     WHERE
-      id = ?
+      id = ?1
       AND deleted = false
     UNION ALL
     SELECT
@@ -68,7 +68,7 @@ WITH RECURSIVE
       INNER JOIN tree ON tree.id = child.parent_id
       AND (
         tree.collapsed = false
-        OR tree.id = ?
+        OR tree.id = ?1
       )
       AND child.deleted = false
   ),

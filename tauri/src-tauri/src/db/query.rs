@@ -96,7 +96,7 @@ pub async fn fetch_backlinks<'a>(
     conn: impl SqliteExecutor<'a>,
     id: &str,
 ) -> eyre::Result<Vec<Outline>> {
-    sqlx::query_file_as_unchecked!(Outline, "src/db/fetch_backlinks.sql", id, id)
+    sqlx::query_file_as_unchecked!(Outline, "src/db/fetch_backlinks.sql", id)
         .fetch_all(conn)
         .await
         .map_err(eyre::Error::from)
@@ -106,7 +106,7 @@ pub async fn outline_tree<'a>(
     conn: impl SqliteExecutor<'a>,
     id: &str,
 ) -> eyre::Result<Vec<Outline>> {
-    sqlx::query_file_as_unchecked!(Outline, "src/db/fetch_outline_tree.sql", id, id, id)
+    sqlx::query_file_as_unchecked!(Outline, "src/db/fetch_outline_tree.sql", id)
         .fetch_all(conn)
         .await
         .map_err(eyre::Error::from)
