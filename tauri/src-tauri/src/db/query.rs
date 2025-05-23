@@ -44,7 +44,7 @@ pub async fn timeline<'a>(
 
     let day_start = {
         let (pos, ts) = position.into_query_params();
-        sqlx::query_file_scalar!("src/db/fetch_latest_timestamp.sql", pos, ts, opt)
+        sqlx::query_file_scalar!("src/db/fetch_nearest_timestamp.sql", pos, ts, opt)
             .fetch_one(conn)
             .await
             .map(day_start)?
@@ -67,7 +67,7 @@ pub async fn search<'a>(
 
     let day_start = {
         let (pos, ts) = position.into_query_params();
-        sqlx::query_file_scalar!("src/db/fetch_latest_timestamp.sql", pos, ts, opt)
+        sqlx::query_file_scalar!("src/db/fetch_nearest_timestamp.sql", pos, ts, opt)
             .fetch_one(conn)
             .await
             .map(day_start)?
