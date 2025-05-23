@@ -1,17 +1,26 @@
 use crate::{
     model::{Links, Outline},
-    util::{extract_text_from_doc, uuidv7bs58},
+    util::{day_start, extract_text_from_doc, uuidv7bs58},
 };
-use chrono::{DateTime, Duration, Utc};
-use eyre::OptionExt;
+use chrono::Utc;
 use serde::{Deserialize, Serialize};
 use sqlx::{SqliteExecutor, SqliteTransaction};
+use strum::{Display, EnumString};
 
-#[derive(Serialize, Deserialize, specta::Type, Clone, Debug)]
+#[derive(Serialize, Deserialize, specta::Type, Display, EnumString, Clone, Debug)]
 #[serde(rename_all = "camelCase")]
+#[strum(serialize_all = "snake_case")]
 pub enum TimelineOption {
     CreatedAt,
     UpdatedAt,
+}
+
+#[derive(Serialize, Deserialize, specta::Type, Clone, Debug)]
+#[serde(rename_all = "camelCase")]
+pub enum TimelinePosition {
+    Before(i64),
+    After(i64),
+    Latest,
 }
 
 pub async fn fetch_forwardlinks<'a>(
@@ -45,31 +54,36 @@ pub async fn outline_tree<'a>(
 }
 
 pub async fn timeline<'a>(
-    conn: impl SqliteExecutor<'a>,
-    day_start: i64,
+    conn: impl SqliteExecutor<'a> + Send + Copy,
+    position: TimelinePosition,
     opt: TimelineOption,
 ) -> eyre::Result<Vec<Outline>> {
-    let day_end = (DateTime::<Utc>::from_timestamp_millis(day_start)
-        .ok_or_eyre("invaild timestamp")?
-        + Duration::days(1))
-    .timestamp_millis();
+    let opt = opt.to_string();
 
-    let (created_at_start, created_at_end, updated_at_start, updated_at_end) = match opt {
-        TimelineOption::CreatedAt => (Some(day_start), Some(day_end), None, None),
-        TimelineOption::UpdatedAt => (None, None, Some(day_start), Some(day_end)),
-    };
+    let day_start = match position {
+        TimelinePosition::Latest => {
+            let now = Utc::now().timestamp_millis();
+            sqlx::query_file_scalar!("src/db/fetch_latest_timestamp.sql", "before", now, opt)
+                .fetch_one(conn)
+                .await
+        }
+        TimelinePosition::Before(ts) => {
+            sqlx::query_file_scalar!("src/db/fetch_latest_timestamp.sql", "before", ts, opt)
+                .fetch_one(conn)
+                .await
+        }
+        TimelinePosition::After(ts) => {
+            sqlx::query_file_scalar!("src/db/fetch_latest_timestamp.sql", "after", ts, opt)
+                .fetch_one(conn)
+                .await
+        }
+    }
+    .map(day_start)?;
 
-    sqlx::query_file_as_unchecked!(
-        Outline,
-        "src/db/fetch_timeline.sql",
-        created_at_start,
-        created_at_end,
-        updated_at_start,
-        updated_at_end
-    )
-    .fetch_all(conn)
-    .await
-    .map_err(eyre::Error::from)
+    sqlx::query_file_as_unchecked!(Outline, "src/db/fetch_timeline.sql", day_start, opt)
+        .fetch_all(conn)
+        .await
+        .map_err(eyre::Error::from)
 }
 
 pub async fn upsert_outline(tx: &mut SqliteTransaction<'_>, outline: &Outline) -> eyre::Result<()> {
@@ -199,6 +213,7 @@ pub async fn insert_y_update<'a>(
 
 #[cfg(test)]
 mod test {
+    use chrono::Duration;
     use serde::{Deserialize, Serialize};
 
     use super::*;
@@ -243,7 +258,7 @@ mod test {
 
         let r = timeline(
             &pool,
-            (Utc::now() - Duration::minutes(1)).timestamp_millis(),
+            TimelinePosition::Before((Utc::now() + Duration::days(2)).timestamp_millis()),
             TimelineOption::UpdatedAt,
         )
         .await

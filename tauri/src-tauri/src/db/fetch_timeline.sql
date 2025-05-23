@@ -5,10 +5,11 @@ WITH RECURSIVE
     FROM
       outlines
     WHERE
-      (
-        created_at BETWEEN ? AND ?
-        OR updated_at BETWEEN ? AND ?
-      )
+      CASE
+        WHEN ?2 = 'created_at' THEN created_at BETWEEN ?1 AND ?1  + (60 * 60 * 24 * 1000)
+        WHEN ?2 = 'updated_at' THEN updated_at BETWEEN ?1 AND ?1  + (60 * 60 * 24 * 1000)
+        ELSE false
+      END
       AND deleted = false
     UNION ALL
     SELECT
