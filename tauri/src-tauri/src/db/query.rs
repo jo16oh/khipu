@@ -129,12 +129,15 @@ async fn delete_fts_index(tx: &mut SqliteTransaction<'_>, outline_id: &str) -> e
     eyre::Ok(())
 }
 
+const ZERO_WIDTH_SPACE: &str = "\u{200B}";
+
 async fn insert_fts_index(
     tx: &mut SqliteTransaction<'_>,
     rowid: i64,
     doc: &str,
 ) -> eyre::Result<()> {
-    let text = extract_text_from_doc(doc)?;
+    // add meaningless two chars to index the end of text correctly by trigram tokenizer
+    let text = extract_text_from_doc(doc)? + &ZERO_WIDTH_SPACE.repeat(2);
 
     sqlx::query_file_scalar!("src/db/insert_fts_index.sql", rowid, text)
         .execute(&mut **tx)
