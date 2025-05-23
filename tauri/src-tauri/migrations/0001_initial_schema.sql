@@ -128,7 +128,7 @@ CREATE VIRTUAL TABLE fts USING fts5 (
   doc,
   content = 'outlines', -- specify external content table
   content_rowid = 'rowid',
-  tokenize = "trigram"
+  tokenize = "trigram remove_diacritics 1"
 );
 
 -- Table for searching one or two character queries with term prefix matching
