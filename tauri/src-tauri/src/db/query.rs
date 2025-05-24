@@ -250,8 +250,7 @@ mod test {
     use super::*;
     use crate::{
         db::test::open_connection_in_memory,
-        model::{Link, LinkType, OutlineType},
-        util::SqliteBool,
+        model::{Link, LinkType, OutlineType, SqliteBool},
     };
 
     #[tokio::test]

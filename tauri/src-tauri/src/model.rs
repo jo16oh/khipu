@@ -5,8 +5,6 @@ use serde::{Deserialize, Serialize};
 use sqlx::{Database, Decode, Encode, Sqlite, prelude::FromRow, sqlite::SqliteValueRef};
 use strum::{Display, EnumString};
 
-use crate::util::SqliteBool;
-
 #[derive(FromRow, Serialize, Deserialize, specta::Type, Clone, Debug)]
 #[serde(rename_all = "camelCase")]
 pub struct Outline {
@@ -93,6 +91,40 @@ impl<'r> Decode<'r, Sqlite> for Links {
             .into_iter()
             .collect();
         Ok(Links(set))
+    }
+}
+
+#[derive(Serialize, Deserialize, specta::Type, PartialEq, Eq, Clone, Debug)]
+#[serde(transparent)]
+pub struct SqliteBool(pub bool);
+
+impl sqlx::Type<Sqlite> for SqliteBool {
+    fn type_info() -> <Sqlite as Database>::TypeInfo {
+        <&i64 as sqlx::Type<Sqlite>>::type_info()
+    }
+}
+
+impl<'r> Decode<'r, Sqlite> for SqliteBool {
+    fn decode(
+        value: SqliteValueRef<'r>,
+    ) -> Result<Self, Box<dyn std::error::Error + 'static + Send + Sync>> {
+        let value = <i64 as Decode<Sqlite>>::decode(value)?;
+        Ok(Self(value != 0))
+    }
+}
+
+impl<'r> Encode<'r, Sqlite> for SqliteBool {
+    fn encode_by_ref(
+        &self,
+        buf: &mut <Sqlite as Database>::ArgumentBuffer<'r>,
+    ) -> Result<sqlx::encode::IsNull, sqlx::error::BoxDynError> {
+        <i64 as Encode<Sqlite>>::encode(if self.0 { 1 } else { 0 }, buf)
+    }
+}
+
+impl From<i64> for SqliteBool {
+    fn from(value: i64) -> Self {
+        Self(value != 0)
     }
 }
 
