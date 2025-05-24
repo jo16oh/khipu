@@ -20,7 +20,7 @@ WITH RECURSIVE
     WHERE
       parent.deleted = false
   ),
-  links AS (
+  temp_linked_outlines AS (
     SELECT
       `to`.id,
       `to`.parent_id,
@@ -34,9 +34,34 @@ WITH RECURSIVE
       `to`.deleted
     FROM
       tree `from`
-      INNER JOIN outline_links links ON links.id_from = `from`.id
+      INNER JOIN outline_links links ON `from`.id = links.id_from
+      AND links.id_from = `from`.id
       INNER JOIN outlines `to` ON links.id_to = `to`.id
       AND `to`.deleted = false
+    UNION
+    SELECT
+      `to`.id,
+      `to`.parent_id,
+      `to`.findex,
+      `to`.type,
+      `to`.doc,
+      `to`.created_at,
+      `to`.updated_at,
+      `to`.hidden,
+      `to`.collapsed,
+      `to`.deleted
+    FROM
+      outline_links links
+      INNER JOIN temp_linked_outlines `from` ON `from`.id = links.id_from
+      AND `from`.type != "quote"
+      INNER JOIN outlines `to` ON links.id_to = `to`.id
+      AND `to`.deleted = false
+  ),
+  linked_outlines AS (
+    SELECT
+      *
+    FROM
+      temp_linked_outlines
     UNION ALL
     SELECT
       parent.id,
@@ -51,7 +76,7 @@ WITH RECURSIVE
       parent.deleted
     FROM
       outlines parent
-      INNER JOIN links ON parent.id = links.parent_id
+      INNER JOIN linked_outlines links ON parent.id = links.parent_id
       AND parent.deleted = false
       INNER JOIN outline_links l ON l.id_from = parent.id
       AND l.type = "tag"
@@ -98,7 +123,7 @@ SELECT
       links.id_to IS NOT NULL
   ) AS links
 FROM
-  links o
+  linked_outlines o
   LEFT JOIN outline_links links ON links.id_from = o.id
 GROUP BY
   (id);
