@@ -162,8 +162,7 @@ CREATE TABLE outline_asset_rel (
 -- # FTS
 CREATE VIRTUAL TABLE fts USING fts5 (
   doc,
-  content = 'outlines', -- specify external content table
-  content_rowid = 'rowid',
+  content = '', -- contentless table
   tokenize = "trigram remove_diacritics 1"
 );
 
