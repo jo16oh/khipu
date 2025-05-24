@@ -1,6 +1,9 @@
 use combine::parser::char::{char, spaces, string};
 use combine::stream::Stream;
 use combine::{Parser, attempt, between, choice, many, many1, parser, satisfy, sep_by};
+use strum::{Display, EnumString};
+
+use crate::db::query::ZERO_WIDTH_SPACE;
 
 use super::OrderBy;
 
@@ -9,9 +12,6 @@ pub enum Query {
     Phrase(String),
     QuotedPhrase(String),
     Group(Vec<Query>),
-    Subquery(String),
-    Operator(String),
-    Paren(String),
 }
 
 // Forward declare the query parser
@@ -121,45 +121,60 @@ pub fn parse_query(input: &str) -> eyre::Result<Query> {
     }
 }
 
-const OPERATORS: [&str; 3] = ["AND", "OR", "NOT"];
+enum FlattenQueryItem {
+    QuotedPhrase(String),
+    SubQuery(String),
+    Operator(Operator),
+    Paren(Paren),
+}
 
-fn escape_and_quote_phrase(phrase: &str) -> String {
-    format!(r#""{}""#, phrase.replace('"', r#""""#))
+#[derive(EnumString, Display)]
+#[strum(serialize_all = "UPPERCASE")]
+enum Operator {
+    And,
+    Or,
+    Not,
+}
+
+#[derive(EnumString, Display)]
+enum Paren {
+    #[strum(to_string = "(")]
+    Open,
+    #[strum(to_string = ")")]
+    Close,
 }
 
 impl Query {
-    fn map<F>(&self, f: &F) -> Self
-    where
-        F: Fn(&Self) -> Self,
-    {
-        let transformed = f(self);
-        match transformed {
-            Query::Group(sub_queries) => {
-                let mapped_queries = sub_queries.iter().map(|q| q.map(f)).collect();
-                Query::Group(mapped_queries)
-            }
-            other => other,
-        }
-    }
+    fn flatten(self) -> Vec<FlattenQueryItem> {
+        let mut buf: Vec<FlattenQueryItem> = vec![];
 
-    fn flatten(self) -> Vec<Self> {
-        let mut buf: Vec<Self> = vec![];
-
-        fn flatten_impl(buf: &mut Vec<Query>, query: Query) {
+        fn flatten_impl(buf: &mut Vec<FlattenQueryItem>, query: Query) {
             match query {
+                Query::Phrase(phrase) => match phrase.as_str() {
+                    "AND" => buf.push(FlattenQueryItem::Operator(Operator::And)),
+                    "OR" => buf.push(FlattenQueryItem::Operator(Operator::Or)),
+                    "NOT" => buf.push(FlattenQueryItem::Operator(Operator::Not)),
+                    phrase if phrase.chars().count() <= 2 => {
+                        let escaped_phrase_for_like = phrase.replace('\'', "''");
+                        let query = format!(
+                            r#"(SELECT coalesce(group_concat('"' || replace(term, '"', '""') || '"', ' OR '), '{}') FROM fts_vocab WHERE term LIKE '{}%')"#,
+                            ZERO_WIDTH_SPACE, escaped_phrase_for_like
+                        );
+                        buf.push(FlattenQueryItem::SubQuery(query));
+                    }
+                    _ => buf.push(FlattenQueryItem::QuotedPhrase(phrase)),
+                },
+                Query::QuotedPhrase(phrase) => buf.push(FlattenQueryItem::QuotedPhrase(phrase)),
                 Query::Group(inner) => {
-                    buf.push(Query::Paren("(".to_string()));
+                    buf.push(FlattenQueryItem::Paren(Paren::Open));
 
                     for q in inner.into_iter() {
                         flatten_impl(buf, q);
                     }
 
-                    buf.push(Query::Paren(")".to_string()));
+                    buf.push(FlattenQueryItem::Paren(Paren::Close));
                 }
-                other => {
-                    buf.push(other);
-                }
-            };
+            }
         }
 
         flatten_impl(&mut buf, self);
@@ -168,36 +183,14 @@ impl Query {
     }
 
     pub fn into_sql(self, order_by: &OrderBy) -> String {
-        let flatten_query_items = self
-            .flatten()
-            .into_iter()
-            .map(|query| {
-                match query {
-                    Query::Phrase(phrase) => {
-                        if OPERATORS.iter().any(|&op| op == phrase) {
-                            Query::Operator(phrase)
-                        } else if phrase.chars().count() <= 2 {
-                            let escaped_phrase_for_like = phrase.replace('\'', "''");
-                            let subquery = format!(
-                                r#"(SELECT coalesce(group_concat('"' || replace(term, '"', '""') || '"', ' OR '), '�') FROM fts_vocab WHERE term LIKE '{}%')"#,
-                                escaped_phrase_for_like
-                            );
-                            Query::Subquery(subquery)
-                        } else {
-                            Query::QuotedPhrase(phrase)
-                        }
-                    }
-                    other => other,
-                }
-            })
-            .collect::<Vec<_>>();
+        let flatten_query_items = self.flatten();
 
         let mut final_sql_parts = Vec::<String>::new();
         let mut current_term_accum = Vec::<String>::new();
 
         for query_item in flatten_query_items {
             match query_item {
-                Query::Subquery(str) => {
+                FlattenQueryItem::SubQuery(str) => {
                     if !current_term_accum.is_empty() {
                         let terms_joined = current_term_accum.join(" ").replace('\'', "''");
                         final_sql_parts.push(format!("'{}'", terms_joined));
@@ -205,13 +198,15 @@ impl Query {
                     }
                     final_sql_parts.push(str);
                 }
-                Query::Phrase(str) | Query::QuotedPhrase(str) => {
-                    current_term_accum.push(escape_and_quote_phrase(&str));
+                FlattenQueryItem::QuotedPhrase(phrase) => {
+                    current_term_accum.push(format!(r#""{}""#, phrase.replace('"', r#""""#)));
                 }
-                Query::Paren(str) | Query::Operator(str) => {
-                    current_term_accum.push(str);
+                FlattenQueryItem::Paren(paren) => {
+                    current_term_accum.push(paren.to_string());
                 }
-                Query::Group(_) => {}
+                FlattenQueryItem::Operator(operator) => {
+                    current_term_accum.push(operator.to_string());
+                }
             }
         }
 
@@ -233,7 +228,7 @@ impl Query {
             result
         };
 
-        include_str!("search.sql")
+        include_str!("../search.sql")
             .replace("$q", &fts_match_expr)
             .replace("$ord", &order_by.to_string())
     }
