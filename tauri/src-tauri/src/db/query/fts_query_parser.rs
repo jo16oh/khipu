@@ -83,7 +83,7 @@ where
     choice((attempt(quoted_phrase()), attempt(group()), phrase())).skip(skip_spaces())
 }
 
-pub fn parse_query(input: &str) -> eyre::Result<Query> {
+pub fn parse(input: &str) -> eyre::Result<Query> {
     if input.trim().is_empty() {
         eyre::bail!("input is empty");
     }
@@ -246,7 +246,7 @@ mod test {
         let now = Utc::now().timestamp_millis();
 
         let input = r#"(草)"#;
-        let sql = parse_query(input).unwrap();
+        let sql = parse(input).unwrap();
         let r = sqlx::query(&sql.into_sql(&OrderBy::CreatedAt))
             .bind(now)
             .bind("created_at")
@@ -255,7 +255,7 @@ mod test {
         assert!(r.is_ok());
 
         let input = r#"("#;
-        let sql = parse_query(input).unwrap();
+        let sql = parse(input).unwrap();
         let r = sqlx::query(&sql.into_sql(&OrderBy::CreatedAt))
             .bind(now)
             .bind("created_at")
@@ -264,7 +264,7 @@ mod test {
         assert!(r.is_ok());
 
         let input = r#")"#;
-        let sql = parse_query(input).unwrap();
+        let sql = parse(input).unwrap();
         let r = sqlx::query(&sql.into_sql(&OrderBy::CreatedAt))
             .bind(now)
             .bind("created_at")
@@ -273,7 +273,7 @@ mod test {
         assert!(r.is_ok());
 
         let input = r#"""#;
-        let sql = parse_query(input).unwrap();
+        let sql = parse(input).unwrap();
         let r = sqlx::query(&sql.into_sql(&OrderBy::CreatedAt))
             .bind(now)
             .bind("created_at")
@@ -282,7 +282,7 @@ mod test {
         assert!(r.is_ok());
 
         let input = r#""""#;
-        let sql = parse_query(input).unwrap();
+        let sql = parse(input).unwrap();
         let r = sqlx::query(&sql.into_sql(&OrderBy::CreatedAt))
             .bind(now)
             .bind("created_at")
@@ -291,7 +291,7 @@ mod test {
         assert!(r.is_ok());
 
         let input = r#"""""#;
-        let sql = parse_query(input).unwrap();
+        let sql = parse(input).unwrap();
         let r = sqlx::query(&sql.into_sql(&OrderBy::CreatedAt))
             .bind(now)
             .bind("created_at")
@@ -303,7 +303,7 @@ mod test {
     #[test]
     fn test_phrase_query() {
         assert_eq!(
-            parse_query("hello").unwrap(),
+            parse("hello").unwrap(),
             Query::Group(vec![Query::Phrase("hello".to_string())])
         );
     }
@@ -311,14 +311,14 @@ mod test {
     #[test]
     fn test_parentheses_query() {
         assert_eq!(
-            parse_query("(hello)").unwrap(),
+            parse("(hello)").unwrap(),
             Query::Group(vec![Query::Group(vec![Query::Phrase("hello".to_string())])])
         );
     }
 
     #[test]
     fn test_space_separated_phrases() {
-        let result = parse_query("hello world rust").unwrap();
+        let result = parse("hello world rust").unwrap();
         let expected = Query::Group(vec![
             Query::Phrase("hello".to_string()),
             Query::Phrase("world".to_string()),
@@ -330,7 +330,7 @@ mod test {
     #[test]
     fn test_nested_parentheses() {
         assert_eq!(
-            parse_query("(hello (world rust))").unwrap(),
+            parse("(hello (world rust))").unwrap(),
             Query::Group(vec![Query::Group(vec![
                 Query::Phrase("hello".to_string()),
                 Query::Group(vec![
@@ -357,7 +357,7 @@ mod test {
     #[test]
     fn test_quoted_phrase_with_parentheses() {
         assert_eq!(
-            parse_query(r#""hello (world)""#).unwrap(),
+            parse(r#""hello (world)""#).unwrap(),
             Query::Group(vec![Query::QuotedPhrase("hello (world)".to_string())])
         );
     }
@@ -365,7 +365,7 @@ mod test {
     #[test]
     fn test_complex_query_with_quoted_phrases() {
         assert_eq!(
-            parse_query(r#"(hello "world (is) great" (rust "is ""awesome"""))"#).unwrap(),
+            parse(r#"(hello "world (is) great" (rust "is ""awesome"""))"#).unwrap(),
             Query::Group(vec!(Query::Group(vec![
                 Query::Phrase("hello".to_string()),
                 Query::QuotedPhrase("world (is) great".to_string()),
@@ -380,7 +380,7 @@ mod test {
     #[test]
     fn test_mixed_query_with_raw_strings() {
         assert_eq!(
-            parse_query(r#"("simple term" "term (with) parens" cats)"#).unwrap(),
+            parse(r#"("simple term" "term (with) parens" cats)"#).unwrap(),
             Query::Group(vec![Query::Group(vec![
                 Query::QuotedPhrase("simple term".to_string()),
                 Query::QuotedPhrase("term (with) parens".to_string()),
@@ -392,7 +392,7 @@ mod test {
     #[test]
     fn test_quoted_phrase_with_special_chars() {
         assert_eq!(
-            parse_query(r#""term with @ * & ? / \ symbols""#).unwrap(),
+            parse(r#""term with @ * & ? / \ symbols""#).unwrap(),
             Query::Group(vec![Query::QuotedPhrase(
                 "term with @ * & ? / \\ symbols".to_string()
             )])
@@ -402,7 +402,7 @@ mod test {
     #[test]
     fn test_multiple_escaped_quotes() {
         assert_eq!(
-            parse_query(r#""this has ""multiple"" ""quoted"" parts""#).unwrap(),
+            parse(r#""this has ""multiple"" ""quoted"" parts""#).unwrap(),
             Query::Group(vec![Query::QuotedPhrase(
                 "this has \"multiple\" \"quoted\" parts".to_string()
             )])
@@ -412,15 +412,15 @@ mod test {
     #[test]
     fn test_malformed_parentheses() {
         // Test unbalanced opening parenthesis
-        let result = parse_query("(abc").unwrap();
+        let result = parse("(abc").unwrap();
         assert_eq!(result, Query::Phrase("(abc".to_string()));
 
         // Test unbalanced closing parenthesis
-        let result = parse_query("abc)").unwrap();
+        let result = parse("abc)").unwrap();
         assert_eq!(result, Query::Phrase("abc)".to_string()));
 
         // Test multiple unbalanced parentheses - this now uses the split_whitespace fallback
-        let result = parse_query("(a (b c) (d").unwrap();
+        let result = parse("(a (b c) (d").unwrap();
         assert_eq!(
             result,
             Query::Group(vec![
@@ -432,7 +432,7 @@ mod test {
         );
 
         // Test mixed balanced and unbalanced parentheses - ensure this one is also handled by new logic
-        let result = parse_query("(a (b c))").unwrap(); // This one is correctly structured
+        let result = parse("(a (b c))").unwrap(); // This one is correctly structured
         assert_eq!(
             result,
             Query::Group(vec![Query::Group(vec![
@@ -448,27 +448,27 @@ mod test {
     #[test]
     fn test_empty_query() {
         let input = "  ";
-        let sql = parse_query(input);
+        let sql = parse(input);
         assert!(sql.is_err());
 
         let input = "";
-        let sql = parse_query(input);
+        let sql = parse(input);
         assert!(sql.is_err());
 
         let input = "　";
-        let sql = parse_query(input);
+        let sql = parse(input);
         assert!(sql.is_err());
     }
 
     #[test]
     fn test_other_special_characters() {
-        let result = parse_query("a@b+c").unwrap();
+        let result = parse("a@b+c").unwrap();
         assert_eq!(
             result,
             Query::Group(vec![Query::Phrase("a@b+c".to_string())])
         );
 
-        let result = parse_query("a@b+(c)").unwrap();
+        let result = parse("a@b+(c)").unwrap();
         assert_eq!(
             result,
             Query::Group(vec![
@@ -477,7 +477,7 @@ mod test {
             ])
         );
 
-        let result = parse_query("(a@b+c)").unwrap();
+        let result = parse("(a@b+c)").unwrap();
         assert_eq!(
             result,
             Query::Group(vec![Query::Group(vec![Query::Phrase("a@b+c".to_string())])])

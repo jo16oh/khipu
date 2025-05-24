@@ -7,7 +7,7 @@ INSERT INTO
     doc,
     created_at,
     updated_at,
-    hidden,
+    completed,
     collapsed,
     deleted
   )
@@ -20,7 +20,7 @@ SET
   type = excluded.type,
   doc = excluded.doc,
   updated_at = excluded.updated_at,
-  hidden = excluded.hidden,
+  completed = excluded.completed,
   collapsed = excluded.collapsed,
   deleted = excluded.deleted
 WHERE

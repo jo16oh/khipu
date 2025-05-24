@@ -40,7 +40,7 @@ SELECT
   o.doc,
   o.created_at,
   o.updated_at,
-  o.hidden,
+  o.completed,
   o.collapsed,
   o.deleted,
   json_group_array(

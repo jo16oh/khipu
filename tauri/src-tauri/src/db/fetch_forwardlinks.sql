@@ -8,7 +8,7 @@ WITH RECURSIVE
       doc,
       created_at,
       updated_at,
-      hidden,
+      completed,
       collapsed,
       deleted,
       path
@@ -26,7 +26,7 @@ WITH RECURSIVE
       child.doc,
       child.created_at,
       child.updated_at,
-      child.hidden,
+      child.completed,
       child.collapsed,
       child.deleted,
       child.path
@@ -44,7 +44,7 @@ WITH RECURSIVE
       `to`.doc,
       `to`.created_at,
       `to`.updated_at,
-      `to`.hidden,
+      `to`.completed,
       `to`.collapsed,
       `to`.deleted,
       `to`.path
@@ -62,7 +62,7 @@ SELECT
   o.doc,
   o.created_at,
   o.updated_at,
-  o.hidden,
+  o.completed,
   o.collapsed,
   o.deleted,
   json_group_array(

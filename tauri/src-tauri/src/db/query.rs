@@ -8,7 +8,7 @@ use serde::{Deserialize, Serialize};
 use sqlx::{SqliteExecutor, SqliteTransaction};
 use strum::{Display, EnumString};
 
-mod query_parser;
+mod fts_query_parser;
 
 #[derive(Serialize, Deserialize, specta::Type, Display, EnumString, Clone, Debug)]
 #[serde(rename_all = "camelCase")]
@@ -64,7 +64,7 @@ pub async fn search<'a>(
     offset: i64,
 ) -> eyre::Result<(Vec<Outline>, Vec<Outline>)> {
     let results =
-        sqlx::query_as::<_, Outline>(&query_parser::parse_query(query)?.into_sql(&order_by))
+        sqlx::query_as::<_, Outline>(&fts_query_parser::parse(query)?.into_sql(&order_by))
             .bind(offset)
             .fetch_all(conn)
             .await?;
@@ -129,7 +129,7 @@ pub async fn upsert_outline(tx: &mut SqliteTransaction<'_>, outline: &Outline) -
         outline.doc,
         outline.created_at,
         outline.updated_at,
-        outline.hidden,
+        outline.completed,
         outline.collapsed,
         outline.deleted
     )

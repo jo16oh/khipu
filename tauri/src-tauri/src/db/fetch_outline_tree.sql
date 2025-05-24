@@ -8,7 +8,7 @@ WITH RECURSIVE
       parent.doc,
       parent.created_at,
       parent.updated_at,
-      parent.hidden,
+      parent.completed,
       parent.collapsed,
       parent.deleted
     FROM
@@ -26,7 +26,7 @@ WITH RECURSIVE
       parent.doc,
       parent.created_at,
       parent.updated_at,
-      parent.hidden,
+      parent.completed,
       parent.collapsed,
       parent.deleted
     FROM
@@ -43,7 +43,7 @@ WITH RECURSIVE
       o.doc,
       o.created_at,
       o.updated_at,
-      o.hidden,
+      o.completed,
       o.collapsed,
       o.deleted
     FROM
@@ -60,7 +60,7 @@ WITH RECURSIVE
       child.doc,
       child.created_at,
       child.updated_at,
-      child.hidden,
+      child.completed,
       child.collapsed,
       child.deleted
     FROM
@@ -81,7 +81,7 @@ WITH RECURSIVE
       `to`.doc,
       `to`.created_at,
       `to`.updated_at,
-      `to`.hidden,
+      `to`.completed,
       `to`.collapsed,
       `to`.deleted
     FROM
@@ -99,7 +99,7 @@ WITH RECURSIVE
       `to`.doc,
       `to`.created_at,
       `to`.updated_at,
-      `to`.hidden,
+      `to`.completed,
       `to`.collapsed,
       `to`.deleted
     FROM
@@ -123,7 +123,7 @@ WITH RECURSIVE
       parent.doc,
       parent.created_at,
       parent.updated_at,
-      parent.hidden,
+      parent.completed,
       parent.collapsed,
       parent.deleted
     FROM

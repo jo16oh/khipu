@@ -18,7 +18,7 @@ pub struct Outline {
     pub links: Links,
     pub created_at: i64,
     pub updated_at: i64,
-    pub hidden: SqliteBool,
+    pub completed: SqliteBool,
     pub collapsed: SqliteBool,
     pub deleted: SqliteBool,
 }
@@ -116,7 +116,7 @@ impl Outline {
             links: Links::default(),
             created_at: now,
             updated_at: now,
-            hidden: SqliteBool(false),
+            completed: SqliteBool(false),
             collapsed: SqliteBool(false),
             deleted: SqliteBool(false),
         }
@@ -134,7 +134,7 @@ impl Outline {
             links: Links::default(),
             created_at: now,
             updated_at: now,
-            hidden: SqliteBool(false),
+            completed: SqliteBool(false),
             collapsed: SqliteBool(false),
             deleted: SqliteBool(false),
         }
