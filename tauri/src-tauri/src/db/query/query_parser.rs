@@ -1,7 +1,8 @@
 use combine::parser::char::{char, spaces, string};
 use combine::stream::Stream;
 use combine::{Parser, attempt, between, choice, many, many1, parser, satisfy, sep_by};
-use itertools::Itertools;
+
+use super::OrderBy;
 
 #[derive(Debug, PartialEq, Clone)]
 pub enum Query {
@@ -81,8 +82,6 @@ where
     let skip_spaces = || spaces().silent();
     choice((attempt(quoted_phrase()), attempt(group()), phrase())).skip(skip_spaces())
 }
-
-const SQL: &str = include_str!("search.sql");
 
 pub fn parse_query(input: &str) -> eyre::Result<Query> {
     if input.trim().is_empty() {
@@ -168,7 +167,7 @@ impl Query {
         buf
     }
 
-    pub fn into_sql(self, exclude_ids: &[String]) -> String {
+    pub fn into_sql(self, order_by: &OrderBy) -> String {
         let flatten_query_items = self
             .flatten()
             .into_iter()
@@ -234,9 +233,9 @@ impl Query {
             result
         };
 
-        let excludes = exclude_ids.iter().map(|id| format!("'{}'", id)).join(", ");
-
-        SQL.replace("$q", &fts_match_expr).replace("$ex", &excludes)
+        include_str!("search.sql")
+            .replace("$q", &fts_match_expr)
+            .replace("$ord", &order_by.to_string())
     }
 }
 
@@ -253,7 +252,7 @@ mod test {
 
         let input = r#"(草)"#;
         let sql = parse_query(input).unwrap();
-        let r = sqlx::query(&sql.into_sql(&[]))
+        let r = sqlx::query(&sql.into_sql(&OrderBy::CreatedAt))
             .bind(now)
             .bind("created_at")
             .fetch_all(&pool)
@@ -262,7 +261,7 @@ mod test {
 
         let input = r#"("#;
         let sql = parse_query(input).unwrap();
-        let r = sqlx::query(&sql.into_sql(&[]))
+        let r = sqlx::query(&sql.into_sql(&OrderBy::CreatedAt))
             .bind(now)
             .bind("created_at")
             .fetch_all(&pool)
@@ -271,7 +270,7 @@ mod test {
 
         let input = r#")"#;
         let sql = parse_query(input).unwrap();
-        let r = sqlx::query(&sql.into_sql(&[]))
+        let r = sqlx::query(&sql.into_sql(&OrderBy::CreatedAt))
             .bind(now)
             .bind("created_at")
             .fetch_all(&pool)
@@ -280,7 +279,7 @@ mod test {
 
         let input = r#"""#;
         let sql = parse_query(input).unwrap();
-        let r = sqlx::query(&sql.into_sql(&[]))
+        let r = sqlx::query(&sql.into_sql(&OrderBy::CreatedAt))
             .bind(now)
             .bind("created_at")
             .fetch_all(&pool)
@@ -289,7 +288,7 @@ mod test {
 
         let input = r#""""#;
         let sql = parse_query(input).unwrap();
-        let r = sqlx::query(&sql.into_sql(&[]))
+        let r = sqlx::query(&sql.into_sql(&OrderBy::CreatedAt))
             .bind(now)
             .bind("created_at")
             .fetch_all(&pool)
@@ -298,7 +297,7 @@ mod test {
 
         let input = r#"""""#;
         let sql = parse_query(input).unwrap();
-        let r = sqlx::query(&sql.into_sql(&[]))
+        let r = sqlx::query(&sql.into_sql(&OrderBy::CreatedAt))
             .bind(now)
             .bind("created_at")
             .fetch_all(&pool)

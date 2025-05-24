@@ -3,6 +3,7 @@ use crate::{
     util::{day_start, extract_text_from_doc, uuidv7bs58},
 };
 use chrono::Utc;
+use itertools::Itertools;
 use serde::{Deserialize, Serialize};
 use sqlx::{SqliteExecutor, SqliteTransaction};
 use strum::{Display, EnumString};
@@ -12,7 +13,7 @@ mod query_parser;
 #[derive(Serialize, Deserialize, specta::Type, Display, EnumString, Clone, Debug)]
 #[serde(rename_all = "camelCase")]
 #[strum(serialize_all = "snake_case")]
-pub enum TimelineOption {
+pub enum OrderBy {
     CreatedAt,
     UpdatedAt,
 }
@@ -38,9 +39,9 @@ impl TimelinePosition {
 pub async fn timeline<'a>(
     conn: impl SqliteExecutor<'a> + Send + Copy,
     position: TimelinePosition,
-    opt: TimelineOption,
+    order_by: OrderBy,
 ) -> eyre::Result<Vec<Outline>> {
-    let opt = opt.to_string();
+    let opt = order_by.to_string();
 
     let day_start = {
         let (pos, ts) = position.into_query_params();
@@ -59,27 +60,31 @@ pub async fn timeline<'a>(
 pub async fn search<'a>(
     conn: impl SqliteExecutor<'a> + Send + Copy,
     query: &str,
-    position: TimelinePosition,
-    opt: TimelineOption,
-    exclude_ids: &[String],
-) -> eyre::Result<Vec<Outline>> {
-    let sql = query_parser::parse_query(query)?.into_sql(exclude_ids);
-    let opt = opt.to_string();
+    order_by: OrderBy,
+    offset: i64,
+) -> eyre::Result<(Vec<Outline>, Vec<Outline>)> {
+    let results =
+        sqlx::query_as::<_, Outline>(&query_parser::parse_query(query)?.into_sql(&order_by))
+            .bind(offset)
+            .fetch_all(conn)
+            .await?;
 
-    let day_start = {
-        let (pos, ts) = position.into_query_params();
-        sqlx::query_file_scalar!("src/db/fetch_nearest_timestamp.sql", pos, ts, opt)
-            .fetch_one(conn)
-            .await
-            .map(day_start)?
+    let links = {
+        let ids = results.iter().map(|o| &o.id).collect_vec();
+
+        let sql = include_str!("fetch_linked_outlines.sql")
+            .replace("$ids", &ids.iter().map(|_| "?").join(", "));
+
+        let mut query = sqlx::query_as::<_, Outline>(&sql);
+
+        for id in ids {
+            query = query.bind(id);
+        }
+
+        query.fetch_all(conn).await?
     };
 
-    sqlx::query_as::<_, Outline>(&sql)
-        .bind(day_start)
-        .bind(opt)
-        .fetch_all(conn)
-        .await
-        .map_err(eyre::Error::from)
+    Ok((results, links))
 }
 
 pub async fn fetch_forwardlinks<'a>(
@@ -256,20 +261,12 @@ mod test {
 
         let mut o = Outline::new();
         o.doc = r#"{ "text": "終わりで草" }"#.to_string();
-
         upsert_outline(&mut tx, &o).await.unwrap();
+
         tx.commit().await.unwrap();
 
         let query = r#"(終わり AND 草) OR "(unbaranced parentheses))""#;
-        let r = search(
-            &pool,
-            query,
-            TimelinePosition::Latest,
-            TimelineOption::CreatedAt,
-            &[uuidv7bs58()],
-        )
-        .await
-        .unwrap();
+        let (r, _) = search(&pool, query, OrderBy::CreatedAt, 0).await.unwrap();
 
         assert_eq!(r.len(), 1);
     }
@@ -310,7 +307,7 @@ mod test {
         let r = timeline(
             &pool,
             TimelinePosition::Before((Utc::now() + Duration::days(2)).timestamp_millis()),
-            TimelineOption::UpdatedAt,
+            OrderBy::UpdatedAt,
         )
         .await
         .unwrap();
