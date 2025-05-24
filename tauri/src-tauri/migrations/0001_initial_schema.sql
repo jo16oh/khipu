@@ -24,7 +24,8 @@ CREATE TABLE outlines (
   collapsed INTEGER NOT NULL DEFAULT 0,
   hidden INTEGER NOT NULL DEFAULT 0,
   deleted INTEGER NOT NULL DEFAULT 0,
-  path TEXT NOT NULL DEFAULT ''
+  path TEXT NOT NULL DEFAULT '',
+  root_id TEXT NOT NULL DEFAULT ''
 ) STRICT;
 
 CREATE INDEX "IDX$outlines.parent_id" ON outlines (parent_id);
@@ -35,7 +36,9 @@ CREATE INDEX "IDX$outlines.updated_at" ON outlines (updated_at DESC);
 
 CREATE INDEX "IDX$outlines.path" ON outlines (path ASC);
 
-CREATE TRIGGER set_path AFTER INSERT ON outlines FOR EACH ROW BEGIN
+CREATE INDEX "IDX$outlines.root_id" ON outlines (path ASC);
+
+CREATE TRIGGER set_path_and_root_id AFTER INSERT ON outlines FOR EACH ROW BEGIN
 UPDATE outlines
 SET
   path = CASE
@@ -48,13 +51,24 @@ SET
       WHERE
         id = NEW.parent_id
     ) || '/' || NEW.id
+  END,
+  root_id = CASE
+    WHEN NEW.parent_id IS NULL THEN NEW.id
+    ELSE (
+      SELECT
+        root_id
+      FROM
+        outlines
+      WHERE
+        id = NEW.parent_id
+    )
   END
 WHERE
   id = NEW.id;
 
 END;
 
-CREATE TRIGGER reconsile_path AFTER
+CREATE TRIGGER reconsile_path_and_root_id AFTER
 UPDATE ON outlines FOR EACH ROW WHEN OLD.parent_id IS DISTINCT
 FROM
   NEW.parent_id BEGIN
@@ -70,6 +84,17 @@ SET
       WHERE
         id = NEW.parent_id
     ) || '/' || NEW.id
+  END,
+  root_id = CASE
+    WHEN NEW.parent_id IS NULL THEN NEW.id
+    ELSE (
+      SELECT
+        root_id
+      FROM
+        outlines outlines
+      WHERE
+        id = NEW.parent_id
+    )
   END
 WHERE
   id = NEW.id;
@@ -83,7 +108,18 @@ SET
       outlines
     WHERE
       id = NEW.id
-  ) || substr(path, length(OLD.path) + 1)
+  ) || substr(path, length(OLD.path) + 1),
+  root_id = CASE
+    WHEN NEW.parent_id IS NULL THEN NEW.id
+    ELSE (
+      SELECT
+        root_id
+      FROM
+        outlines
+      WHERE
+        id = NEW.parent_id
+    )
+  END
 WHERE
   path LIKE OLD.path || '/%'
   AND id != NEW.id;
