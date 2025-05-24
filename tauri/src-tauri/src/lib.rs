@@ -4,8 +4,9 @@ mod error;
 mod model;
 mod util;
 
+use db::ConnectionState;
 use specta_typescript::Typescript;
-use tauri::{TitleBarStyle, WebviewUrl, WebviewWindowBuilder};
+use tauri::{Manager, TitleBarStyle, WebviewUrl, WebviewWindowBuilder};
 use tauri_plugin_window_state::{AppHandleExt, StateFlags};
 
 #[cfg_attr(mobile, tauri::mobile_entry_point)]
@@ -34,6 +35,9 @@ pub fn run() {
             let win_builder = win_builder.title_bar_style(TitleBarStyle::Overlay);
 
             win_builder.build()?;
+
+            // initialize connection state
+            app.manage(ConnectionState::new());
 
             Ok(())
         })
@@ -69,6 +73,7 @@ fn get_specta_builder() -> tauri_specta::Builder {
 mod test {
     use super::*;
 
+    // export specta types while running tests
     #[test]
     fn export_specta() {
         get_specta_builder();

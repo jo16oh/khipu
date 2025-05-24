@@ -1,18 +1,40 @@
 mod query;
 
-use eyre::Result;
+use eyre::OptionExt;
 use sqlx::{
     Sqlite, SqlitePool,
     migrate::{MigrateDatabase, Migrator},
 };
+use tokio::sync::RwLock;
 
 static MIGRATOR: Migrator = sqlx::migrate!("./migrations");
 
-pub async fn open_connection(url: &str) -> Result<SqlitePool> {
-    Sqlite::create_database(url).await?;
-    let pool = SqlitePool::connect(url).await?;
-    MIGRATOR.run(&pool).await?;
-    Ok(pool)
+pub struct ConnectionState(RwLock<Option<SqlitePool>>);
+
+impl ConnectionState {
+    pub fn new() -> Self {
+        ConnectionState(RwLock::new(None))
+    }
+
+    pub async fn pool(&self) -> eyre::Result<SqlitePool> {
+        self.0.read().await.clone().ok_or_eyre("db is not opened")
+    }
+
+    pub async fn open(&self, url: &str) -> eyre::Result<()> {
+        let mut guard = self.0.write().await;
+
+        Sqlite::create_database(url).await?;
+        let pool = SqlitePool::connect(url).await?;
+        MIGRATOR.run(&pool).await?;
+        *guard = Some(pool);
+
+        Ok(())
+    }
+
+    pub async fn close(&self) {
+        let mut guard = self.0.write().await;
+        *guard = None;
+    }
 }
 
 #[cfg(test)]
