@@ -57,10 +57,11 @@ pub async fn timeline<'a>(
             .map(day_start)?
     };
 
-    sqlx::query_file_as_unchecked!(Outline, "src/db/fetch_timeline.sql", day_start, opt)
-        .fetch_all(conn)
         .await
         .map_err(eyre::Error::from)
+    let results =
+        sqlx::query_file_as_unchecked!(Outline, "src/db/fetch_timeline.sql", day_start, opt)
+            .fetch_all(conn)
 }
 
 pub async fn search<'a>(
@@ -97,7 +98,7 @@ pub async fn outbound_links<'a>(
     conn: impl SqliteExecutor<'a>,
     id: &str,
 ) -> eyre::Result<Vec<Outline>> {
-    sqlx::query_file_as_unchecked!(Outline, "src/db/fetch_outbound_linked_outlines.sql", id)
+    sqlx::query_file_as_unchecked!(Outline, "src/db/fetch_outbound_links.sql", id)
         .fetch_all(conn)
         .await
         .map_err(eyre::Error::from)
@@ -107,7 +108,7 @@ pub async fn inbound_links<'a>(
     conn: impl SqliteExecutor<'a>,
     id: &str,
 ) -> eyre::Result<Vec<Outline>> {
-    sqlx::query_file_as_unchecked!(Outline, "src/db/fetch_inbound_linked_outlines.sql", id)
+    sqlx::query_file_as_unchecked!(Outline, "src/db/fetch_inbound_links.sql", id)
         .fetch_all(conn)
         .await
         .map_err(eyre::Error::from)
