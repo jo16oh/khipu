@@ -21,7 +21,7 @@ async fn test_timeline() {
 
     tx.commit().await.unwrap();
 
-    let r = timeline(
+    let (r, _) = timeline(
         &pool,
         TimelinePosition::Before((Utc::now() + Duration::days(2)).timestamp_millis()),
         OrderBy::UpdatedAt,

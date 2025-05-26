@@ -46,7 +46,7 @@ pub async fn timeline<'a>(
     conn: impl SqliteExecutor<'a> + Send + Copy,
     position: TimelinePosition,
     order_by: OrderBy,
-) -> eyre::Result<Vec<Outline>> {
+) -> eyre::Result<(Vec<Outline>, Vec<Outline>)> {
     let opt = order_by.to_string();
 
     let day_start = {
@@ -57,11 +57,27 @@ pub async fn timeline<'a>(
             .map(day_start)?
     };
 
-        .await
-        .map_err(eyre::Error::from)
     let results =
         sqlx::query_file_as_unchecked!(Outline, "src/db/fetch_timeline.sql", day_start, opt)
             .fetch_all(conn)
+            .await?;
+
+    let links = {
+        let ids = results.iter().map(|o| &o.id).collect_vec();
+
+        let sql = include_str!("fetch_linked_outlines_to_embed_text.sql")
+            .replace("$ids", &ids.iter().map(|_| "?").join(", "));
+
+        let mut query = sqlx::query_as::<_, Outline>(&sql);
+
+        for id in ids {
+            query = query.bind(id);
+        }
+
+        query.fetch_all(conn).await?
+    };
+
+    Ok((results, links))
 }
 
 pub async fn search<'a>(

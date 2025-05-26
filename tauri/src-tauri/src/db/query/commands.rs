@@ -13,7 +13,7 @@ pub async fn timeline(
     conn: State<'_, ConnectionState>,
     position: TimelinePosition,
     order_by: OrderBy,
-) -> eyre::Result<Vec<Outline>> {
+) -> eyre::Result<(Vec<Outline>, Vec<Outline>)> {
     let pool = conn.pool().await?;
     super::timeline(&pool, position, order_by).await
 }

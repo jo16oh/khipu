@@ -17,7 +17,7 @@ async closeDb() : Promise<null> {
 async deleteDb(dbName: string) : Promise<null> {
     return await TAURI_INVOKE("delete_db", { dbName });
 },
-async timeline(position: TimelinePosition, orderBy: OrderBy) : Promise<Outline[]> {
+async timeline(position: TimelinePosition, orderBy: OrderBy) : Promise<[Outline[], Outline[]]> {
     return await TAURI_INVOKE("timeline", { position, orderBy });
 },
 async search(query: string, orderBy: OrderBy, offset: number) : Promise<[Outline[], Outline[]]> {
