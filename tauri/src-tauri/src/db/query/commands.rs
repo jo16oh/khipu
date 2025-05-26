@@ -1,0 +1,98 @@
+use super::*;
+use crate::{
+    db::ConnectionState,
+    model::{Base64Bytes, Outline},
+};
+use tauri::State;
+
+#[tauri::command]
+#[specta::specta]
+#[macros::eyre_to_any]
+#[macros::log_err]
+pub async fn timeline(
+    conn: State<'_, ConnectionState>,
+    position: TimelinePosition,
+    order_by: OrderBy,
+) -> eyre::Result<Vec<Outline>> {
+    let pool = conn.pool().await?;
+    super::timeline(&pool, position, order_by).await
+}
+
+#[tauri::command]
+#[specta::specta]
+#[macros::eyre_to_any]
+#[macros::log_err]
+pub async fn search(
+    conn: State<'_, ConnectionState>,
+    query: String,
+    order_by: OrderBy,
+    offset: i64,
+) -> eyre::Result<(Vec<Outline>, Vec<Outline>)> {
+    let pool = conn.pool().await?;
+    super::search(&pool, &query, order_by, offset).await
+}
+
+#[tauri::command]
+#[specta::specta]
+#[macros::eyre_to_any]
+#[macros::log_err]
+pub async fn outbound_links(
+    conn: State<'_, ConnectionState>,
+    id: String,
+) -> eyre::Result<Vec<Outline>> {
+    let pool = conn.pool().await?;
+    super::outbound_links(&pool, &id).await
+}
+
+#[tauri::command]
+#[specta::specta]
+#[macros::eyre_to_any]
+#[macros::log_err]
+pub async fn inbound_links(
+    conn: State<'_, ConnectionState>,
+    id: String,
+) -> eyre::Result<Vec<Outline>> {
+    let pool = conn.pool().await?;
+    super::inbound_links(&pool, &id).await
+}
+
+#[tauri::command]
+#[specta::specta]
+#[macros::eyre_to_any]
+#[macros::log_err]
+pub async fn tree(conn: State<'_, ConnectionState>, id: String) -> eyre::Result<Vec<Outline>> {
+    let pool = conn.pool().await?;
+    super::tree(&pool, &id).await
+}
+
+#[tauri::command]
+#[specta::specta]
+#[macros::eyre_to_any]
+#[macros::log_err]
+pub async fn upsert_outline(
+    conn: State<'_, ConnectionState>,
+    outline: Outline,
+    y_updates: Vec<Base64Bytes>,
+) -> eyre::Result<()> {
+    let pool = conn.pool().await?;
+    let mut tx = pool.begin().await?;
+    super::upsert_outline(&mut tx, &outline).await?;
+    super::insert_y_updates(&mut *tx, &y_updates, &outline.id, outline.updated_at).await?;
+    tx.commit().await?;
+    eyre::Ok(())
+}
+
+#[tauri::command]
+#[specta::specta]
+#[macros::eyre_to_any]
+#[macros::log_err]
+pub async fn delete_outline(
+    conn: State<'_, ConnectionState>,
+    outline_id: String,
+) -> eyre::Result<()> {
+    let pool = conn.pool().await?;
+    let mut tx = pool.begin().await?;
+    super::delete_outline(&mut tx, &outline_id).await?;
+    tx.commit().await?;
+    eyre::Ok(())
+}

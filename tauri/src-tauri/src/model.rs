@@ -1,7 +1,8 @@
 use std::collections::HashSet;
 
+use base64::{Engine, prelude::BASE64_STANDARD};
 use derive_more::derive::{Deref, DerefMut};
-use serde::{Deserialize, Serialize};
+use serde::{Deserialize, Deserializer, Serialize, Serializer, de::Visitor};
 use sqlx::{Database, Decode, Encode, Sqlite, prelude::FromRow, sqlite::SqliteValueRef};
 use strum::{Display, EnumString};
 
@@ -128,19 +129,72 @@ impl From<i64> for SqliteBool {
     }
 }
 
-#[cfg(test)]
-use chrono::Utc;
+#[derive(Debug, Clone, Deref, FromRow, specta::Type)]
+pub struct Base64Bytes(#[specta(type = String)] Vec<u8>);
 
-#[cfg(test)]
-use crate::util::uuidv7bs58;
+impl AsRef<[u8]> for Base64Bytes {
+    fn as_ref(&self) -> &[u8] {
+        self.0.as_ref()
+    }
+}
+
+impl From<Vec<u8>> for Base64Bytes {
+    fn from(value: Vec<u8>) -> Self {
+        Base64Bytes(value)
+    }
+}
+
+impl From<Base64Bytes> for Vec<u8> {
+    fn from(value: Base64Bytes) -> Self {
+        value.0
+    }
+}
+
+impl Serialize for Base64Bytes {
+    fn serialize<S>(&self, serializer: S) -> Result<S::Ok, S::Error>
+    where
+        S: Serializer,
+    {
+        serializer.serialize_str(&BASE64_STANDARD.encode(&self.0))
+    }
+}
+
+impl<'de> Deserialize<'de> for Base64Bytes {
+    fn deserialize<D>(deserializer: D) -> Result<Self, D::Error>
+    where
+        D: Deserializer<'de>,
+    {
+        struct Base64BytesVisitor;
+
+        impl Visitor<'_> for Base64BytesVisitor {
+            type Value = Base64Bytes;
+
+            fn expecting(&self, formatter: &mut std::fmt::Formatter) -> std::fmt::Result {
+                formatter.write_str("a base64 encoded string")
+            }
+
+            fn visit_str<E>(self, value: &str) -> Result<Base64Bytes, E>
+            where
+                E: serde::de::Error,
+            {
+                let decoded = BASE64_STANDARD.decode(value).map_err(|e| {
+                    E::custom(format!("failed to decode from base64 string: {}", e))
+                })?;
+                Ok(Base64Bytes(decoded))
+            }
+        }
+
+        deserializer.deserialize_str(Base64BytesVisitor)
+    }
+}
 
 #[cfg(test)]
 impl Outline {
     pub fn new() -> Self {
-        let now = Utc::now().timestamp_millis();
+        let now = chrono::Utc::now().timestamp_millis();
 
         Outline {
-            id: uuidv7bs58(),
+            id: crate::util::uuidv7bs58(),
             parent_id: None,
             findex: String::new(),
             r#type: OutlineType::Bullet,
@@ -155,10 +209,10 @@ impl Outline {
     }
 
     pub fn new_child(&self) -> Self {
-        let now = Utc::now().timestamp_millis();
+        let now = chrono::Utc::now().timestamp_millis();
 
         Outline {
-            id: uuidv7bs58(),
+            id: crate::util::uuidv7bs58(),
             parent_id: Some(self.id.clone()),
             findex: String::new(),
             r#type: OutlineType::Bullet,

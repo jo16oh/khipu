@@ -7,5 +7,17 @@ fn greet(name: &str) -> String {
 }
 
 pub fn commands() -> tauri_specta::Commands<tauri::Wry> {
-    tauri_specta::collect_commands![greet, open_db, close_db, delete_db]
+    tauri_specta::collect_commands![
+        greet,
+        open_db,
+        close_db,
+        delete_db,
+        timeline,
+        search,
+        outbound_links,
+        inbound_links,
+        tree,
+        upsert_outline,
+        delete_outline
+    ]
 }

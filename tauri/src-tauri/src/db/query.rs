@@ -93,7 +93,7 @@ pub async fn search<'a>(
     Ok((results, links))
 }
 
-pub async fn fetch_outbound_links<'a>(
+pub async fn outbound_links<'a>(
     conn: impl SqliteExecutor<'a>,
     id: &str,
 ) -> eyre::Result<Vec<Outline>> {
@@ -103,7 +103,7 @@ pub async fn fetch_outbound_links<'a>(
         .map_err(eyre::Error::from)
 }
 
-pub async fn fetch_inbound_links<'a>(
+pub async fn inbound_links<'a>(
     conn: impl SqliteExecutor<'a>,
     id: &str,
 ) -> eyre::Result<Vec<Outline>> {
@@ -113,10 +113,7 @@ pub async fn fetch_inbound_links<'a>(
         .map_err(eyre::Error::from)
 }
 
-pub async fn outline_tree<'a>(
-    conn: impl SqliteExecutor<'a>,
-    id: &str,
-) -> eyre::Result<Vec<Outline>> {
+pub async fn tree<'a>(conn: impl SqliteExecutor<'a>, id: &str) -> eyre::Result<Vec<Outline>> {
     sqlx::query_file_as_unchecked!(Outline, "src/db/fetch_outline_tree.sql", id)
         .fetch_all(conn)
         .await
@@ -214,19 +211,9 @@ async fn sync_outline_links(tx: &mut SqliteTransaction<'_>, outline: &Outline) -
     eyre::Ok(())
 }
 
-pub async fn delete_outline(tx: &mut SqliteTransaction<'_>, outline_id: &str) -> eyre::Result<()> {
-    delete_fts_index(tx, outline_id).await?;
-
-    sqlx::query_file_scalar!("src/db/delete_outline.sql", outline_id)
-        .fetch_one(&mut **tx)
-        .await?;
-
-    eyre::Ok(())
-}
-
 pub async fn insert_y_updates<'a>(
     conn: impl SqliteExecutor<'a>,
-    updates: &[Vec<u8>],
+    updates: &[impl AsRef<[u8]>],
     outline_id: &str,
     timestamp: i64,
 ) -> eyre::Result<()> {
@@ -242,6 +229,16 @@ pub async fn insert_y_updates<'a>(
     )
     .execute(conn)
     .await?;
+
+    eyre::Ok(())
+}
+
+pub async fn delete_outline(tx: &mut SqliteTransaction<'_>, outline_id: &str) -> eyre::Result<()> {
+    delete_fts_index(tx, outline_id).await?;
+
+    sqlx::query_file_scalar!("src/db/delete_outline.sql", outline_id)
+        .fetch_one(&mut **tx)
+        .await?;
 
     eyre::Ok(())
 }

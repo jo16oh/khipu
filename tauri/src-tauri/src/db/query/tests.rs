@@ -50,7 +50,7 @@ async fn test_search() {
 }
 
 #[tokio::test]
-async fn test_fetch_outbound_links() {
+async fn test_outbound_links() {
     let pool = open_connection_in_memory().await;
     let mut tx = pool.begin().await.unwrap();
 
@@ -86,7 +86,7 @@ async fn test_fetch_outbound_links() {
 
     tx.commit().await.unwrap();
 
-    let r = fetch_outbound_links(&pool, &t1[0].id).await.unwrap();
+    let r = outbound_links(&pool, &t1[0].id).await.unwrap();
 
     // forwardlinks in the same tree should be grouped together
     assert_eq!(r.len(), 2);
@@ -132,7 +132,7 @@ async fn test_fetch_inbound_links() {
 
     tx.commit().await.unwrap();
 
-    let r = fetch_inbound_links(&pool, &o.id).await.unwrap();
+    let r = inbound_links(&pool, &o.id).await.unwrap();
 
     // backlinks in the same tree should be grouped together
     assert_eq!(r.len(), 2);
@@ -154,7 +154,7 @@ async fn test_outline_tree() {
     upsert_outline(&mut tx, &o2).await.unwrap();
     upsert_outline(&mut tx, &o3).await.unwrap();
 
-    let r = outline_tree(&mut *tx, &o2.id).await.unwrap();
+    let r = tree(&mut *tx, &o2.id).await.unwrap();
 
     assert_eq!(r.len(), 3);
 }
@@ -224,7 +224,7 @@ async fn test_upsert_outline() {
 
     // Is new links registared?
     {
-        let r = outline_tree(&mut *tx, &o1.id).await.unwrap();
+        let r = tree(&mut *tx, &o1.id).await.unwrap();
         assert_eq!(r[0].linklist.len(), 2);
     }
 
@@ -238,7 +238,7 @@ async fn test_upsert_outline() {
 
     // Is old link removed?
     {
-        let r = outline_tree(&mut *tx, &o1.id).await.unwrap();
+        let r = tree(&mut *tx, &o1.id).await.unwrap();
         assert_eq!(r[0].linklist.len(), 1);
     }
 }

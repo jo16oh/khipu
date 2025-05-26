@@ -16,6 +16,27 @@ async closeDb() : Promise<null> {
 },
 async deleteDb(dbName: string) : Promise<null> {
     return await TAURI_INVOKE("delete_db", { dbName });
+},
+async timeline(position: TimelinePosition, orderBy: OrderBy) : Promise<Outline[]> {
+    return await TAURI_INVOKE("timeline", { position, orderBy });
+},
+async search(query: string, orderBy: OrderBy, offset: number) : Promise<[Outline[], Outline[]]> {
+    return await TAURI_INVOKE("search", { query, orderBy, offset });
+},
+async outboundLinks(id: string) : Promise<Outline[]> {
+    return await TAURI_INVOKE("outbound_links", { id });
+},
+async inboundLinks(id: string) : Promise<Outline[]> {
+    return await TAURI_INVOKE("inbound_links", { id });
+},
+async tree(id: string) : Promise<Outline[]> {
+    return await TAURI_INVOKE("tree", { id });
+},
+async upsertOutline(outline: Outline, yUpdates: Base64Bytes[]) : Promise<null> {
+    return await TAURI_INVOKE("upsert_outline", { outline, yUpdates });
+},
+async deleteOutline(outlineId: string) : Promise<null> {
+    return await TAURI_INVOKE("delete_outline", { outlineId });
 }
 }
 
@@ -29,7 +50,16 @@ async deleteDb(dbName: string) : Promise<null> {
 
 /** user-defined types **/
 
+export type Base64Bytes = string
 export type KhipuError = { anyError: { rootCause: string; msg: string } }
+export type Link = { id: string; type: LinkType }
+export type LinkList = Link[]
+export type LinkType = "tag" | "link" | "quote"
+export type OrderBy = "createdAt" | "updatedAt"
+export type Outline = { id: string; parentId: string | null; findex: string; type: OutlineType; doc: string; linklist: LinkList; createdAt: number; updatedAt: number; completed: SqliteBool; collapsed: SqliteBool; deleted: SqliteBool }
+export type OutlineType = "heading" | "bullet" | "paragraph"
+export type SqliteBool = boolean
+export type TimelinePosition = { before: number } | { after: number } | "latest"
 
 /** tauri-specta globals **/
 
