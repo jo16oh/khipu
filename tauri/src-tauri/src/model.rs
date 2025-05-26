@@ -13,7 +13,7 @@ pub struct Outline {
     pub findex: String,
     pub r#type: OutlineType,
     pub doc: String,
-    pub links: Links,
+    pub linklist: LinkList,
     pub created_at: i64,
     pub updated_at: i64,
     pub completed: SqliteBool,
@@ -58,7 +58,7 @@ impl<'r> Encode<'r, Sqlite> for OutlineType {
 #[derive(Serialize, Deserialize, specta::Type, Deref, DerefMut, Default, Clone, Debug)]
 #[serde(rename_all = "camelCase")]
 #[serde(transparent)]
-pub struct Links(HashSet<Link>);
+pub struct LinkList(HashSet<Link>);
 
 #[derive(Serialize, Deserialize, specta::Type, PartialEq, Eq, Hash, Clone, Debug)]
 #[serde(rename_all = "camelCase")]
@@ -76,13 +76,13 @@ pub enum LinkType {
     Quote,
 }
 
-impl sqlx::Type<Sqlite> for Links {
+impl sqlx::Type<Sqlite> for LinkList {
     fn type_info() -> <Sqlite as Database>::TypeInfo {
         <&str as sqlx::Type<Sqlite>>::type_info()
     }
 }
 
-impl<'r> Decode<'r, Sqlite> for Links {
+impl<'r> Decode<'r, Sqlite> for LinkList {
     fn decode(
         value: SqliteValueRef<'r>,
     ) -> Result<Self, Box<dyn std::error::Error + 'static + Send + Sync>> {
@@ -90,7 +90,7 @@ impl<'r> Decode<'r, Sqlite> for Links {
         let set: HashSet<Link> = serde_json::from_str::<Vec<Link>>(json)?
             .into_iter()
             .collect();
-        Ok(Links(set))
+        Ok(LinkList(set))
     }
 }
 
@@ -145,7 +145,7 @@ impl Outline {
             findex: String::new(),
             r#type: OutlineType::Bullet,
             doc: SAMPLE_DOC.to_string(),
-            links: Links::default(),
+            linklist: LinkList::default(),
             created_at: now,
             updated_at: now,
             completed: SqliteBool(false),
@@ -163,7 +163,7 @@ impl Outline {
             findex: String::new(),
             r#type: OutlineType::Bullet,
             doc: SAMPLE_DOC.to_string(),
-            links: Links::default(),
+            linklist: LinkList::default(),
             created_at: now,
             updated_at: now,
             completed: SqliteBool(false),

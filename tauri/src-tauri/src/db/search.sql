@@ -48,7 +48,7 @@ SELECT
   ) FILTER (
     WHERE
       links.id_to IS NOT NULL
-  ) AS links
+  ) AS linklist
 FROM
   matches o
   LEFT JOIN outline_links links ON links.id_from = o.id

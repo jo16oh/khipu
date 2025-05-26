@@ -140,7 +140,7 @@ SELECT
   ) FILTER (
     WHERE
       links.id_to IS NOT NULL
-  ) AS links
+  ) AS linklist
 FROM
   path o
   LEFT JOIN outline_links links ON links.id_from = o.id
@@ -154,7 +154,7 @@ SELECT
   ) FILTER (
     WHERE
       links.id_to IS NOT NULL
-  ) AS links
+  ) AS linklist
 FROM
   tree o
   LEFT JOIN outline_links links ON links.id_from = o.id
@@ -168,7 +168,7 @@ SELECT
   ) FILTER (
     WHERE
       links.id_to IS NOT NULL
-  ) AS links
+  ) AS linklist
 FROM
   linked_outlines o
   LEFT JOIN outline_links links ON links.id_from = o.id
