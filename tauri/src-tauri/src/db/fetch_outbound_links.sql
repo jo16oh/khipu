@@ -76,7 +76,7 @@ WHERE
     FROM
       headings p
     WHERE
-      o.path LIKE p.path || '/%'
+      o.path LIKE p.path || ',%'
   )
 GROUP BY
   (o.id)

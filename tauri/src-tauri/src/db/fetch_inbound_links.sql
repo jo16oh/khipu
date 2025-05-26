@@ -91,7 +91,7 @@ WHERE
     FROM
       headings p
     WHERE
-      o.path LIKE p.path || '/%'
+      o.path LIKE p.path || ',%'
   )
 GROUP BY
   (o.id)
@@ -104,6 +104,6 @@ ORDER BY
       INNER JOIN outlines ON outlines.id = outline_links.id_from
     WHERE
       outline_links.id_to = ?1
-      AND outlines.path like o.path || '%'
+      AND outlines.path like o.path || ',%'
   ) DESC,
   o.updated_at DESC;

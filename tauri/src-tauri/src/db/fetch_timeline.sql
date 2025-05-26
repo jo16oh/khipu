@@ -43,7 +43,7 @@ WHERE
     FROM
       tree
     WHERE
-      o.path LIKE tree.path || '/%'
+      o.path LIKE tree.path || ',%'
       AND tree.collapsed = true
   )
 GROUP BY

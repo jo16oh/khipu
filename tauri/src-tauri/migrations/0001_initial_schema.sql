@@ -41,7 +41,7 @@ CREATE TRIGGER set_path_and_root_id AFTER INSERT ON outlines FOR EACH ROW BEGIN
 UPDATE outlines
 SET
   path = CASE
-    WHEN NEW.parent_id IS NULL THEN NEW.id
+    WHEN NEW.parent_id IS NULL THEN '''' || NEW.id || ''''
     ELSE (
       SELECT
         path
@@ -49,7 +49,7 @@ SET
         outlines
       WHERE
         id = NEW.parent_id
-    ) || '/' || NEW.id
+    ) || ',' || '''' || NEW.id || ''''
   END,
   root_id = CASE
     WHEN NEW.parent_id IS NULL THEN NEW.id
@@ -74,7 +74,7 @@ FROM
 UPDATE outlines
 SET
   path = CASE
-    WHEN NEW.parent_id IS NULL THEN NEW.id
+    WHEN NEW.parent_id IS NULL THEN '''' || NEW.id || ''''
     ELSE (
       SELECT
         path
@@ -82,7 +82,7 @@ SET
         outlines
       WHERE
         id = NEW.parent_id
-    ) || '/' || NEW.id
+    ) || ',' || '''' || NEW.id || ''''
   END,
   root_id = CASE
     WHEN NEW.parent_id IS NULL THEN NEW.id
@@ -120,8 +120,7 @@ SET
     )
   END
 WHERE
-  path LIKE OLD.path || '/%'
-  AND id != NEW.id;
+  path LIKE OLD.path || ',%';
 
 END;
 

@@ -251,6 +251,10 @@ async fn test_path_construction() {
         path: String,
     }
 
+    fn single_quoted(str: &str) -> String {
+        format!("'{}'", str)
+    }
+
     let pool = open_connection_in_memory().await;
     let mut tx = pool.begin().await.unwrap();
 
@@ -274,11 +278,17 @@ async fn test_path_construction() {
 
         assert_eq!(results.len(), 3);
         assert_eq!(results[0].id, o1.id);
-        assert_eq!(results[0].path, o1.id);
+        assert_eq!(results[0].path, single_quoted(&o1.id));
         assert_eq!(results[1].id, o2.id);
-        assert_eq!(results[1].path, o1.id.clone() + "/" + &o2.id);
+        assert_eq!(
+            results[1].path,
+            single_quoted(&o1.id) + "," + &single_quoted(&o2.id)
+        );
         assert_eq!(results[2].id, o3.id);
-        assert_eq!(results[2].path, o1.id + "/" + &o2.id + "/" + &o3.id);
+        assert_eq!(
+            results[2].path,
+            single_quoted(&o1.id) + "," + &single_quoted(&o2.id) + "," + &single_quoted(&o3.id)
+        );
     }
 
     // update parent_id to null
@@ -297,7 +307,7 @@ async fn test_path_construction() {
             .await
             .unwrap();
 
-        assert_eq!(r, o2.id);
+        assert_eq!(r, single_quoted(&o2.id));
     }
 
     // update parent_id to o4.id
@@ -314,10 +324,11 @@ async fn test_path_construction() {
         .await
         .unwrap();
 
+        let id_o4_quoted = single_quoted(&o4.id);
         let results = sqlx::query_as!(
             QueryResult,
             "SELECT id, path FROM outlines WHERE path LIKE ? || '%' ORDER BY path ASC;",
-            o4.id
+            id_o4_quoted
         )
         .fetch_all(&mut *tx)
         .await
@@ -325,10 +336,16 @@ async fn test_path_construction() {
 
         assert_eq!(results.len(), 3);
         assert_eq!(results[0].id, o4.id);
-        assert_eq!(results[0].path, o4.id);
+        assert_eq!(results[0].path, single_quoted(&o4.id));
         assert_eq!(results[1].id, o2.id);
-        assert_eq!(results[1].path, o4.id.clone() + "/" + &o2.id);
+        assert_eq!(
+            results[1].path,
+            single_quoted(&o4.id) + "," + &single_quoted(&o2.id)
+        );
         assert_eq!(results[2].id, o3.id);
-        assert_eq!(results[2].path, o4.id + "/" + &o2.id + "/" + &o3.id);
+        assert_eq!(
+            results[2].path,
+            single_quoted(&o4.id) + "," + &single_quoted(&o2.id) + "," + &single_quoted(&o3.id)
+        );
     }
 }
