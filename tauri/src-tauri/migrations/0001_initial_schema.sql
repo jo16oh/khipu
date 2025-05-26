@@ -125,6 +125,54 @@ WHERE
 
 END;
 
+CREATE TABLE deleted_outlines (
+  id TEXT PRIMARY KEY NOT NULL,
+  parent_id TEXT,
+  findex TEXT NOT NULL,
+  type TEXT NOT NULL,
+  doc TEXT NOT NULL,
+  created_at INTEGER NOT NULL,
+  updated_at INTEGER NOT NULL,
+  collapsed INTEGER NOT NULL DEFAULT 0,
+  completed INTEGER NOT NULL DEFAULT 0
+) STRICT;
+
+CREATE TABLE deleted_y_updates (
+  id TEXT PRIMARY KEY NOT NULL,
+  outline_id TEXT NOT NULL,
+  data BLOB NOT NULL,
+  timestamp INTEGER NOT NULL
+) STRICT;
+
+CREATE INDEX "IDX$deleted_outlines.parent_id" ON outlines (parent_id);
+
+CREATE INDEX "IDX$deleted_y_updates.outline_id" ON deleted_y_updates (outline_id);
+
+CREATE TRIGGER insert_into_trashbox BEFORE DELETE ON outlines FOR EACH ROW BEGIN
+INSERT INTO
+  deleted_outlines
+SELECT
+  OLD.id,
+  OLD.parent_id,
+  OLD.findex,
+  OLD.type,
+  OLD.doc,
+  OLD.created_at,
+  OLD.updated_at,
+  OLD.collapsed,
+  OLD.completed;
+
+INSERT INTO
+  deleted_y_updates
+SELECT
+  *
+FROM
+  y_updates
+WHERE
+  outline_id = OLD.id;
+
+END;
+
 CREATE TABLE y_updates (
   id TEXT PRIMARY KEY NOT NULL,
   outline_id TEXT REFERENCES outlines (id) ON DELETE CASCADE NOT NULL,
