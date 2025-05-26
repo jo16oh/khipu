@@ -10,15 +10,12 @@ WITH RECURSIVE
         WHEN ?2 = 'updated_at' THEN updated_at BETWEEN ?1 AND ?1  + (60 * 60 * 24 * 1000)
         ELSE false
       END
-      AND deleted = false
     UNION ALL
     SELECT
       parent.*
     FROM
       outlines parent
       INNER JOIN tree child ON parent.parent_id = child.id
-    WHERE
-      parent.deleted = false
   )
 SELECT
   o.id,
@@ -30,7 +27,6 @@ SELECT
   o.updated_at,
   o.completed,
   o.collapsed,
-  o.deleted,
   json_group_array(
     json_object('id', links.id_to, 'type', links.type)
   ) FILTER (

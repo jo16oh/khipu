@@ -9,14 +9,12 @@ WITH RECURSIVE
       parent.created_at,
       parent.updated_at,
       parent.completed,
-      parent.collapsed,
-      parent.deleted
+      parent.collapsed
     FROM
       outlines o
       INNER JOIN outlines parent ON parent.id = o.parent_id
     WHERE
       o.id = ?1
-      AND parent.deleted = false
     UNION ALL
     SELECT
       parent.id,
@@ -27,12 +25,10 @@ WITH RECURSIVE
       parent.created_at,
       parent.updated_at,
       parent.completed,
-      parent.collapsed,
-      parent.deleted
+      parent.collapsed
     FROM
       outlines parent
       INNER JOIN path ON parent.id = path.parent_id
-      AND parent.deleted = false
   ),
   tree AS (
     SELECT
@@ -44,13 +40,11 @@ WITH RECURSIVE
       o.created_at,
       o.updated_at,
       o.completed,
-      o.collapsed,
-      o.deleted
+      o.collapsed
     FROM
       outlines o
     WHERE
       id = ?1
-      AND deleted = false
     UNION ALL
     SELECT
       child.id,
@@ -61,8 +55,7 @@ WITH RECURSIVE
       child.created_at,
       child.updated_at,
       child.completed,
-      child.collapsed,
-      child.deleted
+      child.collapsed
     FROM
       outlines child
       INNER JOIN tree ON tree.id = child.parent_id
@@ -70,7 +63,6 @@ WITH RECURSIVE
         tree.collapsed = false
         OR tree.id = ?1
       )
-      AND child.deleted = false
   ),
   temp_linked_outlines AS (
     SELECT
@@ -82,14 +74,12 @@ WITH RECURSIVE
       `to`.created_at,
       `to`.updated_at,
       `to`.completed,
-      `to`.collapsed,
-      `to`.deleted
+      `to`.collapsed
     FROM
       tree `from`
       INNER JOIN outline_links links ON `from`.id = links.id_from
       AND links.id_from = `from`.id
       INNER JOIN outlines `to` ON links.id_to = `to`.id
-      AND `to`.deleted = false
     UNION
     SELECT
       `to`.id,
@@ -100,14 +90,12 @@ WITH RECURSIVE
       `to`.created_at,
       `to`.updated_at,
       `to`.completed,
-      `to`.collapsed,
-      `to`.deleted
+      `to`.collapsed
     FROM
       outline_links links
       INNER JOIN temp_linked_outlines `from` ON `from`.id = links.id_from
       AND `from`.type != "quote"
       INNER JOIN outlines `to` ON links.id_to = `to`.id
-      AND `to`.deleted = false
   ),
   linked_outlines AS (
     SELECT
@@ -124,12 +112,10 @@ WITH RECURSIVE
       parent.created_at,
       parent.updated_at,
       parent.completed,
-      parent.collapsed,
-      parent.deleted
+      parent.collapsed
     FROM
       outlines parent
       INNER JOIN linked_outlines links ON parent.id = links.parent_id
-      AND parent.deleted = false
       INNER JOIN outline_links l ON l.id_from = parent.id
       AND l.type = "tag"
   )

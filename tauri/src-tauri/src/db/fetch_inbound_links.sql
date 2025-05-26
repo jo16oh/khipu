@@ -10,13 +10,11 @@ WITH RECURSIVE
       updated_at,
       completed,
       collapsed,
-      deleted,
       path
     FROM
       outlines o
     WHERE
       id = ?1
-      AND deleted = false
     UNION ALL
     SELECT
       child.id,
@@ -28,12 +26,10 @@ WITH RECURSIVE
       child.updated_at,
       child.completed,
       child.collapsed,
-      child.deleted,
       child.path
     FROM
       outlines child
       INNER JOIN tree ON tree.id = child.parent_id
-      AND child.deleted = false
   ),
   headings AS (
     SELECT
@@ -46,13 +42,11 @@ WITH RECURSIVE
       `from`.updated_at,
       `from`.completed,
       `from`.collapsed,
-      `from`.deleted,
       `from`.path
     FROM
       tree `to`
       INNER JOIN outline_links links ON links.id_to = `to`.id
       INNER JOIN outlines `from` ON links.id_from = `from`.id
-      AND `from`.deleted = false
     UNION ALL
     SELECT
       parent.id,
@@ -64,13 +58,11 @@ WITH RECURSIVE
       parent.updated_at,
       parent.completed,
       parent.collapsed,
-      parent.deleted,
       parent.path
     FROM
       outlines parent
       INNER JOIN headings child ON parent.id = child.parent_id
       AND child.type != 'heading'
-      AND parent.deleted = false
   )
 SELECT
   o.id,
@@ -82,7 +74,6 @@ SELECT
   o.updated_at,
   o.completed,
   o.collapsed,
-  o.deleted,
   json_group_array(
     json_object('id', links.id_to, 'type', links.type)
   ) FILTER (

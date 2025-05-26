@@ -8,11 +8,10 @@ INSERT INTO
     created_at,
     updated_at,
     completed,
-    collapsed,
-    deleted
+    collapsed
   )
 VALUES
-  (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+  (?, ?, ?, ?, ?, ?, ?, ?, ?)
 ON CONFLICT DO UPDATE
 SET
   parent_id = excluded.parent_id,
@@ -21,7 +20,6 @@ SET
   doc = excluded.doc,
   updated_at = excluded.updated_at,
   completed = excluded.completed,
-  collapsed = excluded.collapsed,
-  deleted = excluded.deleted
+  collapsed = excluded.collapsed
 WHERE
   id = excluded.id RETURNING rowid;

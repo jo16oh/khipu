@@ -7,15 +7,12 @@ WITH RECURSIVE
       INNER JOIN fts ON o.rowid = fts.rowid
     WHERE
       fts MATCH $q
-      AND deleted = false
     UNION ALL
     SELECT
       parent.*
     FROM
       outlines parent
       INNER JOIN matches ON parent.id = matches.parent_id
-    WHERE
-      parent.deleted = false
     ORDER BY
       $ord DESC
   ),
@@ -42,7 +39,6 @@ SELECT
   o.updated_at,
   o.completed,
   o.collapsed,
-  o.deleted,
   json_group_array(
     json_object('id', links.id_to, 'type', links.type)
   ) FILTER (

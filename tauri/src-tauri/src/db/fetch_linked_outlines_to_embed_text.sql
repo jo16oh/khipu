@@ -9,14 +9,12 @@ WITH RECURSIVE
       `to`.created_at,
       `to`.updated_at,
       `to`.completed,
-      `to`.collapsed,
-      `to`.deleted
+      `to`.collapsed
     FROM
       outlines `from`
       INNER JOIN outline_links links ON `from`.id IN ($ids)
       AND links.id_from = `from`.id
       INNER JOIN outlines `to` ON links.id_to = `to`.id
-      AND `to`.deleted = false
     UNION
     SELECT
       `to`.id,
@@ -27,14 +25,12 @@ WITH RECURSIVE
       `to`.created_at,
       `to`.updated_at,
       `to`.completed,
-      `to`.collapsed,
-      `to`.deleted
+      `to`.collapsed
     FROM
       outline_links links
       INNER JOIN temp_linked_outlines `from` ON `from`.id = links.id_from
       AND `from`.type != "quote"
       INNER JOIN outlines `to` ON links.id_to = `to`.id
-      AND `to`.deleted = false
   ),
   linked_outlines AS (
     SELECT
@@ -51,12 +47,10 @@ WITH RECURSIVE
       parent.created_at,
       parent.updated_at,
       parent.completed,
-      parent.collapsed,
-      parent.deleted
+      parent.collapsed
     FROM
       outlines parent
       INNER JOIN linked_outlines links ON parent.id = links.parent_id
-      AND parent.deleted = false
       INNER JOIN outline_links l ON l.id_from = parent.id
       AND l.type = "tag"
   )
