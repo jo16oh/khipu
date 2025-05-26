@@ -24,7 +24,8 @@ CREATE TABLE outlines (
   collapsed INTEGER NOT NULL DEFAULT 0,
   completed INTEGER NOT NULL DEFAULT 0,
   path TEXT NOT NULL DEFAULT '',
-  root_id TEXT NOT NULL DEFAULT ''
+  root_id TEXT NOT NULL DEFAULT '',
+  full_findex TEXT NOT NULL DEFAULT ''
 ) STRICT;
 
 CREATE INDEX "IDX$outlines.parent_id" ON outlines (parent_id);
@@ -35,7 +36,9 @@ CREATE INDEX "IDX$outlines.updated_at" ON outlines (updated_at DESC);
 
 CREATE INDEX "IDX$outlines.path" ON outlines (path ASC);
 
-CREATE INDEX "IDX$outlines.root_id" ON outlines (path ASC);
+CREATE INDEX "IDX$outlines.root_id" ON outlines (root_id ASC);
+
+CREATE INDEX "IDX$outlines.full_findex" ON outlines (full_findex ASC);
 
 CREATE TRIGGER set_path_and_root_id AFTER INSERT ON outlines FOR EACH ROW BEGIN
 UPDATE outlines
@@ -119,6 +122,60 @@ SET
         id = NEW.parent_id
     )
   END
+WHERE
+  path LIKE OLD.path || ',%';
+
+END;
+
+CREATE TRIGGER set_full_findex AFTER INSERT ON outlines FOR EACH ROW BEGIN
+UPDATE outlines
+SET
+  full_findex = CASE
+    WHEN NEW.parent_id IS NULL THEN NEW.findex
+    ELSE (
+      SELECT
+        full_findex || '/' || NEW.findex
+      FROM
+        outlines
+      WHERE
+        id = NEW.parent_id
+    )
+  END
+WHERE
+  id = NEW.id;
+
+END;
+
+CREATE TRIGGER reconcile_full_findex AFTER
+UPDATE ON outlines FOR EACH ROW WHEN OLD.parent_id IS DISTINCT
+FROM
+  NEW.parent_id BEGIN
+UPDATE outlines
+SET
+  full_findex = CASE
+    WHEN NEW.parent_id IS NULL THEN NEW.findex
+    ELSE (
+      SELECT
+        full_findex || '/' || NEW.findex
+      FROM
+        outlines
+      WHERE
+        id = NEW.parent_id
+    )
+  END
+WHERE
+  id = NEW.id;
+
+UPDATE outlines
+SET
+  full_findex = (
+    SELECT
+      full_findex
+    FROM
+      outlines
+    WHERE
+      id = NEW.id
+  ) || substr(full_findex, length(OLD.full_findex) + 1)
 WHERE
   path LIKE OLD.path || ',%';
 

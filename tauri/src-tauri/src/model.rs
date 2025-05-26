@@ -195,7 +195,7 @@ impl Outline {
         Outline {
             id: crate::util::uuidv7bs58(),
             parent_id: None,
-            findex: String::new(),
+            findex: "a0".to_string(),
             r#type: OutlineType::Bullet,
             doc: SAMPLE_DOC.to_string(),
             linklist: LinkList::default(),
@@ -212,7 +212,7 @@ impl Outline {
         Outline {
             id: crate::util::uuidv7bs58(),
             parent_id: Some(self.id.clone()),
-            findex: String::new(),
+            findex: "a0".to_string(),
             r#type: OutlineType::Bullet,
             doc: SAMPLE_DOC.to_string(),
             linklist: LinkList::default(),

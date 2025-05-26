@@ -349,3 +349,120 @@ async fn test_path_construction() {
         );
     }
 }
+
+#[tokio::test]
+async fn test_full_findex() {
+    #[derive(Serialize, Deserialize)]
+    struct QueryResult {
+        id: String,
+        full_findex: String,
+    }
+
+    let pool = open_connection_in_memory().await;
+    let mut tx = pool.begin().await.unwrap();
+
+    let mut o1 = Outline::new();
+    let mut o2 = o1.new_child();
+    let mut o3 = o2.new_child();
+    o1.findex = "o1".to_string();
+    o2.findex = "o2".to_string();
+    o3.findex = "o3".to_string();
+
+    upsert_outline(&mut tx, &o1).await.unwrap();
+    upsert_outline(&mut tx, &o2).await.unwrap();
+    upsert_outline(&mut tx, &o3).await.unwrap();
+
+    // initial full_findex construction
+    {
+        let results = sqlx::query_as!(
+            QueryResult,
+            "SELECT id, full_findex FROM outlines ORDER BY path ASC;"
+        )
+        .fetch_all(&mut *tx)
+        .await
+        .unwrap();
+
+        assert_eq!(results.len(), 3);
+        assert_eq!(results[0].id, o1.id);
+        assert_eq!(results[0].full_findex, o1.findex);
+        assert_eq!(results[1].id, o2.id);
+        assert_eq!(
+            results[1].full_findex,
+            String::new() + &o1.findex + "/" + &o2.findex
+        );
+        assert_eq!(results[2].id, o3.id);
+        assert_eq!(
+            results[2].full_findex,
+            String::new() + &o1.findex + "/" + &o2.findex + "/" + &o3.findex
+        );
+    }
+
+    // update parent_id to null
+    {
+        sqlx::query!(
+            "UPDATE outlines SET parent_id = ? WHERE id = ?;",
+            Option::<String>::None,
+            o2.id
+        )
+        .execute(&mut *tx)
+        .await
+        .unwrap();
+
+        let r = sqlx::query_scalar!("SELECT full_findex FROM outlines WHERE id = ?;", o2.id)
+            .fetch_one(&mut *tx)
+            .await
+            .unwrap();
+
+        assert_eq!(r, o2.findex);
+    }
+
+    // update parent_id to o4.id
+    {
+        let mut o4 = Outline::new();
+        o4.findex = "o4".to_string();
+        upsert_outline(&mut tx, &o4).await.unwrap();
+
+        sqlx::query!(
+            "UPDATE outlines SET parent_id = ? WHERE id = ?;",
+            o4.id,
+            o2.id
+        )
+        .execute(&mut *tx)
+        .await
+        .unwrap();
+
+        #[derive(Serialize, Deserialize, Debug)]
+        struct QR {
+            id: String,
+            full_findex: String,
+            path: String,
+        }
+
+        let r = sqlx::query_as!(QR, "select id, full_findex, path from outlines;")
+            .fetch_all(&mut *tx)
+            .await
+            .unwrap();
+        dbg!(r);
+
+        let id = "'".to_string() + &o4.id + "'";
+        let results = sqlx::query_as!(
+            QueryResult,
+            "SELECT id, full_findex FROM outlines WHERE path LIKE ? || '%' ORDER BY path ASC;",
+            id
+        )
+        .fetch_all(&mut *tx)
+        .await
+        .unwrap();
+
+        assert_eq!(results.len(), 3);
+        assert_eq!(results[0].id, o4.id);
+        assert_eq!(results[0].full_findex, o4.findex.clone());
+        assert_eq!(results[1].id, o2.id);
+        assert_eq!(results[1].full_findex, o4.findex.clone() + "/" + &o2.findex);
+        assert_eq!(results[2].id, o3.id);
+        assert_eq!(
+            results[2].full_findex,
+            o4.findex + "/" + &o2.findex + "/" + &o3.findex
+        );
+    }
+}
