@@ -39,7 +39,7 @@ pub async fn search(
 pub async fn outbound_links(
     conn: State<'_, ConnectionState>,
     id: String,
-) -> eyre::Result<Vec<Outline>> {
+) -> eyre::Result<(Vec<Outline>, Vec<Outline>)> {
     let pool = conn.pool().await?;
     super::outbound_links(&pool, &id).await
 }
@@ -51,7 +51,7 @@ pub async fn outbound_links(
 pub async fn inbound_links(
     conn: State<'_, ConnectionState>,
     id: String,
-) -> eyre::Result<Vec<Outline>> {
+) -> eyre::Result<(Vec<Outline>, Vec<Outline>)> {
     let pool = conn.pool().await?;
     super::inbound_links(&pool, &id).await
 }

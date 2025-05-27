@@ -86,7 +86,7 @@ async fn test_outbound_links() {
 
     tx.commit().await.unwrap();
 
-    let r = outbound_links(&pool, &t1[0].id).await.unwrap();
+    let (r, _) = outbound_links(&pool, &t1[0].id).await.unwrap();
 
     // forwardlinks in the same tree should be grouped together
     assert_eq!(r.len(), 2);
@@ -132,7 +132,7 @@ async fn test_fetch_inbound_links() {
 
     tx.commit().await.unwrap();
 
-    let r = inbound_links(&pool, &o.id).await.unwrap();
+    let (r, _) = inbound_links(&pool, &o.id).await.unwrap();
 
     // backlinks in the same tree should be grouped together
     assert_eq!(r.len(), 2);

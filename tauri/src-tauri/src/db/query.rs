@@ -5,8 +5,9 @@ use crate::{
 use chrono::Utc;
 use itertools::Itertools;
 use serde::{Deserialize, Serialize};
-use sqlx::{SqliteExecutor, SqliteTransaction};
+use sqlx::{SqliteExecutor, SqlitePool, SqliteTransaction};
 use strum::{Display, EnumString};
+use tokio::task::JoinSet;
 
 pub mod commands;
 mod fts_query_parser;
@@ -110,24 +111,62 @@ pub async fn search<'a>(
     Ok((results, links))
 }
 
-pub async fn outbound_links<'a>(
-    conn: impl SqliteExecutor<'a>,
+pub async fn outbound_links(
+    pool: &SqlitePool,
     id: &str,
-) -> eyre::Result<Vec<Outline>> {
-    sqlx::query_file_as_unchecked!(Outline, "src/db/fetch_outbound_links.sql", id)
-        .fetch_all(conn)
-        .await
-        .map_err(eyre::Error::from)
+) -> eyre::Result<(Vec<Outline>, Vec<Outline>)> {
+    let links = sqlx::query_file_as_unchecked!(Outline, "src/db/fetch_outbound_links.sql", id)
+        .fetch_all(pool)
+        .await?;
+
+    let contents = JoinSet::from_iter(links.iter().map(|o| {
+        let pool = pool.clone();
+        let id = o.id.clone();
+        async move {
+            sqlx::query_file_as_unchecked!(Outline, "src/db/fetch_excerpt.sql", id)
+                .fetch_all(&pool)
+                .await
+        }
+    }))
+    .join_all()
+    .await
+    .into_iter()
+    .map(|r| r.map_err(eyre::Error::from))
+    .collect::<eyre::Result<Vec<Vec<Outline>>>>()?
+    .into_iter()
+    .flatten()
+    .collect();
+
+    Ok((links, contents))
 }
 
-pub async fn inbound_links<'a>(
-    conn: impl SqliteExecutor<'a>,
+pub async fn inbound_links(
+    pool: &SqlitePool,
     id: &str,
-) -> eyre::Result<Vec<Outline>> {
-    sqlx::query_file_as_unchecked!(Outline, "src/db/fetch_inbound_links.sql", id)
-        .fetch_all(conn)
-        .await
-        .map_err(eyre::Error::from)
+) -> eyre::Result<(Vec<Outline>, Vec<Outline>)> {
+    let links = sqlx::query_file_as_unchecked!(Outline, "src/db/fetch_inbound_links.sql", id)
+        .fetch_all(pool)
+        .await?;
+
+    let contents = JoinSet::from_iter(links.iter().map(|o| {
+        let pool = pool.clone();
+        let id = o.id.clone();
+        async move {
+            sqlx::query_file_as_unchecked!(Outline, "src/db/fetch_excerpt.sql", id)
+                .fetch_all(&pool)
+                .await
+        }
+    }))
+    .join_all()
+    .await
+    .into_iter()
+    .map(|r| r.map_err(eyre::Error::from))
+    .collect::<eyre::Result<Vec<Vec<Outline>>>>()?
+    .into_iter()
+    .flatten()
+    .collect();
+
+    Ok((links, contents))
 }
 
 pub async fn tree<'a>(conn: impl SqliteExecutor<'a>, id: &str) -> eyre::Result<Vec<Outline>> {
