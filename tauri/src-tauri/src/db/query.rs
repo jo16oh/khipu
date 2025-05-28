@@ -4,6 +4,7 @@ use crate::{
 };
 use chrono::Utc;
 use itertools::Itertools;
+use ngrams::Ngram;
 use serde::{Deserialize, Serialize};
 use sqlx::{SqliteExecutor, SqlitePool, SqliteTransaction};
 use strum::{Display, EnumString};
@@ -101,6 +102,35 @@ pub async fn search<'a>(
     };
 
     Ok((results, links))
+}
+
+pub async fn suggest<'a>(
+    conn: impl SqliteExecutor<'a> + Send + Copy,
+    query: &str,
+) -> eyre::Result<(Vec<Outline>, Vec<Outline>)> {
+    let query = {
+        let cond = (String::new() + query + &ZERO_WIDTH_SPACE.repeat(2))
+            .chars()
+            .ngrams(2)
+            .map(|cs| {
+                let token = cs.iter().collect::<String>().replace("'", "''");
+                format!("term LIKE '{}%'", token)
+            })
+            .join(" OR ");
+
+        include_str!("suggest.sql").replace("$cond", &cond)
+    };
+
+    let suggestions = sqlx::query_as::<_, Outline>(&query).fetch_all(conn).await?;
+
+    let paths = {
+        let ids = serde_json::to_string(&suggestions.iter().map(|o| &o.id).collect_vec())?;
+        sqlx::query_file_as_unchecked!(Outline, "src/db/fetch_paths.sql", ids)
+            .fetch_all(conn)
+            .await?
+    };
+
+    Ok((suggestions, paths))
 }
 
 pub async fn outbound_links(

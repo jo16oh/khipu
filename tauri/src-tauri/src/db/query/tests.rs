@@ -50,6 +50,27 @@ async fn test_search() {
 }
 
 #[tokio::test]
+async fn test_suggestion() {
+    let pool = open_connection_in_memory().await;
+    let mut tx = pool.begin().await.unwrap();
+
+    let mut o = Outline::new();
+    o.doc = r#"{ "text": "終わりで草" }"#.to_string();
+    o.r#type = OutlineType::Heading;
+    upsert_outline(&mut tx, &o).await.unwrap();
+
+    tx.commit().await.unwrap();
+
+    let query = "終わ草";
+    let (r, _) = suggest(&pool, query).await.unwrap();
+    assert_eq!(r.len(), 1);
+
+    let query = "nothing";
+    let (r, _) = suggest(&pool, query).await.unwrap();
+    assert_eq!(r.len(), 0);
+}
+
+#[tokio::test]
 async fn test_outbound_links() {
     let pool = open_connection_in_memory().await;
     let mut tx = pool.begin().await.unwrap();
@@ -437,12 +458,6 @@ async fn test_full_findex() {
             full_findex: String,
             path: String,
         }
-
-        let r = sqlx::query_as!(QR, "select id, full_findex, path from outlines;")
-            .fetch_all(&mut *tx)
-            .await
-            .unwrap();
-        dbg!(r);
 
         let id = "'".to_string() + &o4.id + "'";
         let results = sqlx::query_as!(

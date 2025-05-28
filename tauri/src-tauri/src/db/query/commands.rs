@@ -36,6 +36,18 @@ pub async fn search(
 #[specta::specta]
 #[macros::eyre_to_any]
 #[macros::log_err]
+pub async fn suggest(
+    conn: State<'_, ConnectionState>,
+    id: String,
+) -> eyre::Result<(Vec<Outline>, Vec<Outline>)> {
+    let pool = conn.pool().await?;
+    super::suggest(&pool, &id).await
+}
+
+#[tauri::command]
+#[specta::specta]
+#[macros::eyre_to_any]
+#[macros::log_err]
 pub async fn outbound_links(
     conn: State<'_, ConnectionState>,
     id: String,

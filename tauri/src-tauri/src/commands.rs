@@ -14,6 +14,7 @@ pub fn commands() -> tauri_specta::Commands<tauri::Wry> {
         delete_db,
         timeline,
         search,
+        suggest,
         outbound_links,
         inbound_links,
         tree,
