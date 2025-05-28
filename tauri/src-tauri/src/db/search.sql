@@ -50,4 +50,6 @@ FROM
   LEFT JOIN outline_links links ON links.id_from = o.id
   INNER JOIN timestamps_of_tree ON timestamps_of_tree.root_id = o.root_id
 GROUP BY
-  (id);
+  (id)
+ORDER BY
+  timestamps_of_tree.timestamp DESC;
