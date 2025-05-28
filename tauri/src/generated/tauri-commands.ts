@@ -23,11 +23,11 @@ async timeline(position: TimelinePosition, orderBy: OrderBy) : Promise<[Outline[
 async search(query: string, orderBy: OrderBy, offset: number) : Promise<[Outline[], Outline[]]> {
     return await TAURI_INVOKE("search", { query, orderBy, offset });
 },
-async outboundLinks(id: string) : Promise<[Outline[], Outline[]]> {
-    return await TAURI_INVOKE("outbound_links", { id });
+async outboundLinks(id: string, offset: number) : Promise<[Outline[], Outline[]]> {
+    return await TAURI_INVOKE("outbound_links", { id, offset });
 },
-async inboundLinks(id: string) : Promise<[Outline[], Outline[]]> {
-    return await TAURI_INVOKE("inbound_links", { id });
+async inboundLinks(id: string, offset: number) : Promise<[Outline[], Outline[]]> {
+    return await TAURI_INVOKE("inbound_links", { id, offset });
 },
 async tree(id: string) : Promise<Outline[]> {
     return await TAURI_INVOKE("tree", { id });

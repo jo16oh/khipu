@@ -39,9 +39,10 @@ pub async fn search(
 pub async fn outbound_links(
     conn: State<'_, ConnectionState>,
     id: String,
+    offset: i64,
 ) -> eyre::Result<(Vec<Outline>, Vec<Outline>)> {
     let pool = conn.pool().await?;
-    super::outbound_links(&pool, &id).await
+    super::outbound_links(&pool, &id, offset).await
 }
 
 #[tauri::command]
@@ -51,9 +52,10 @@ pub async fn outbound_links(
 pub async fn inbound_links(
     conn: State<'_, ConnectionState>,
     id: String,
+    offset: i64,
 ) -> eyre::Result<(Vec<Outline>, Vec<Outline>)> {
     let pool = conn.pool().await?;
-    super::inbound_links(&pool, &id).await
+    super::inbound_links(&pool, &id, offset).await
 }
 
 #[tauri::command]

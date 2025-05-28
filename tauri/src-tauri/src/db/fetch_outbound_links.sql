@@ -1,52 +1,31 @@
 WITH RECURSIVE
   tree AS (
     SELECT
-      id,
-      parent_id,
-      findex,
-      type,
-      doc,
-      created_at,
-      updated_at,
-      completed,
-      collapsed,
-      path
+      o.*
     FROM
       outlines o
     WHERE
       id = ?
     UNION ALL
     SELECT
-      child.id,
-      child.parent_id,
-      child.findex,
-      child.type,
-      child.doc,
-      child.created_at,
-      child.updated_at,
-      child.completed,
-      child.collapsed,
-      child.path
+      child.*
     FROM
       outlines child
       INNER JOIN tree ON tree.id = child.parent_id
   ),
   headings AS (
     SELECT
-      `to`.id,
-      `to`.parent_id,
-      `to`.findex,
-      `to`.type,
-      `to`.doc,
-      `to`.created_at,
-      `to`.updated_at,
-      `to`.completed,
-      `to`.collapsed,
-      `to`.path
+      `to`.*
     FROM
       tree `from`
       INNER JOIN outline_links links ON links.id_from = `from`.id
       INNER JOIN outlines `to` ON links.id_to = `to`.id
+    UNION ALL
+    SELECT
+      parent.*
+    FROM
+      outlines parent
+      INNER JOIN headings child ON parent.id = child.parent_id
   )
 SELECT
   o.id,
@@ -66,19 +45,37 @@ SELECT
   ) AS linklist
 FROM
   headings o
-  LEFT JOIN outline_links links ON links.id_from = o.id
-  LEFT JOIN tree ON links.id_to = tree.id
-WHERE
-  o.type = 'heading'
-  AND NOT EXISTS (
+  INNER JOIN (
     SELECT
-      1
+      root_id,
+      link_count
     FROM
-      headings p
+      (
+        SELECT
+          root_id,
+          count(root_id) AS link_count,
+          row_number() OVER (
+            PARTITION BY
+              root_id
+            ORDER BY
+              full_findex ASC,
+              id ASC
+          ) AS rn
+        FROM
+          headings
+        GROUP BY
+          root_id
+      )
     WHERE
-      o.path LIKE p.path || ',%'
-  )
+      rn = 1
+  ) AS root_ids ON o.id = root_ids.root_id
+  LEFT JOIN outline_links links ON links.id_from = o.id
 GROUP BY
-  (o.id)
+  o.id
 ORDER BY
-  tree.path ASC;
+  root_ids.link_count DESC,
+  o.updated_at DESC
+LIMIT
+  10
+OFFSET
+  ?;

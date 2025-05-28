@@ -1,68 +1,31 @@
 WITH RECURSIVE
   tree AS (
     SELECT
-      id,
-      parent_id,
-      findex,
-      type,
-      doc,
-      created_at,
-      updated_at,
-      completed,
-      collapsed,
-      path
+      o.*
     FROM
       outlines o
     WHERE
-      id = ?1
+      id = ?
     UNION ALL
     SELECT
-      child.id,
-      child.parent_id,
-      child.findex,
-      child.type,
-      child.doc,
-      child.created_at,
-      child.updated_at,
-      child.completed,
-      child.collapsed,
-      child.path
+      child.*
     FROM
       outlines child
       INNER JOIN tree ON tree.id = child.parent_id
   ),
   headings AS (
     SELECT
-      `from`.id,
-      `from`.parent_id,
-      `from`.findex,
-      `from`.type,
-      `from`.doc,
-      `from`.created_at,
-      `from`.updated_at,
-      `from`.completed,
-      `from`.collapsed,
-      `from`.path
+      `from`.*
     FROM
       tree `to`
       INNER JOIN outline_links links ON links.id_to = `to`.id
       INNER JOIN outlines `from` ON links.id_from = `from`.id
     UNION ALL
     SELECT
-      parent.id,
-      parent.parent_id,
-      parent.findex,
-      parent.type,
-      parent.doc,
-      parent.created_at,
-      parent.updated_at,
-      parent.completed,
-      parent.collapsed,
-      parent.path
+      parent.*
     FROM
       outlines parent
       INNER JOIN headings child ON parent.id = child.parent_id
-      AND child.type != 'heading'
   )
 SELECT
   o.id,
@@ -82,28 +45,37 @@ SELECT
   ) AS linklist
 FROM
   headings o
+  INNER JOIN (
+    SELECT
+      root_id,
+      link_count
+    FROM
+      (
+        SELECT
+          root_id,
+          count(root_id) AS link_count,
+          row_number() OVER (
+            PARTITION BY
+              root_id
+            ORDER BY
+              full_findex ASC,
+              id ASC
+          ) AS rn
+        FROM
+          headings
+        GROUP BY
+          root_id
+      )
+    WHERE
+      rn = 1
+  ) AS root_ids ON o.id = root_ids.root_id
   LEFT JOIN outline_links links ON links.id_from = o.id
-WHERE
-  o.type = 'heading'
-  AND NOT EXISTS (
-    SELECT
-      1
-    FROM
-      headings p
-    WHERE
-      o.path LIKE p.path || ',%'
-  )
 GROUP BY
-  (o.id)
+  o.id
 ORDER BY
-  (
-    SELECT
-      count(*)
-    FROM
-      outline_links
-      INNER JOIN outlines ON outlines.id = outline_links.id_from
-    WHERE
-      outline_links.id_to = ?1
-      AND outlines.path like o.path || ',%'
-  ) DESC,
-  o.updated_at DESC;
+  root_ids.link_count DESC,
+  o.updated_at DESC
+LIMIT
+  10
+OFFSET
+  ?;
