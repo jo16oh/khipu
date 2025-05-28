@@ -64,18 +64,14 @@ pub async fn timeline<'a>(
             .await?;
 
     let links = {
-        let ids = results.iter().map(|o| &o.id).collect_vec();
-
-        let sql = include_str!("fetch_linked_outlines_to_embed_text.sql")
-            .replace("$ids", &ids.iter().map(|_| "?").join(", "));
-
-        let mut query = sqlx::query_as::<_, Outline>(&sql);
-
-        for id in ids {
-            query = query.bind(id);
-        }
-
-        query.fetch_all(conn).await?
+        let ids = serde_json::to_string(&results.iter().map(|o| &o.id).collect_vec())?;
+        sqlx::query_file_as_unchecked!(
+            Outline,
+            "src/db/fetch_linked_outlines_to_embed_text.sql",
+            ids
+        )
+        .fetch_all(conn)
+        .await?
     };
 
     Ok((results, links))
@@ -94,18 +90,14 @@ pub async fn search<'a>(
             .await?;
 
     let links = {
-        let ids = results.iter().map(|o| &o.id).collect_vec();
-
-        let sql = include_str!("fetch_linked_outlines_to_embed_text.sql")
-            .replace("$ids", &ids.iter().map(|_| "?").join(", "));
-
-        let mut query = sqlx::query_as::<_, Outline>(&sql);
-
-        for id in ids {
-            query = query.bind(id);
-        }
-
-        query.fetch_all(conn).await?
+        let ids = serde_json::to_string(&results.iter().map(|o| &o.id).collect_vec())?;
+        sqlx::query_file_as_unchecked!(
+            Outline,
+            "src/db/fetch_linked_outlines_to_embed_text.sql",
+            ids
+        )
+        .fetch_all(conn)
+        .await?
     };
 
     Ok((results, links))
@@ -119,7 +111,7 @@ pub async fn outbound_links(
         .fetch_all(pool)
         .await?;
 
-    let contents = JoinSet::from_iter(links.iter().map(|o| {
+    let contents: Vec<Outline> = JoinSet::from_iter(links.iter().map(|o| {
         let pool = pool.clone();
         let id = o.id.clone();
         async move {
@@ -137,7 +129,21 @@ pub async fn outbound_links(
     .flatten()
     .collect();
 
-    Ok((links, contents))
+    let linked_outlines = {
+        let ids = serde_json::to_string(&contents.iter().map(|o| &o.id).collect_vec())?;
+        sqlx::query_file_as_unchecked!(
+            Outline,
+            "src/db/fetch_linked_outlines_to_embed_text.sql",
+            ids
+        )
+        .fetch_all(pool)
+        .await?
+    };
+
+    Ok((
+        links,
+        [contents, linked_outlines].into_iter().flatten().collect(),
+    ))
 }
 
 pub async fn inbound_links(
@@ -148,7 +154,7 @@ pub async fn inbound_links(
         .fetch_all(pool)
         .await?;
 
-    let contents = JoinSet::from_iter(links.iter().map(|o| {
+    let contents: Vec<Outline> = JoinSet::from_iter(links.iter().map(|o| {
         let pool = pool.clone();
         let id = o.id.clone();
         async move {
@@ -166,7 +172,21 @@ pub async fn inbound_links(
     .flatten()
     .collect();
 
-    Ok((links, contents))
+    let linked_outlines = {
+        let ids = serde_json::to_string(&contents.iter().map(|o| &o.id).collect_vec())?;
+        sqlx::query_file_as_unchecked!(
+            Outline,
+            "src/db/fetch_linked_outlines_to_embed_text.sql",
+            ids
+        )
+        .fetch_all(pool)
+        .await?
+    };
+
+    Ok((
+        links,
+        [contents, linked_outlines].into_iter().flatten().collect(),
+    ))
 }
 
 pub async fn tree<'a>(conn: impl SqliteExecutor<'a>, id: &str) -> eyre::Result<Vec<Outline>> {

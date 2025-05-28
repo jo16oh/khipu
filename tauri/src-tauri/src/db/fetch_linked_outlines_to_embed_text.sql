@@ -1,42 +1,19 @@
 WITH RECURSIVE
-  temp_linked_outlines AS (
-    SELECT
-      `to`.id,
-      `to`.parent_id,
-      `to`.findex,
-      `to`.type,
-      `to`.doc,
-      `to`.created_at,
-      `to`.updated_at,
-      `to`.completed,
-      `to`.collapsed
-    FROM
-      outlines `from`
-      INNER JOIN outline_links links ON `from`.id IN ($ids)
-      AND links.id_from = `from`.id
-      INNER JOIN outlines `to` ON links.id_to = `to`.id
-    UNION
-    SELECT
-      `to`.id,
-      `to`.parent_id,
-      `to`.findex,
-      `to`.type,
-      `to`.doc,
-      `to`.created_at,
-      `to`.updated_at,
-      `to`.completed,
-      `to`.collapsed
-    FROM
-      outline_links links
-      INNER JOIN temp_linked_outlines `from` ON `from`.id = links.id_from
-      AND `from`.type != "quote"
-      INNER JOIN outlines `to` ON links.id_to = `to`.id
-  ),
   linked_outlines AS (
     SELECT
-      *
+      `to`.id,
+      `to`.parent_id,
+      `to`.findex,
+      `to`.type,
+      `to`.doc,
+      `to`.created_at,
+      `to`.updated_at,
+      `to`.completed,
+      `to`.collapsed
     FROM
-      temp_linked_outlines
+      json_each(json(?)) AS `from`
+      INNER JOIN outline_links links ON links.id_from = `from`.value
+      INNER JOIN outlines `to` ON links.id_to = `to`.id
     UNION ALL
     SELECT
       parent.id,
@@ -52,7 +29,7 @@ WITH RECURSIVE
       outlines parent
       INNER JOIN linked_outlines links ON parent.id = links.parent_id
       INNER JOIN outline_links l ON l.id_from = parent.id
-      AND l.type = "tag"
+      AND links.type = "tag"
   )
 SELECT
   o.*,
