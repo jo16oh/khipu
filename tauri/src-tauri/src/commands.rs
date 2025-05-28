@@ -18,6 +18,7 @@ pub fn commands() -> tauri_specta::Commands<tauri::Wry> {
         outbound_links,
         inbound_links,
         tree,
+        is_conflicting,
         upsert_outline,
         delete_outline
     ]

@@ -35,6 +35,9 @@ async inboundLinks(id: string, offset: number) : Promise<[Outline[], Outline[]]>
 async tree(id: string) : Promise<Outline[]> {
     return await TAURI_INVOKE("tree", { id });
 },
+async isConflicting(id: string, doc: string) : Promise<boolean> {
+    return await TAURI_INVOKE("is_conflicting", { id, doc });
+},
 async upsertOutline(outline: Outline, yUpdates: Base64Bytes[]) : Promise<null> {
     return await TAURI_INVOKE("upsert_outline", { outline, yUpdates });
 },

@@ -83,6 +83,19 @@ pub async fn tree(conn: State<'_, ConnectionState>, id: String) -> eyre::Result<
 #[specta::specta]
 #[macros::eyre_to_any]
 #[macros::log_err]
+pub async fn is_conflicting(
+    conn: State<'_, ConnectionState>,
+    id: String,
+    doc: String,
+) -> eyre::Result<bool> {
+    let pool = conn.pool().await?;
+    super::is_conflicting(&pool, &id, &doc).await
+}
+
+#[tauri::command]
+#[specta::specta]
+#[macros::eyre_to_any]
+#[macros::log_err]
 pub async fn upsert_outline(
     conn: State<'_, ConnectionState>,
     outline: Outline,

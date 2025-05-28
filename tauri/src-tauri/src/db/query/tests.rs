@@ -181,6 +181,48 @@ async fn test_outline_tree() {
 }
 
 #[tokio::test]
+async fn test_is_conflicting() {
+    let pool = open_connection_in_memory().await;
+
+    let o1 = Outline::new();
+    let mut o2 = o1.new_child();
+    let mut o3 = o1.new_child();
+
+    let mut tx = pool.begin().await.unwrap();
+    upsert_outline(&mut tx, &o1).await.unwrap();
+    upsert_outline(&mut tx, &o2).await.unwrap();
+    upsert_outline(&mut tx, &o3).await.unwrap();
+    tx.commit().await.unwrap();
+
+    let r = is_conflicting(&pool, &o2.id, &o2.doc).await.unwrap();
+    assert!(r);
+
+    let mut tx = pool.begin().await.unwrap();
+    o2.doc = r#"{ "text": "new text" }"#.to_string();
+    upsert_outline(&mut tx, &o2).await.unwrap();
+    tx.commit().await.unwrap();
+
+    let r = is_conflicting(&pool, &o2.id, &o2.doc).await.unwrap();
+    assert!(!r);
+
+    let mut tx = pool.begin().await.unwrap();
+    o3.parent_id = None;
+    upsert_outline(&mut tx, &o3).await.unwrap();
+    tx.commit().await.unwrap();
+
+    let r = is_conflicting(&pool, &o3.id, &o3.doc).await.unwrap();
+    assert!(r);
+
+    let mut tx = pool.begin().await.unwrap();
+    o3.doc = r#"{ "text": "nothing" }"#.to_string();
+    upsert_outline(&mut tx, &o3).await.unwrap();
+    tx.commit().await.unwrap();
+
+    let r = is_conflicting(&pool, &o3.id, &o3.doc).await.unwrap();
+    assert!(!r);
+}
+
+#[tokio::test]
 async fn test_upsert_outline() {
     let pool = open_connection_in_memory().await;
     let mut tx = pool.begin().await.unwrap();

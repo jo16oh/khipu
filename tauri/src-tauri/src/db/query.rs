@@ -230,6 +230,23 @@ pub async fn tree<'a>(conn: impl SqliteExecutor<'a>, id: &str) -> eyre::Result<V
         .map_err(eyre::Error::from)
 }
 
+pub async fn is_conflicting<'a>(
+    conn: impl SqliteExecutor<'a>,
+    id: &str,
+    doc: &str,
+) -> eyre::Result<bool> {
+    let text = format!(
+        r#""{}""#,
+        extract_text_from_doc(doc)?.replace(r#"""#, r#""""#)
+    );
+
+    sqlx::query_file_scalar!("src/db/is_conflicting.sql", id, text)
+        .fetch_optional(conn)
+        .await
+        .map(|r| r.is_some())
+        .map_err(eyre::Error::from)
+}
+
 pub async fn upsert_outline(tx: &mut SqliteTransaction<'_>, outline: &Outline) -> eyre::Result<()> {
     delete_fts_index(tx, &outline.id).await?;
 
