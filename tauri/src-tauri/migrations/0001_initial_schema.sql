@@ -193,14 +193,23 @@ CREATE TABLE deleted_outlines (
   completed INTEGER NOT NULL DEFAULT 0
 ) STRICT;
 
+CREATE INDEX "IDX$deleted_outlines.parent_id" ON outlines (parent_id);
+
+CREATE TABLE y_updates (
+  id TEXT PRIMARY KEY NOT NULL,
+  outline_id TEXT REFERENCES outlines (id) ON DELETE CASCADE NOT NULL,
+  data BLOB NOT NULL,
+  timestamp INTEGER NOT NULL
+) STRICT;
+
+CREATE INDEX "IDX$y_updates.outline_id" ON y_updates (outline_id);
+
 CREATE TABLE deleted_y_updates (
   id TEXT PRIMARY KEY NOT NULL,
   outline_id TEXT NOT NULL,
   data BLOB NOT NULL,
   timestamp INTEGER NOT NULL
 ) STRICT;
-
-CREATE INDEX "IDX$deleted_outlines.parent_id" ON outlines (parent_id);
 
 CREATE INDEX "IDX$deleted_y_updates.outline_id" ON deleted_y_updates (outline_id);
 
@@ -228,15 +237,6 @@ WHERE
   outline_id = OLD.id;
 
 END;
-
-CREATE TABLE y_updates (
-  id TEXT PRIMARY KEY NOT NULL,
-  outline_id TEXT REFERENCES outlines (id) ON DELETE CASCADE NOT NULL,
-  data BLOB NOT NULL,
-  timestamp INTEGER NOT NULL
-) STRICT;
-
-CREATE INDEX "IDX$y_updates.outline_id" ON y_updates (outline_id);
 
 CREATE TABLE outline_links (
   id_from TEXT REFERENCES outlines (id) ON DELETE CASCADE NOT NULL,
