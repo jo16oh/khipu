@@ -94,6 +94,14 @@ impl<'r> Decode<'r, Sqlite> for LinkList {
     }
 }
 
+#[derive(Serialize, Deserialize, specta::Type, Clone, Debug)]
+#[serde(rename_all = "camelCase")]
+pub struct Asset {
+    pub data: Base64Bytes,
+    pub filename: String,
+    pub extension: String,
+}
+
 #[derive(Serialize, Deserialize, specta::Type, PartialEq, Eq, Clone, Debug)]
 #[serde(transparent)]
 pub struct SqliteBool(pub bool);

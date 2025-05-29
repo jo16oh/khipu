@@ -1,5 +1,5 @@
 use crate::{
-    model::{LinkList, Outline},
+    model::{Asset, LinkList, Outline},
     util::{day_start, extract_text_from_doc, uuidv7bs58},
 };
 use chrono::Utc;
@@ -231,8 +231,15 @@ pub async fn tree<'a>(conn: impl SqliteExecutor<'a>, id: &str) -> eyre::Result<V
 }
 
 pub async fn y_updates<'a>(conn: impl SqliteExecutor<'a>, id: &str) -> eyre::Result<Vec<Vec<u8>>> {
-    sqlx::query_file_scalar_unchecked!("src/db/fetch_y_updates.sql", id)
+    sqlx::query_file_scalar!("src/db/fetch_y_updates.sql", id)
         .fetch_all(conn)
+        .await
+        .map_err(eyre::Error::from)
+}
+
+pub async fn asset<'a>(conn: impl SqliteExecutor<'a>, id: &str) -> eyre::Result<Asset> {
+    sqlx::query_file_as!(Asset, "src/db/fetch_asset.sql", id)
+        .fetch_one(conn)
         .await
         .map_err(eyre::Error::from)
 }
