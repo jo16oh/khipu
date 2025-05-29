@@ -50,10 +50,11 @@ async fn y_updates<R: Runtime>(
                 .body(update)
                 .unwrap(),
         ),
-        Err(_) => responder.respond(
+        Err(err) => responder.respond(
             Response::builder()
-                .status(http::StatusCode::NOT_FOUND)
-                .body("404 Not Found".as_bytes().to_vec())
+                .status(http::StatusCode::BAD_REQUEST)
+                .header("Content-Type", "text/plain")
+                .body(err.to_string().into_bytes())
                 .unwrap(),
         ),
     };
@@ -78,10 +79,11 @@ async fn asset<R: Runtime>(responder: UriSchemeResponder, app_handle: AppHandle<
                 .body(Vec::<u8>::from(asset.data))
                 .unwrap(),
         ),
-        Err(_) => responder.respond(
+        Err(err) => responder.respond(
             Response::builder()
-                .status(http::StatusCode::NOT_FOUND)
-                .body("404 Not Found".as_bytes().to_vec())
+                .status(http::StatusCode::BAD_REQUEST)
+                .header("Content-Type", "text/plain")
+                .body(err.to_string().into_bytes())
                 .unwrap(),
         ),
     };
