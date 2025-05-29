@@ -1,4 +1,5 @@
 mod commands;
+mod custom_protocol;
 mod db;
 mod error;
 mod model;
@@ -41,6 +42,7 @@ pub fn run() {
 
             Ok(())
         })
+        .register_asynchronous_uri_scheme_protocol("bin", custom_protocol::handle_request)
         .build(tauri::generate_context!())
         .expect("error while running tauri application");
 

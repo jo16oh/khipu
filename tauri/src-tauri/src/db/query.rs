@@ -230,6 +230,13 @@ pub async fn tree<'a>(conn: impl SqliteExecutor<'a>, id: &str) -> eyre::Result<V
         .map_err(eyre::Error::from)
 }
 
+pub async fn y_updates<'a>(conn: impl SqliteExecutor<'a>, id: &str) -> eyre::Result<Vec<Vec<u8>>> {
+    sqlx::query_file_scalar_unchecked!("src/db/fetch_y_updates.sql", id)
+        .fetch_all(conn)
+        .await
+        .map_err(eyre::Error::from)
+}
+
 pub async fn is_conflicting<'a>(
     conn: impl SqliteExecutor<'a>,
     id: &str,

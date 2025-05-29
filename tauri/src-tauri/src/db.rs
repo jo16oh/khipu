@@ -1,5 +1,5 @@
 pub mod commands;
-mod query;
+pub mod query;
 
 use eyre::OptionExt;
 use sqlx::{
