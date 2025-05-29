@@ -195,6 +195,28 @@ impl<'de> Deserialize<'de> for Base64Bytes {
     }
 }
 
+impl sqlx::Type<Sqlite> for Base64Bytes {
+    fn type_info() -> <Sqlite as Database>::TypeInfo {
+        <Vec<u8> as sqlx::Type<Sqlite>>::type_info()
+    }
+}
+
+impl<'r> Encode<'r, Sqlite> for Base64Bytes {
+    fn encode(
+        self,
+        buf: &mut <Sqlite as Database>::ArgumentBuffer<'r>,
+    ) -> Result<sqlx::encode::IsNull, sqlx::error::BoxDynError> {
+        <Vec<u8> as Encode<Sqlite>>::encode(self.0, buf)
+    }
+
+    fn encode_by_ref(
+        &self,
+        buf: &mut <Sqlite as Database>::ArgumentBuffer<'r>,
+    ) -> Result<sqlx::encode::IsNull, sqlx::error::BoxDynError> {
+        <Vec<u8> as Encode<Sqlite>>::encode(self.0.clone(), buf)
+    }
+}
+
 #[cfg(test)]
 impl Outline {
     pub fn new() -> Self {

@@ -6,6 +6,7 @@ use chrono::Utc;
 use itertools::Itertools;
 use ngrams::Ngram;
 use serde::{Deserialize, Serialize};
+use sha2::{Digest, Sha256};
 use sqlx::{SqliteExecutor, SqlitePool, SqliteTransaction};
 use strum::{Display, EnumString};
 use tokio::task::JoinSet;
@@ -366,6 +367,22 @@ pub async fn insert_y_updates<'a>(
         outline_id,
         update,
         timestamp
+    )
+    .execute(conn)
+    .await?;
+
+    eyre::Ok(())
+}
+
+pub async fn insert_asset<'a>(conn: impl SqliteExecutor<'a>, asset: Asset) -> eyre::Result<()> {
+    let id = bs58::encode(Sha256::digest(&asset.data)).into_string();
+
+    sqlx::query_file!(
+        "src/db/insert_asset.sql",
+        id,
+        asset.filename,
+        asset.extension,
+        asset.data
     )
     .execute(conn)
     .await?;
