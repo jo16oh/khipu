@@ -425,8 +425,28 @@ pub async fn sync_assets(
             )
             .execute(&mut **tx)
             .await?;
-        // If the asset has the same hash as a previously inserted asset but a different filename or extension, insert only its rel
-        } else if old_assetlist.iter().any(|o| o.hash == a.hash) {
+        // Check if the same file already exists
+        } else if sqlx::query_file_scalar!("src/db/is_asset_exists.sql", a.hash)
+            .fetch_optional(&mut **tx)
+            .await?
+            .is_some()
+        {
+            sqlx::query_file!(
+                "src/db/insert_asset_rel.sql",
+                outline_id,
+                a.hash,
+                a.filename,
+                a.extension
+            )
+            .execute(&mut **tx)
+            .await?;
+        // Try to restore asset from deleted_assets table
+        } else if sqlx::query_file!("src/db/restore_asset.sql", a.hash)
+            .execute(&mut **tx)
+            .await?
+            .rows_affected()
+            != 0
+        {
             sqlx::query_file!(
                 "src/db/insert_asset_rel.sql",
                 outline_id,
