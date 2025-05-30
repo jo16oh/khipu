@@ -1,3 +1,5 @@
+use std::collections::{HashMap, HashSet};
+
 use super::*;
 use crate::{
     db::ConnectionState,
@@ -100,17 +102,14 @@ pub async fn upsert_outline(
     conn: State<'_, ConnectionState>,
     outline: Outline,
     y_updates: Vec<Base64Bytes>,
-    assets: Vec<Asset>,
+    assets: HashSet<Asset>,
+    new_asset_data: HashMap<String, Base64Bytes>,
 ) -> eyre::Result<()> {
     let pool = conn.pool().await?;
     let mut tx = pool.begin().await?;
     super::upsert_outline(&mut tx, &outline).await?;
     super::insert_y_updates(&mut *tx, &y_updates, &outline.id, outline.updated_at).await?;
-
-    for asset in assets {
-        super::insert_asset(&mut *tx, asset).await?;
-    }
-
+    super::sync_assets(&mut tx, &outline.id, assets, new_asset_data).await?;
     tx.commit().await?;
     eyre::Ok(())
 }

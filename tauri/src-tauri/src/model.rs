@@ -94,10 +94,10 @@ impl<'r> Decode<'r, Sqlite> for LinkList {
     }
 }
 
-#[derive(Serialize, Deserialize, specta::Type, Clone, Debug)]
+#[derive(Serialize, Deserialize, specta::Type, PartialEq, Eq, Hash, Clone, Debug)]
 #[serde(rename_all = "camelCase")]
 pub struct Asset {
-    pub data: Base64Bytes,
+    pub hash: String,
     pub filename: String,
     pub extension: String,
 }

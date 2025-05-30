@@ -250,16 +250,16 @@ CREATE INDEX "IDX$outline_links.id_from" ON outline_links (id_from);
 CREATE INDEX "IDX$outline_links.id_to" ON outline_links (id_to);
 
 CREATE TABLE assets (
-  id TEXT PRIMARY KEY NOT NULL,
-  filename TEXT NOT NULL,
-  extension TEXT NOT NULL,
+  hash TEXT PRIMARY KEY NOT NULL, -- SHA-256 hash of the data
   data BLOB NOT NULL
 ) STRICT;
 
 CREATE TABLE outline_asset_rel (
-  asset_id TEXT REFERENCES assets (id) ON DELETE CASCADE NOT NULL,
   outline_id TEXT REFERENCES outlines (id) ON DELETE CASCADE NOT NULL,
-  PRIMARY KEY (asset_id, outline_id)
+  asset_hash TEXT REFERENCES assets (hash) ON DELETE CASCADE NOT NULL,
+  filename TEXT NOT NULL,
+  extension TEXT NOT NULL,
+  PRIMARY KEY (outline_id, asset_hash, filename, extension)
 ) STRICT;
 
 -- # FTS

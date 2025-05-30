@@ -74,9 +74,7 @@ async fn asset<R: Runtime>(responder: UriSchemeResponder, app_handle: AppHandle<
                 .status(200)
                 .header("Content-Type", "application/octet-stream")
                 .header("Access-Control-Allow-Origin", "*")
-                .header("Filename", asset.filename)
-                .header("Extension", asset.extension)
-                .body(Vec::<u8>::from(asset.data))
+                .body(asset)
                 .unwrap(),
         ),
         Err(err) => responder.respond(

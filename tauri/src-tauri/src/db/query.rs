@@ -1,8 +1,11 @@
+use std::collections::{HashMap, HashSet};
+
 use crate::{
-    model::{Asset, LinkList, Outline},
+    model::{Asset, Base64Bytes, LinkList, Outline},
     util::{day_start, extract_text_from_doc, uuidv7bs58},
 };
 use chrono::Utc;
+use eyre::bail;
 use itertools::Itertools;
 use ngrams::Ngram;
 use serde::{Deserialize, Serialize};
@@ -238,8 +241,8 @@ pub async fn y_updates<'a>(conn: impl SqliteExecutor<'a>, id: &str) -> eyre::Res
         .map_err(eyre::Error::from)
 }
 
-pub async fn asset<'a>(conn: impl SqliteExecutor<'a>, id: &str) -> eyre::Result<Asset> {
-    sqlx::query_file_as!(Asset, "src/db/fetch_asset.sql", id)
+pub async fn asset<'a>(conn: impl SqliteExecutor<'a>, id: &str) -> eyre::Result<Vec<u8>> {
+    sqlx::query_file_scalar!("src/db/fetch_asset.sql", id)
         .fetch_one(conn)
         .await
         .map_err(eyre::Error::from)
@@ -374,18 +377,69 @@ pub async fn insert_y_updates<'a>(
     eyre::Ok(())
 }
 
-pub async fn insert_asset<'a>(conn: impl SqliteExecutor<'a>, asset: Asset) -> eyre::Result<()> {
-    let id = bs58::encode(Sha256::digest(&asset.data)).into_string();
+pub async fn sync_assets(
+    tx: &mut SqliteTransaction<'_>,
+    outline_id: &str,
+    assets: HashSet<Asset>,
+    new_asset_data: HashMap<String, Base64Bytes>,
+) -> eyre::Result<()> {
+    let old_assetlist: HashSet<Asset> =
+        sqlx::query_file_as!(Asset, "src/db/fetch_asset_rel.sql", outline_id)
+            .fetch_all(&mut **tx)
+            .await?
+            .into_iter()
+            .collect();
 
-    sqlx::query_file!(
-        "src/db/insert_asset.sql",
-        id,
-        asset.filename,
-        asset.extension,
-        asset.data
-    )
-    .execute(conn)
-    .await?;
+    // Delete asset rels that no longer exist in the provided asset list
+    for a in old_assetlist.difference(&assets) {
+        sqlx::query_file!(
+            "src/db/delete_asset_rel.sql",
+            outline_id,
+            a.hash,
+            a.filename,
+            a.extension
+        )
+        .execute(&mut **tx)
+        .await?;
+    }
+
+    // Insert newly added assets
+    for a in assets.difference(&old_assetlist) {
+        if let Some(data) = new_asset_data.get(&a.hash) {
+            let hash = bs58::encode(Sha256::digest(data)).into_string();
+
+            if hash != a.hash {
+                bail!("asset hash is incorrect");
+            }
+
+            sqlx::query_file!("src/db/insert_asset.sql", hash, data)
+                .execute(&mut **tx)
+                .await?;
+
+            sqlx::query_file!(
+                "src/db/insert_asset_rel.sql",
+                outline_id,
+                a.hash,
+                a.filename,
+                a.extension
+            )
+            .execute(&mut **tx)
+            .await?;
+        // If the asset has the same hash as a previously inserted asset but a different filename or extension, insert only its rel
+        } else if old_assetlist.iter().any(|o| o.hash == a.hash) {
+            sqlx::query_file!(
+                "src/db/insert_asset_rel.sql",
+                outline_id,
+                a.hash,
+                a.filename,
+                a.extension
+            )
+            .execute(&mut **tx)
+            .await?;
+        } else {
+            bail!("new asset data is not provided");
+        }
+    }
 
     eyre::Ok(())
 }

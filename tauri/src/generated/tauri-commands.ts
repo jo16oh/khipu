@@ -38,8 +38,8 @@ async tree(id: string) : Promise<Outline[]> {
 async isConflicting(id: string, doc: string) : Promise<boolean> {
     return await TAURI_INVOKE("is_conflicting", { id, doc });
 },
-async upsertOutline(outline: Outline, yUpdates: Base64Bytes[], assets: Asset[]) : Promise<null> {
-    return await TAURI_INVOKE("upsert_outline", { outline, yUpdates, assets });
+async upsertOutline(outline: Outline, yUpdates: Base64Bytes[], assets: Asset[], newAssetData: Partial<{ [key in string]: Base64Bytes }>) : Promise<null> {
+    return await TAURI_INVOKE("upsert_outline", { outline, yUpdates, assets, newAssetData });
 },
 async deleteOutline(outlineId: string) : Promise<null> {
     return await TAURI_INVOKE("delete_outline", { outlineId });
@@ -56,7 +56,7 @@ async deleteOutline(outlineId: string) : Promise<null> {
 
 /** user-defined types **/
 
-export type Asset = { data: Base64Bytes; filename: string; extension: string }
+export type Asset = { hash: string; filename: string; extension: string }
 export type Base64Bytes = string
 export type KhipuError = { anyError: { rootCause: string; msg: string } }
 export type Link = { id: string; type: LinkType }

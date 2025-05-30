@@ -1,8 +1,6 @@
 SELECT
-  data,
-  filename,
-  extension
+  data
 FROM
   assets
 WHERE
-  id = ?;
+  hash = ?;
