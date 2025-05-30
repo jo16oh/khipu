@@ -1,7 +1,7 @@
 use std::collections::{HashMap, HashSet};
 
 use crate::{
-    model::{Asset, Base64Bytes, LinkList, Outline},
+    model::{Asset, Base64Bytes, Link, Outline},
     util::{day_start, extract_text_from_doc, uuidv7bs58},
 };
 use chrono::Utc;
@@ -284,7 +284,6 @@ pub async fn upsert_outline(tx: &mut SqliteTransaction<'_>, outline: &Outline) -
     .await?;
 
     insert_fts_index(tx, rowid, &outline.doc).await?;
-    sync_outline_links(tx, outline).await?;
 
     eyre::Ok(())
 }
@@ -326,25 +325,29 @@ async fn insert_fts_index(
     eyre::Ok(())
 }
 
-async fn sync_outline_links(tx: &mut SqliteTransaction<'_>, outline: &Outline) -> eyre::Result<()> {
-    let old_linklist = sqlx::query_file_scalar_unchecked!("src/db/fetch_linklist.sql", outline.id)
-        .fetch_optional(&mut **tx)
-        .await?
-        .map(|json| serde_json::from_str::<LinkList>(&json))
-        .transpose()?
-        .unwrap_or(LinkList::default());
+pub async fn sync_links(
+    tx: &mut SqliteTransaction<'_>,
+    outline_id: &str,
+    link_list: HashSet<Link>,
+) -> eyre::Result<()> {
+    let old_link_list: HashSet<Link> =
+        sqlx::query_file_as_unchecked!(Link, "src/db/fetch_link_list.sql", outline_id)
+            .fetch_all(&mut **tx)
+            .await?
+            .into_iter()
+            .collect();
 
-    for l in old_linklist.difference(&outline.linklist) {
-        sqlx::query_file!("src/db/delete_outline_link.sql", outline.id, l.id)
+    for l in old_link_list.difference(&link_list) {
+        sqlx::query_file!("src/db/delete_outline_link.sql", outline_id, l.id)
             .execute(&mut **tx)
             .await?;
     }
 
-    for l in outline.linklist.difference(&old_linklist) {
+    for l in link_list.difference(&old_link_list) {
         let link_type = l.r#type.to_string();
         sqlx::query_file!(
             "src/db/insert_outline_link.sql",
-            outline.id,
+            outline_id,
             l.id,
             link_type
         )
@@ -380,7 +383,7 @@ pub async fn insert_y_updates<'a>(
 pub async fn sync_assets(
     tx: &mut SqliteTransaction<'_>,
     outline_id: &str,
-    assets: HashSet<Asset>,
+    asset_list: HashSet<Asset>,
     new_asset_data: HashMap<String, Base64Bytes>,
 ) -> eyre::Result<()> {
     let old_assetlist: HashSet<Asset> =
@@ -391,7 +394,7 @@ pub async fn sync_assets(
             .collect();
 
     // Delete asset rels that no longer exist in the provided asset list
-    for a in old_assetlist.difference(&assets) {
+    for a in old_assetlist.difference(&asset_list) {
         sqlx::query_file!(
             "src/db/delete_asset_rel.sql",
             outline_id,
@@ -404,7 +407,7 @@ pub async fn sync_assets(
     }
 
     // Insert newly added assets
-    for a in assets.difference(&old_assetlist) {
+    for a in asset_list.difference(&old_assetlist) {
         if let Some(data) = new_asset_data.get(&a.hash) {
             let hash = bs58::encode(Sha256::digest(data)).into_string();
 

@@ -32,15 +32,6 @@ WITH RECURSIVE
       AND links.type = "tag"
   )
 SELECT
-  o.*,
-  json_group_array(
-    json_object('id', links.id_to, 'type', links.type)
-  ) FILTER (
-    WHERE
-      links.id_to IS NOT NULL
-  ) AS linklist
+  o.*
 FROM
-  linked_outlines o
-  LEFT JOIN outline_links links ON links.id_from = o.id
-GROUP BY
-  (id);
+  linked_outlines o;

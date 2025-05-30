@@ -36,13 +36,7 @@ SELECT
   o.created_at,
   o.updated_at,
   o.completed,
-  o.collapsed,
-  json_group_array(
-    json_object('id', links.id_to, 'type', links.type)
-  ) FILTER (
-    WHERE
-      links.id_to IS NOT NULL
-  ) AS linklist
+  o.collapsed
 FROM
   headings o
   INNER JOIN (
@@ -69,7 +63,6 @@ FROM
     WHERE
       rn = 1
   ) AS root_ids ON o.id = root_ids.root_id
-  LEFT JOIN outline_links links ON links.id_from = o.id
 GROUP BY
   o.id
 ORDER BY

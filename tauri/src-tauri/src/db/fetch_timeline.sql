@@ -26,16 +26,9 @@ SELECT
   o.created_at,
   o.updated_at,
   o.completed,
-  o.collapsed,
-  json_group_array(
-    json_object('id', links.id_to, 'type', links.type)
-  ) FILTER (
-    WHERE
-      links.id_to IS NOT NULL
-  ) AS linklist
+  o.collapsed
 FROM
   tree o
-  LEFT JOIN outline_links links ON links.id_from = o.id
 WHERE
   NOT EXISTS (
     SELECT
@@ -47,4 +40,4 @@ WHERE
       AND tree.collapsed = true
   )
 GROUP BY
-  (id);
+  o.id;

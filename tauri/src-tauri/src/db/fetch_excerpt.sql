@@ -7,13 +7,7 @@ SELECT
   o.created_at,
   o.updated_at,
   o.completed,
-  o.collapsed,
-  json_group_array(
-    json_object('id', links.id_to, 'type', links.type)
-  ) FILTER (
-    WHERE
-      links.id_to IS NOT NULL
-  ) AS linklist
+  o.collapsed
 FROM
   outlines headings
   INNER JOIN outlines o ON headings.id = ?
@@ -35,7 +29,5 @@ WHERE
     LIMIT
       1
   )
-GROUP BY
-  o.id
 LIMIT
   5;

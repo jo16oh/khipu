@@ -102,14 +102,16 @@ pub async fn upsert_outline(
     conn: State<'_, ConnectionState>,
     outline: Outline,
     y_updates: Vec<Base64Bytes>,
-    assets: HashSet<Asset>,
+    link_list: HashSet<Link>,
+    asset_list: HashSet<Asset>,
     new_asset_data: HashMap<String, Base64Bytes>,
 ) -> eyre::Result<()> {
     let pool = conn.pool().await?;
     let mut tx = pool.begin().await?;
     super::upsert_outline(&mut tx, &outline).await?;
     super::insert_y_updates(&mut *tx, &y_updates, &outline.id, outline.updated_at).await?;
-    super::sync_assets(&mut tx, &outline.id, assets, new_asset_data).await?;
+    super::sync_links(&mut tx, &outline.id, link_list).await?;
+    super::sync_assets(&mut tx, &outline.id, asset_list, new_asset_data).await?;
     tx.commit().await?;
     eyre::Ok(())
 }

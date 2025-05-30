@@ -30,15 +30,8 @@ WITH RECURSIVE
       INNER JOIN path ON parent.id = path.parent_id
   )
 SELECT
-  o.*,
-  json_group_array(
-    json_object('id', links.id_to, 'type', links.type)
-  ) FILTER (
-    WHERE
-      links.id_to IS NOT NULL
-  ) AS linklist
+  o.*
 FROM
   path o
-  LEFT JOIN outline_links links ON links.id_from = o.id
 GROUP BY
   o.id;

@@ -88,22 +88,43 @@ async fn test_outbound_links() {
 
     let mut t1 = Outline::create_tree(2, 3);
     t1[0].r#type = OutlineType::Heading;
-    t1[1].linklist.insert(Link {
-        id: o1.id.clone(),
-        r#type: LinkType::Link,
-    });
-    t1[2].linklist.insert(Link {
-        id: o2.id.clone(),
-        r#type: LinkType::Link,
-    });
-    t1[3].linklist.insert(Link {
-        id: o3.id.clone(),
-        r#type: LinkType::Link,
-    });
 
     for o in t1.iter() {
         upsert_outline(&mut tx, o).await.unwrap();
     }
+
+    sync_links(
+        &mut tx,
+        &t1[1].id,
+        HashSet::from([Link {
+            id: o1.id.clone(),
+            r#type: LinkType::Link,
+        }]),
+    )
+    .await
+    .unwrap();
+
+    sync_links(
+        &mut tx,
+        &t1[2].id,
+        HashSet::from([Link {
+            id: o2.id.clone(),
+            r#type: LinkType::Link,
+        }]),
+    )
+    .await
+    .unwrap();
+
+    sync_links(
+        &mut tx,
+        &t1[3].id,
+        HashSet::from([Link {
+            id: o3.id.clone(),
+            r#type: LinkType::Link,
+        }]),
+    )
+    .await
+    .unwrap();
 
     tx.commit().await.unwrap();
 
@@ -126,30 +147,62 @@ async fn test_fetch_inbound_links() {
 
     let mut t1 = Outline::create_tree(1, 4);
     t1[0].r#type = OutlineType::Heading;
-    t1[1].linklist.insert(Link {
-        id: o.id.clone(),
-        r#type: LinkType::Link,
-    });
     t1[2].r#type = OutlineType::Heading;
-    t1[3].linklist.insert(Link {
-        id: o.id.clone(),
-        r#type: LinkType::Link,
-    });
 
     for o in t1.iter() {
         upsert_outline(&mut tx, o).await.unwrap();
     }
 
+    sync_links(
+        &mut tx,
+        &t1[1].id,
+        HashSet::from([Link {
+            id: o.id.clone(),
+            r#type: LinkType::Link,
+        }]),
+    )
+    .await
+    .unwrap();
+
+    sync_links(
+        &mut tx,
+        &t1[2].id,
+        HashSet::from([Link {
+            id: o.id.clone(),
+            r#type: LinkType::Link,
+        }]),
+    )
+    .await
+    .unwrap();
+
+    sync_links(
+        &mut tx,
+        &t1[3].id,
+        HashSet::from([Link {
+            id: o.id.clone(),
+            r#type: LinkType::Link,
+        }]),
+    )
+    .await
+    .unwrap();
+
     let mut t2 = Outline::create_tree(1, 4);
     t2[0].r#type = OutlineType::Heading;
-    t2[3].linklist.insert(Link {
-        id: o.id.clone(),
-        r#type: LinkType::Link,
-    });
 
     for o in t2.iter() {
         upsert_outline(&mut tx, o).await.unwrap();
     }
+
+    sync_links(
+        &mut tx,
+        &t2[3].id,
+        HashSet::from([Link {
+            id: o.id.clone(),
+            r#type: LinkType::Link,
+        }]),
+    )
+    .await
+    .unwrap();
 
     tx.commit().await.unwrap();
 
@@ -272,37 +325,56 @@ async fn test_upsert_outline() {
         assert_eq!(r.len(), 1);
     }
 
-    let mut links = LinkList::default();
-    links.insert(Link {
-        id: o2.id.clone(),
-        r#type: LinkType::Link,
-    });
-    links.insert(Link {
-        id: o3.id,
-        r#type: LinkType::Link,
-    });
-
-    o1.linklist = links.clone();
-    upsert_outline(&mut tx, &o1).await.unwrap();
+    sync_links(
+        &mut tx,
+        &o1.id,
+        HashSet::from([
+            Link {
+                id: o2.id.clone(),
+                r#type: LinkType::Link,
+            },
+            Link {
+                id: o3.id,
+                r#type: LinkType::Link,
+            },
+        ]),
+    )
+    .await
+    .unwrap();
 
     // Is new links registared?
     {
-        let r = tree(&mut *tx, &o1.id).await.unwrap();
-        assert_eq!(r[0].linklist.len(), 2);
+        let r: HashSet<Link> =
+            sqlx::query_file_as_unchecked!(Link, "src/db/fetch_link_list.sql", o1.id)
+                .fetch_all(&mut *tx)
+                .await
+                .unwrap()
+                .into_iter()
+                .collect();
+        assert_eq!(r.len(), 2);
     }
 
-    links.remove(&Link {
-        id: o2.id,
-        r#type: LinkType::Link,
-    });
-
-    o1.linklist = links.clone();
-    upsert_outline(&mut tx, &o1).await.unwrap();
+    sync_links(
+        &mut tx,
+        &o1.id,
+        HashSet::from([Link {
+            id: o2.id.clone(),
+            r#type: LinkType::Link,
+        }]),
+    )
+    .await
+    .unwrap();
 
     // Is old link removed?
     {
-        let r = tree(&mut *tx, &o1.id).await.unwrap();
-        assert_eq!(r[0].linklist.len(), 1);
+        let r: HashSet<Link> =
+            sqlx::query_file_as_unchecked!(Link, "src/db/fetch_link_list.sql", o1.id)
+                .fetch_all(&mut *tx)
+                .await
+                .unwrap()
+                .into_iter()
+                .collect();
+        assert_eq!(r.len(), 1);
     }
 }
 

@@ -1,7 +1,5 @@
-use std::collections::HashSet;
-
 use base64::{Engine, prelude::BASE64_STANDARD};
-use derive_more::derive::{Deref, DerefMut};
+use derive_more::derive::Deref;
 use serde::{Deserialize, Deserializer, Serialize, Serializer, de::Visitor};
 use sqlx::{Database, Decode, Encode, Sqlite, prelude::FromRow, sqlite::SqliteValueRef};
 use strum::{Display, EnumString};
@@ -14,7 +12,6 @@ pub struct Outline {
     pub findex: String,
     pub r#type: OutlineType,
     pub doc: String,
-    pub linklist: LinkList,
     pub created_at: i64,
     pub updated_at: i64,
     pub completed: SqliteBool,
@@ -55,11 +52,6 @@ impl<'r> Encode<'r, Sqlite> for OutlineType {
     }
 }
 
-#[derive(Serialize, Deserialize, specta::Type, Deref, DerefMut, Default, Clone, Debug)]
-#[serde(rename_all = "camelCase")]
-#[serde(transparent)]
-pub struct LinkList(HashSet<Link>);
-
 #[derive(Serialize, Deserialize, specta::Type, PartialEq, Eq, Hash, Clone, Debug)]
 #[serde(rename_all = "camelCase")]
 pub struct Link {
@@ -67,7 +59,9 @@ pub struct Link {
     pub r#type: LinkType,
 }
 
-#[derive(Serialize, Deserialize, specta::Type, Display, PartialEq, Eq, Hash, Clone, Debug)]
+#[derive(
+    Serialize, Deserialize, specta::Type, Display, EnumString, PartialEq, Eq, Hash, Clone, Debug,
+)]
 #[serde(rename_all = "camelCase")]
 #[strum(serialize_all = "lowercase")]
 pub enum LinkType {
@@ -76,21 +70,28 @@ pub enum LinkType {
     Quote,
 }
 
-impl sqlx::Type<Sqlite> for LinkList {
+impl sqlx::Type<Sqlite> for LinkType {
     fn type_info() -> <Sqlite as Database>::TypeInfo {
         <&str as sqlx::Type<Sqlite>>::type_info()
     }
 }
 
-impl<'r> Decode<'r, Sqlite> for LinkList {
+impl<'r> Decode<'r, Sqlite> for LinkType {
     fn decode(
         value: SqliteValueRef<'r>,
     ) -> Result<Self, Box<dyn std::error::Error + 'static + Send + Sync>> {
-        let json = <&str as Decode<Sqlite>>::decode(value)?;
-        let set: HashSet<Link> = serde_json::from_str::<Vec<Link>>(json)?
-            .into_iter()
-            .collect();
-        Ok(LinkList(set))
+        let str = <&str as Decode<Sqlite>>::decode(value)?;
+        LinkType::try_from(str).map_err(|e| e.into())
+    }
+}
+
+impl<'r> Encode<'r, Sqlite> for LinkType {
+    fn encode_by_ref(
+        &self,
+        buf: &mut <Sqlite as Database>::ArgumentBuffer<'r>,
+    ) -> Result<sqlx::encode::IsNull, sqlx::error::BoxDynError> {
+        let string: String = self.to_string();
+        <String as Encode<Sqlite>>::encode(string, buf)
     }
 }
 
@@ -228,7 +229,6 @@ impl Outline {
             findex: "a0".to_string(),
             r#type: OutlineType::Bullet,
             doc: SAMPLE_DOC.to_string(),
-            linklist: LinkList::default(),
             created_at: now,
             updated_at: now,
             completed: SqliteBool(false),
@@ -245,7 +245,6 @@ impl Outline {
             findex: "a0".to_string(),
             r#type: OutlineType::Bullet,
             doc: SAMPLE_DOC.to_string(),
-            linklist: LinkList::default(),
             created_at: now,
             updated_at: now,
             completed: SqliteBool(false),

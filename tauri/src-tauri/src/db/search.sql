@@ -38,18 +38,9 @@ SELECT
   o.created_at,
   o.updated_at,
   o.completed,
-  o.collapsed,
-  json_group_array(
-    json_object('id', links.id_to, 'type', links.type)
-  ) FILTER (
-    WHERE
-      links.id_to IS NOT NULL
-  ) AS linklist
+  o.collapsed
 FROM
   matches o
-  LEFT JOIN outline_links links ON links.id_from = o.id
   INNER JOIN timestamps_of_tree ON timestamps_of_tree.root_id = o.root_id
-GROUP BY
-  (id)
 ORDER BY
   timestamps_of_tree.timestamp DESC;
