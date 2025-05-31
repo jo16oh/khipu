@@ -1,10 +1,10 @@
 -- # Settings
+PRAGMA journal_mode = 'WAL';
+
 PRAGMA foreign_keys = ON;
 
-PRAGMA defer_foreign_keys = ON;
-
 -- Check foreign key consistancy when committing a transaction
-PRAGMA journal_mode = 'WAL';
+PRAGMA defer_foreign_keys = ON;
 
 -- Store temp tables in memory
 PRAGMA temp_store = 2;
