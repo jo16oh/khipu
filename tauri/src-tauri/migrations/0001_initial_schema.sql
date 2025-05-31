@@ -120,6 +120,8 @@ CREATE TABLE deleted_outline_asset_rel (
   PRIMARY KEY (outline_id, asset_hash, filename, extension)
 ) STRICT;
 
+CREATE INDEX "IDX$deleted_outline_asset_rel.asset_hash" ON deleted_outline_asset_rel (asset_hash);
+
 -- # FTS
 CREATE VIRTUAL TABLE fts USING fts5 (
   doc,
