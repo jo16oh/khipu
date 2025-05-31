@@ -66,7 +66,7 @@ CREATE INDEX "IDX$y_updates.outline_id" ON y_updates (outline_id);
 
 CREATE TABLE deleted_y_updates (
   id TEXT PRIMARY KEY NOT NULL,
-  outline_id TEXT NOT NULL,
+  outline_id TEXT REFERENCES deleted_outlines (id) ON DELETE CASCADE NOT NULL,
   data BLOB NOT NULL,
   timestamp INTEGER NOT NULL
 ) STRICT;
