@@ -40,6 +40,9 @@ pub fn run() {
             // initialize connection state
             app.manage(ConnectionState::new());
 
+            let app_handle = app.app_handle().clone();
+            tokio::spawn(commands::clear_unreferenced_assets_in_trashbox(app_handle));
+
             Ok(())
         })
         .register_asynchronous_uri_scheme_protocol("bin", custom_protocol::handle_request)

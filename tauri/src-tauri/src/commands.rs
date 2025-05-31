@@ -1,4 +1,4 @@
-use crate::db::commands::*;
+pub use crate::db::commands::*;
 
 #[specta::specta]
 #[tauri::command]
