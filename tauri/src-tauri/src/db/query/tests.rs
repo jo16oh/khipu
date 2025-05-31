@@ -654,6 +654,6 @@ async fn test_fetch_deleted_outline_trees() {
 
     tx.commit().await.unwrap();
 
-    let r = fetch_deleted_outline_trees(&pool, 0).await.unwrap();
+    let (r, _) = fetch_deleted_outline_trees(&pool, 0).await.unwrap();
     assert_eq!(r.len(), 3);
 }

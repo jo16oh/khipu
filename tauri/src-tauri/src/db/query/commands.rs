@@ -151,7 +151,7 @@ pub async fn clear_unreferenced_deleted_assets<'a>(app_handle: AppHandle) -> eyr
 pub async fn fetch_deleted_outline_trees(
     conn: State<'_, ConnectionState>,
     offset: i64,
-) -> eyre::Result<Vec<Outline>> {
+) -> eyre::Result<(Vec<Outline>, Vec<Outline>)> {
     let pool = conn.pool().await?;
     super::fetch_deleted_outline_trees(&pool, offset).await
 }

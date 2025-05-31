@@ -485,13 +485,22 @@ pub async fn clear_unreferenced_deleted_assets(tx: &mut SqliteTransaction<'_>) -
 }
 
 pub async fn fetch_deleted_outline_trees<'a>(
-    conn: impl SqliteExecutor<'a>,
+    conn: impl SqliteExecutor<'a> + Copy + Send,
     offset: i64,
-) -> eyre::Result<Vec<Outline>> {
-    sqlx::query_file_as_unchecked!(Outline, "src/db/fetch_deleted_outline_trees.sql", offset)
-        .fetch_all(conn)
-        .await
-        .map_err(eyre::Error::from)
+) -> eyre::Result<(Vec<Outline>, Vec<Outline>)> {
+    let trees =
+        sqlx::query_file_as_unchecked!(Outline, "src/db/fetch_deleted_outline_trees.sql", offset)
+            .fetch_all(conn)
+            .await?;
+
+    let paths = {
+        let ids = serde_json::to_string(&trees.iter().map(|o| &o.id).collect_vec())?;
+        sqlx::query_file_as_unchecked!(Outline, "src/db/fetch_paths.sql", ids)
+            .fetch_all(conn)
+            .await?
+    };
+
+    Ok((trees, paths))
 }
 
 pub async fn clear_all_deleted_outlines(tx: &mut SqliteTransaction<'_>) -> eyre::Result<()> {
