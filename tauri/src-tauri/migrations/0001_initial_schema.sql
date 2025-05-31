@@ -83,6 +83,17 @@ CREATE INDEX "IDX$outline_links.id_from" ON outline_links (id_from);
 
 CREATE INDEX "IDX$outline_links.id_to" ON outline_links (id_to);
 
+CREATE TABLE deleted_outline_links (
+  id_from TEXT REFERENCES deleted_outlines (id) ON DELETE CASCADE NOT NULL,
+  id_to TEXT NOT NULL,
+  type TEXT NOT NULL,
+  PRIMARY KEY (id_from, id_to)
+) STRICT;
+
+CREATE INDEX "IDX$deleted_outline_links.id_from" ON deleted_outline_links (id_from);
+
+CREATE INDEX "IDX$deleted_outline_links.id_to" ON deleted_outline_links (id_to);
+
 CREATE TABLE assets (
   hash TEXT PRIMARY KEY NOT NULL, -- SHA-256 hash of the data
   data BLOB NOT NULL
@@ -284,6 +295,15 @@ FROM
   y_updates
 WHERE
   outline_id = OLD.id;
+
+INSERT INTO
+  deleted_outline_links
+SELECT
+  *
+FROM
+  outline_links
+WHERE
+  id_from = OLD.id;
 
 INSERT INTO
   deleted_outline_asset_rel
