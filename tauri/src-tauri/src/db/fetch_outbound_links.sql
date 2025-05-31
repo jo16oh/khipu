@@ -15,14 +15,16 @@ WITH RECURSIVE
   ),
   headings AS (
     SELECT
-      `to`.*
+      `to`.*,
+      `from`.full_findex AS tree_full_findex
     FROM
       tree `from`
       INNER JOIN outline_links links ON links.id_from = `from`.id
       INNER JOIN outlines `to` ON links.id_to = `to`.id
     UNION ALL
     SELECT
-      parent.*
+      parent.*,
+      child.tree_full_findex
     FROM
       outlines parent
       INNER JOIN headings child ON parent.id = child.parent_id
@@ -41,13 +43,11 @@ FROM
   headings o
   INNER JOIN (
     SELECT
-      root_id,
-      link_count
+      id
     FROM
       (
         SELECT
-          root_id,
-          count(root_id) AS link_count,
+          id,
           row_number() OVER (
             PARTITION BY
               root_id
@@ -62,12 +62,11 @@ FROM
       )
     WHERE
       rn = 1
-  ) AS root_ids ON o.id = root_ids.root_id
+  ) AS heading_ids ON o.id = heading_ids.id
 GROUP BY
   o.id
 ORDER BY
-  root_ids.link_count DESC,
-  o.updated_at DESC
+  min(o.tree_full_findex) ASC
 LIMIT
   10
 OFFSET
