@@ -336,7 +336,7 @@ FROM
 WHERE
   hash = OLD.asset_hash;
 
-DELETE FROM deleted_assets
+DELETE FROM assets
 WHERE
   hash = OLD.asset_hash;
 
