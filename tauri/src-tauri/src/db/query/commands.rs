@@ -143,3 +143,15 @@ pub async fn clear_unreferenced_assets_in_trashbox<'a>(app_handle: AppHandle) ->
     tx.commit().await?;
     eyre::Ok(())
 }
+
+#[tauri::command]
+#[specta::specta]
+#[macros::eyre_to_any]
+#[macros::log_err]
+pub async fn fetch_deleted_outline_trees(
+    conn: State<'_, ConnectionState>,
+    offset: i64,
+) -> eyre::Result<Vec<Outline>> {
+    let pool = conn.pool().await?;
+    super::fetch_deleted_outline_trees(&pool, offset).await
+}

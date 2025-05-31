@@ -485,3 +485,13 @@ pub async fn clear_unreferenced_assets_in_trashbox(
         .await?;
     eyre::Ok(())
 }
+
+pub async fn fetch_deleted_outline_trees<'a>(
+    conn: impl SqliteExecutor<'a>,
+    offset: i64,
+) -> eyre::Result<Vec<Outline>> {
+    sqlx::query_file_as_unchecked!(Outline, "src/db/fetch_deleted_outline_trees.sql", offset)
+        .fetch_all(conn)
+        .await
+        .map_err(eyre::Error::from)
+}

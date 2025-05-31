@@ -640,3 +640,22 @@ async fn test_clear_unreferenced_assets_in_trashbox() {
         .unwrap();
     assert_eq!(r, 1);
 }
+
+#[tokio::test]
+async fn test_fetch_deleted_outline_trees() {
+    let pool = open_connection_in_memory().await;
+    let mut tx = pool.begin().await.unwrap();
+
+    let tree = Outline::create_tree(2, 2);
+
+    for o in tree.iter() {
+        upsert_outline(&mut tx, o).await.unwrap();
+    }
+
+    delete_outline(&mut tx, &tree[0].id).await.unwrap();
+
+    tx.commit().await.unwrap();
+
+    let r = fetch_deleted_outline_trees(&pool, 0).await.unwrap();
+    assert_eq!(r.len(), 3);
+}
