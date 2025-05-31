@@ -113,7 +113,7 @@ CREATE TABLE outline_asset_rel (
 ) STRICT;
 
 CREATE TABLE deleted_outline_asset_rel (
-  outline_id TEXT NOT NULL,
+  outline_id TEXT REFERENCES deleted_outlines (id) ON DELETE CASCADE NOT NULL,
   asset_hash TEXT NOT NULL,
   filename TEXT NOT NULL,
   extension TEXT NOT NULL,
