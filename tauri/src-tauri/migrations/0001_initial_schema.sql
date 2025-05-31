@@ -99,17 +99,17 @@ CREATE TABLE assets (
   data BLOB NOT NULL
 ) STRICT;
 
+CREATE TABLE deleted_assets (
+  hash TEXT PRIMARY KEY NOT NULL,
+  data BLOB NOT NULL
+) STRICT;
+
 CREATE TABLE outline_asset_rel (
   outline_id TEXT REFERENCES outlines (id) ON DELETE CASCADE NOT NULL,
   asset_hash TEXT REFERENCES assets (hash) ON DELETE CASCADE NOT NULL,
   filename TEXT NOT NULL,
   extension TEXT NOT NULL,
   PRIMARY KEY (outline_id, asset_hash, filename, extension)
-) STRICT;
-
-CREATE TABLE deleted_assets (
-  hash TEXT PRIMARY KEY NOT NULL,
-  data BLOB NOT NULL
 ) STRICT;
 
 CREATE TABLE deleted_outline_asset_rel (
