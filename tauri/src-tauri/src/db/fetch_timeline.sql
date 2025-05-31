@@ -38,6 +38,8 @@ WHERE
     WHERE
       o.path LIKE tree.path || ',%'
       AND tree.collapsed = true
+    LIMIT
+      1
   )
 GROUP BY
   o.id;
