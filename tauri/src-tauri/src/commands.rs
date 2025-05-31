@@ -23,6 +23,7 @@ pub fn commands() -> tauri_specta::Commands<tauri::Wry> {
         delete_outline,
         clear_unreferenced_deleted_assets,
         fetch_deleted_outline_trees,
-        clear_all_deleted_outlines
+        clear_all_deleted_outlines,
+        clear_deleted_outline
     ]
 }

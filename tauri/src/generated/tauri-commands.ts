@@ -52,6 +52,9 @@ async fetchDeletedOutlineTrees(offset: number) : Promise<Outline[]> {
 },
 async clearAllDeletedOutlines() : Promise<null> {
     return await TAURI_INVOKE("clear_all_deleted_outlines");
+},
+async clearDeletedOutline(id: string) : Promise<null> {
+    return await TAURI_INVOKE("clear_deleted_outline", { id });
 }
 }
 

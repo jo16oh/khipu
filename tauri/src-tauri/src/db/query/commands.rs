@@ -167,3 +167,18 @@ pub async fn clear_all_deleted_outlines(conn: State<'_, ConnectionState>) -> eyr
     tx.commit().await?;
     eyre::Ok(())
 }
+
+#[tauri::command]
+#[specta::specta]
+#[macros::eyre_to_any]
+#[macros::log_err]
+pub async fn clear_deleted_outline(
+    conn: State<'_, ConnectionState>,
+    id: String,
+) -> eyre::Result<()> {
+    let pool = conn.pool().await?;
+    let mut tx = pool.begin().await?;
+    super::clear_deleted_outline(&mut tx, &id).await?;
+    tx.commit().await?;
+    eyre::Ok(())
+}
