@@ -49,7 +49,8 @@ CREATE TABLE deleted_outlines (
   created_at INTEGER NOT NULL,
   updated_at INTEGER NOT NULL,
   collapsed INTEGER NOT NULL DEFAULT 0,
-  completed INTEGER NOT NULL DEFAULT 0
+  completed INTEGER NOT NULL DEFAULT 0,
+  deleted_at INTEGER NOT NULL DEFAULT (unixepoch('now', 'subsec') * 1000)
 ) STRICT;
 
 CREATE INDEX "IDX$deleted_outlines.parent_id" ON outlines (parent_id);
@@ -277,7 +278,17 @@ END;
 
 CREATE TRIGGER before_delete_on_outlines BEFORE DELETE ON outlines FOR EACH ROW BEGIN
 INSERT INTO
-  deleted_outlines
+  deleted_outlines (
+    id,
+    parent_id,
+    findex,
+    type,
+    doc,
+    created_at,
+    updated_at,
+    collapsed,
+    completed
+  )
 SELECT
   OLD.id,
   OLD.parent_id,
