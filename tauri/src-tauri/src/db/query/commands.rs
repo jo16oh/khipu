@@ -130,3 +130,17 @@ pub async fn delete_outline(
     tx.commit().await?;
     eyre::Ok(())
 }
+
+#[tauri::command]
+#[specta::specta]
+#[macros::eyre_to_any]
+#[macros::log_err]
+pub async fn clear_unreferenced_assets_in_trashbox<'a>(
+    conn: State<'_, ConnectionState>,
+) -> eyre::Result<()> {
+    let pool = conn.pool().await?;
+    let mut tx = pool.begin().await?;
+    super::clear_unreferenced_assets_in_trashbox(&mut tx).await?;
+    tx.commit().await?;
+    eyre::Ok(())
+}

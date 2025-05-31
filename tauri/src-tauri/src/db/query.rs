@@ -476,3 +476,12 @@ pub async fn delete_outline(tx: &mut SqliteTransaction<'_>, outline_id: &str) ->
 
     eyre::Ok(())
 }
+
+pub async fn clear_unreferenced_assets_in_trashbox(
+    tx: &mut SqliteTransaction<'_>,
+) -> eyre::Result<()> {
+    sqlx::query_file!("src/db/clear_unreferenced_assets_in_trashbox.sql")
+        .execute(&mut **tx)
+        .await?;
+    eyre::Ok(())
+}

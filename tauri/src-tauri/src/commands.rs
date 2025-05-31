@@ -20,6 +20,7 @@ pub fn commands() -> tauri_specta::Commands<tauri::Wry> {
         tree,
         is_conflicting,
         upsert_outline,
-        delete_outline
+        delete_outline,
+        clear_unreferenced_assets_in_trashbox
     ]
 }

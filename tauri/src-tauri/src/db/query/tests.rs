@@ -595,3 +595,48 @@ async fn test_full_findex() {
         );
     }
 }
+
+#[tokio::test]
+async fn test_clear_unreferenced_assets_in_trashbox() {
+    let pool = open_connection_in_memory().await;
+    let mut tx = pool.begin().await.unwrap();
+
+    let o = Outline::new();
+    upsert_outline(&mut tx, &o).await.unwrap();
+
+    let data = "hello".as_bytes();
+    let hash = bs58::encode(Sha256::digest(data)).into_string();
+    let a = Asset {
+        hash: hash.clone(),
+        filename: "hello".to_string(),
+        extension: "txt".to_string(),
+    };
+
+    sync_assets(
+        &mut tx,
+        &o.id,
+        HashSet::from([a]),
+        HashMap::from([(hash, Base64Bytes::from(data.to_vec()))]),
+    )
+    .await
+    .unwrap();
+
+    sqlx::query!("insert into deleted_assets (hash, data) values ('1', x'00');")
+        .execute(&mut *tx)
+        .await
+        .unwrap();
+
+    delete_outline(&mut tx, &o.id).await.unwrap();
+
+    clear_unreferenced_assets_in_trashbox(&mut tx)
+        .await
+        .unwrap();
+
+    tx.commit().await.unwrap();
+
+    let r = sqlx::query_scalar!("select count(*) from deleted_assets;")
+        .fetch_one(&pool)
+        .await
+        .unwrap();
+    assert_eq!(r, 1);
+}
