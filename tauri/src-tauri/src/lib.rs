@@ -41,7 +41,7 @@ pub fn run() {
             app.manage(ConnectionState::new());
 
             let app_handle = app.app_handle().clone();
-            tokio::spawn(commands::clear_unreferenced_assets_in_trashbox(app_handle));
+            tokio::spawn(commands::clear_unreferenced_deleted_assets(app_handle));
 
             Ok(())
         })

@@ -628,9 +628,7 @@ async fn test_clear_unreferenced_assets_in_trashbox() {
 
     delete_outline(&mut tx, &o.id).await.unwrap();
 
-    clear_unreferenced_assets_in_trashbox(&mut tx)
-        .await
-        .unwrap();
+    clear_unreferenced_deleted_assets(&mut tx).await.unwrap();
 
     tx.commit().await.unwrap();
 

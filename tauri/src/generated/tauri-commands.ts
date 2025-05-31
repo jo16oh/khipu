@@ -44,8 +44,8 @@ async upsertOutline(outline: Outline, yUpdates: Base64Bytes[], linkList: Link[],
 async deleteOutline(outlineId: string) : Promise<null> {
     return await TAURI_INVOKE("delete_outline", { outlineId });
 },
-async clearUnreferencedAssetsInTrashbox() : Promise<null> {
-    return await TAURI_INVOKE("clear_unreferenced_assets_in_trashbox");
+async clearUnreferencedDeletedAssets() : Promise<null> {
+    return await TAURI_INVOKE("clear_unreferenced_deleted_assets");
 },
 async fetchDeletedOutlineTrees(offset: number) : Promise<Outline[]> {
     return await TAURI_INVOKE("fetch_deleted_outline_trees", { offset });

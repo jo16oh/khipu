@@ -135,11 +135,11 @@ pub async fn delete_outline(
 #[specta::specta]
 #[macros::eyre_to_any]
 #[macros::log_err]
-pub async fn clear_unreferenced_assets_in_trashbox<'a>(app_handle: AppHandle) -> eyre::Result<()> {
+pub async fn clear_unreferenced_deleted_assets<'a>(app_handle: AppHandle) -> eyre::Result<()> {
     let conn = app_handle.state::<ConnectionState>();
     let pool = conn.pool().await?;
     let mut tx = pool.begin().await?;
-    super::clear_unreferenced_assets_in_trashbox(&mut tx).await?;
+    super::clear_unreferenced_deleted_assets(&mut tx).await?;
     tx.commit().await?;
     eyre::Ok(())
 }
