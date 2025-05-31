@@ -471,7 +471,7 @@ pub async fn delete_outline(tx: &mut SqliteTransaction<'_>, outline_id: &str) ->
     delete_fts_index(tx, outline_id).await?;
 
     sqlx::query_file_scalar!("src/db/delete_outline.sql", outline_id)
-        .fetch_one(&mut **tx)
+        .execute(&mut **tx)
         .await?;
 
     eyre::Ok(())
