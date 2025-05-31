@@ -493,3 +493,10 @@ pub async fn fetch_deleted_outline_trees<'a>(
         .await
         .map_err(eyre::Error::from)
 }
+
+pub async fn clear_all_deleted_outlines(tx: &mut SqliteTransaction<'_>) -> eyre::Result<()> {
+    sqlx::query_file_as_unchecked!(Outline, "src/db/clear_all_deleted_outlines.sql")
+        .execute(&mut **tx)
+        .await?;
+    eyre::Ok(())
+}

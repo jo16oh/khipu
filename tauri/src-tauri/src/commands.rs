@@ -22,6 +22,7 @@ pub fn commands() -> tauri_specta::Commands<tauri::Wry> {
         upsert_outline,
         delete_outline,
         clear_unreferenced_deleted_assets,
-        fetch_deleted_outline_trees
+        fetch_deleted_outline_trees,
+        clear_all_deleted_outlines
     ]
 }

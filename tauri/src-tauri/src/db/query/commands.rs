@@ -155,3 +155,15 @@ pub async fn fetch_deleted_outline_trees(
     let pool = conn.pool().await?;
     super::fetch_deleted_outline_trees(&pool, offset).await
 }
+
+#[tauri::command]
+#[specta::specta]
+#[macros::eyre_to_any]
+#[macros::log_err]
+pub async fn clear_all_deleted_outlines(conn: State<'_, ConnectionState>) -> eyre::Result<()> {
+    let pool = conn.pool().await?;
+    let mut tx = pool.begin().await?;
+    super::clear_all_deleted_outlines(&mut tx).await?;
+    tx.commit().await?;
+    eyre::Ok(())
+}
