@@ -10,11 +10,11 @@ SELECT
   o.collapsed
 FROM
   outlines headings
-  INNER JOIN outlines o ON headings.id = ?
-  AND o.path LIKE headings.path || ',%'
+  INNER JOIN outlines o ON o.path LIKE headings.path || ',%'
   LEFT JOIN outline_links links ON links.id_from = o.id
 WHERE
-  NOT EXISTS (
+  headings.id = ?
+  AND NOT EXISTS (
     SELECT
       1
     FROM
