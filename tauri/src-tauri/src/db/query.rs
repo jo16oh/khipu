@@ -507,3 +507,57 @@ pub async fn clear_deleted_outline(tx: &mut SqliteTransaction<'_>, id: &str) -> 
         .await?;
     eyre::Ok(())
 }
+
+pub async fn restore_deleted_outline_tree(
+    tx: &mut SqliteTransaction<'_>,
+    id: &str,
+) -> eyre::Result<()> {
+    let mut deleted_outline_tree =
+        sqlx::query_file_as_unchecked!(Outline, "src/db/fetch_deleted_outline_tree.sql", id)
+            .fetch_all(&mut **tx)
+            .await?;
+
+    let is_parent_exists = if let Some(ref parent_id) = deleted_outline_tree[0].parent_id {
+        sqlx::query_file_scalar!("src/db/is_outline_exists.sql", parent_id)
+            .fetch_optional(&mut **tx)
+            .await?
+            .is_some()
+    } else {
+        true
+    };
+
+    if !is_parent_exists {
+        deleted_outline_tree[0].parent_id = None;
+    }
+
+    for o in deleted_outline_tree.iter() {
+        upsert_outline(tx, o).await?;
+    }
+
+    let outline_ids = serde_json::to_string(
+        &deleted_outline_tree
+            .into_iter()
+            .map(|o| o.id)
+            .collect::<Vec<String>>(),
+    )?;
+
+    sqlx::query_file!("src/db/restore_deleted_y_updates.sql", outline_ids)
+        .execute(&mut **tx)
+        .await?;
+
+    sqlx::query_file!("src/db/restore_deleted_outline_links.sql", outline_ids)
+        .execute(&mut **tx)
+        .await?;
+
+    sqlx::query_file!("src/db/restore_deleted_assets.sql", outline_ids)
+        .execute(&mut **tx)
+        .await?;
+
+    sqlx::query_file!("src/db/restore_deleted_outline_asset_rels.sql", outline_ids)
+        .execute(&mut **tx)
+        .await?;
+
+    clear_deleted_outline(tx, id).await?;
+
+    eyre::Ok(())
+}

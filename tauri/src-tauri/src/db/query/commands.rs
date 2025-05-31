@@ -182,3 +182,18 @@ pub async fn clear_deleted_outline(
     tx.commit().await?;
     eyre::Ok(())
 }
+
+#[tauri::command]
+#[specta::specta]
+#[macros::eyre_to_any]
+#[macros::log_err]
+pub async fn restore_deleted_outline_tree(
+    conn: State<'_, ConnectionState>,
+    id: String,
+) -> eyre::Result<()> {
+    let pool = conn.pool().await?;
+    let mut tx = pool.begin().await?;
+    super::restore_deleted_outline_tree(&mut tx, &id).await?;
+    tx.commit().await?;
+    eyre::Ok(())
+}
