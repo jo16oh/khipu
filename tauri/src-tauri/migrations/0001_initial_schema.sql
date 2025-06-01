@@ -161,7 +161,7 @@ SET
     )
   END
 WHERE
-  id = NEW.id;
+  rowid = NEW.rowid;
 
 END;
 
@@ -194,7 +194,7 @@ SET
     )
   END
 WHERE
-  id = NEW.id;
+  rowid = NEW.rowid;
 
 UPDATE outlines
 SET
@@ -237,7 +237,7 @@ SET
     )
   END
 WHERE
-  id = NEW.id;
+  rowid = NEW.rowid;
 
 END;
 
@@ -259,7 +259,7 @@ SET
     )
   END
 WHERE
-  id = NEW.id;
+  rowid = NEW.rowid;
 
 UPDATE outlines
 SET
