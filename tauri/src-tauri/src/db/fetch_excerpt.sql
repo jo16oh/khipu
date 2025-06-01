@@ -30,5 +30,6 @@ WHERE
     LIMIT
       1
   )
+  AND o.derived_deleted = false
 LIMIT
   5;

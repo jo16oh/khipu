@@ -1,17 +1,20 @@
 WITH RECURSIVE
   tree AS (
     SELECT
-      o.*
+      *
     FROM
-      outlines o
+      outlines
     WHERE
       id = ?
+      AND derived_deleted = false
     UNION ALL
     SELECT
       child.*
     FROM
       outlines child
       INNER JOIN tree ON tree.id = child.parent_id
+    WHERE
+      child.derived_deleted = false
   ),
   headings AS (
     SELECT
@@ -21,6 +24,8 @@ WITH RECURSIVE
       tree `from`
       INNER JOIN outline_links links ON links.id_from = `from`.id
       INNER JOIN outlines `to` ON links.id_to = `to`.id
+    WHERE
+      `from`.derived_deleted = false
     UNION ALL
     SELECT
       parent.*,

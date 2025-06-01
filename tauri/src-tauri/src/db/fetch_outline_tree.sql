@@ -16,6 +16,7 @@ WITH RECURSIVE
       INNER JOIN outlines parent ON parent.id = o.parent_id
     WHERE
       o.id = ?1
+      AND o.derived_deleted = false
     UNION ALL
     SELECT
       parent.id,
@@ -34,20 +35,21 @@ WITH RECURSIVE
   ),
   tree AS (
     SELECT
-      o.id,
-      o.parent_id,
-      o.findex,
-      o.type,
-      o.doc,
-      o.created_at,
-      o.updated_at,
-      o.completed,
-      o.collapsed,
-      o.deleted
+      id,
+      parent_id,
+      findex,
+      type,
+      doc,
+      created_at,
+      updated_at,
+      completed,
+      collapsed,
+      deleted
     FROM
-      outlines o
+      outlines
     WHERE
       id = ?1
+      AND derived_deleted = false
     UNION ALL
     SELECT
       child.id,
@@ -67,6 +69,8 @@ WITH RECURSIVE
         tree.collapsed = false
         OR tree.id = ?1
       )
+    WHERE
+      child.derived_deleted = false
   ),
   linked_outlines AS (
     SELECT
@@ -84,6 +88,8 @@ WITH RECURSIVE
       tree `from`
       INNER JOIN outline_links links ON links.id_from = `from`.id
       INNER JOIN outlines `to` ON links.id_to = `to`.id
+    WHERE
+      `to`.derived_deleted = false
     UNION ALL
     SELECT
       parent.id,

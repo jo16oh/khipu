@@ -7,6 +7,7 @@ WITH RECURSIVE
       INNER JOIN fts ON o.rowid = fts.rowid
     WHERE
       fts MATCH $q
+      AND o.derived_deleted = false
     UNION ALL
     SELECT
       parent.*

@@ -25,6 +25,7 @@ WHERE
     WHERE
       $cond
   )
+  AND o.derived_deleted = false
 ORDER BY
   fts.rank
 LIMIT

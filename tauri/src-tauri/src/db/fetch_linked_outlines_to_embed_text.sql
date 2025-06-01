@@ -15,6 +15,8 @@ WITH RECURSIVE
       json_each(json(?)) AS `from`
       INNER JOIN outline_links links ON links.id_from = `from`.value
       INNER JOIN outlines `to` ON links.id_to = `to`.id
+    WHERE
+      `to`.derived_deleted = false
     UNION ALL
     SELECT
       parent.id,
