@@ -23,6 +23,8 @@ CREATE TABLE outlines (
   updated_at INTEGER NOT NULL,
   collapsed INTEGER NOT NULL DEFAULT 0,
   completed INTEGER NOT NULL DEFAULT 0,
+  deleted INTEGER NOT NULL DEFAULT 0,
+  derived_deleted INTEGER NOT NULL DEFAULT 0,
   path TEXT NOT NULL DEFAULT '',
   root_id TEXT NOT NULL DEFAULT '',
   full_findex TEXT NOT NULL DEFAULT ''
@@ -352,5 +354,133 @@ WHERE
 DELETE FROM assets
 WHERE
   hash = OLD.asset_hash;
+
+END;
+
+CREATE TRIGGER set_derived_delete AFTER INSERT ON outlines FOR EACH ROW BEGIN
+UPDATE outlines
+SET
+  derived_deleted = coalesce(
+    (
+      SELECT
+        true
+      FROM
+        outlines AS ancestors
+      WHERE
+        ancestors.id IN (
+          SELECT
+            value
+          FROM
+            json_each(
+              '[' || rtrim(rtrim(NEW.path, quote(NEW.id)), ',') || ']'
+            )
+        )
+        AND ancestors.deleted = true
+      LIMIT
+        1
+    ),
+    false
+  )
+WHERE
+  rowid = NEW.rowid;
+
+END;
+
+CREATE TRIGGER reconcile_derived_delete AFTER
+UPDATE ON outlines FOR EACH ROW WHEN old.deleted != new.deleted BEGIN
+-- Set derived_deleted of all descendatns and self true when the outline is deleted
+UPDATE outlines
+SET
+  derived_deleted = true
+WHERE
+  NEW.deleted = true
+  AND id IN (
+    WITH RECURSIVE
+      tree AS (
+        SELECT
+          id
+        FROM
+          outlines
+        WHERE
+          parent_id = NEW.id
+        UNION ALL
+        SELECT
+          child.id
+        FROM
+          outlines child
+          INNER JOIN tree parent ON parent.id = child.parent_id
+      )
+    SELECT
+      id
+    FROM
+      tree
+  );
+
+-- Recalculate derived_deleted when the outline is restored
+UPDATE outlines
+SET
+  derived_deleted = coalesce(
+    (
+      SELECT
+        true
+      FROM
+        outlines AS ancestor
+      WHERE
+        ancestor.id IN (
+          SELECT
+            value
+          FROM
+            json_each(
+              '[' || rtrim(rtrim(NEW.path, quote(NEW.id)), ',') || ']'
+            )
+        )
+        AND ancestor.deleted = true
+      LIMIT
+        1
+    ),
+    false
+  )
+WHERE
+  NEW.deleted = false
+  AND rowid = NEW.rowid;
+
+-- Propagate derived_deleted to descendatns when the outline is restored
+UPDATE outlines
+SET
+  derived_deleted = false
+WHERE
+  NEW.deleted = false
+  AND (
+    SELECT
+      derived_deleted
+    FROM
+      outlines
+    WHERE
+      rowid = NEW.rowid
+  ) = false
+  AND id IN (
+    WITH RECURSIVE
+      tree AS (
+        SELECT
+          id
+        FROM
+          outlines
+        WHERE
+          parent_id = NEW.id
+          AND deleted = false
+        UNION ALL
+        SELECT
+          child.id
+        FROM
+          outlines child
+          INNER JOIN tree parent ON parent.id = child.parent_id
+        WHERE
+          child.deleted = false
+      )
+    SELECT
+      id
+    FROM
+      tree
+  );
 
 END;
