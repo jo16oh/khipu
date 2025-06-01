@@ -120,34 +120,6 @@ pub async fn upsert_outline(
 #[specta::specta]
 #[macros::eyre_to_any]
 #[macros::log_err]
-pub async fn delete_outline(
-    conn: State<'_, ConnectionState>,
-    outline_id: String,
-) -> eyre::Result<()> {
-    let pool = conn.pool().await?;
-    let mut tx = pool.begin().await?;
-    super::delete_outline(&mut tx, &outline_id).await?;
-    tx.commit().await?;
-    eyre::Ok(())
-}
-
-#[tauri::command]
-#[specta::specta]
-#[macros::eyre_to_any]
-#[macros::log_err]
-pub async fn clear_unreferenced_deleted_assets<'a>(app_handle: AppHandle) -> eyre::Result<()> {
-    let conn = app_handle.state::<ConnectionState>();
-    let pool = conn.pool().await?;
-    let mut tx = pool.begin().await?;
-    super::clear_unreferenced_deleted_assets(&mut tx).await?;
-    tx.commit().await?;
-    eyre::Ok(())
-}
-
-#[tauri::command]
-#[specta::specta]
-#[macros::eyre_to_any]
-#[macros::log_err]
 pub async fn fetch_deleted_outline_trees(
     conn: State<'_, ConnectionState>,
     offset: i64,
@@ -160,10 +132,11 @@ pub async fn fetch_deleted_outline_trees(
 #[specta::specta]
 #[macros::eyre_to_any]
 #[macros::log_err]
-pub async fn clear_all_deleted_outlines(conn: State<'_, ConnectionState>) -> eyre::Result<()> {
+pub async fn clear_unreferenced_deleted_assets<'a>(app_handle: AppHandle) -> eyre::Result<()> {
+    let conn = app_handle.state::<ConnectionState>();
     let pool = conn.pool().await?;
     let mut tx = pool.begin().await?;
-    super::clear_all_deleted_outlines(&mut tx).await?;
+    super::clear_unreferenced_deleted_assets(&mut tx).await?;
     tx.commit().await?;
     eyre::Ok(())
 }
@@ -187,13 +160,10 @@ pub async fn clear_deleted_outline(
 #[specta::specta]
 #[macros::eyre_to_any]
 #[macros::log_err]
-pub async fn restore_deleted_outline_tree(
-    conn: State<'_, ConnectionState>,
-    id: String,
-) -> eyre::Result<()> {
+pub async fn clear_all_deleted_outlines(conn: State<'_, ConnectionState>) -> eyre::Result<()> {
     let pool = conn.pool().await?;
     let mut tx = pool.begin().await?;
-    super::restore_deleted_outline_tree(&mut tx, &id).await?;
+    super::clear_all_deleted_outlines(&mut tx).await?;
     tx.commit().await?;
     eyre::Ok(())
 }

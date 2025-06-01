@@ -1,5 +1,4 @@
 pub use crate::db::commands::*;
-
 #[specta::specta]
 #[tauri::command]
 fn greet(name: &str) -> String {
@@ -20,11 +19,9 @@ pub fn commands() -> tauri_specta::Commands<tauri::Wry> {
         tree,
         is_conflicting,
         upsert_outline,
-        delete_outline,
-        clear_unreferenced_deleted_assets,
         fetch_deleted_outline_trees,
-        clear_all_deleted_outlines,
+        clear_unreferenced_deleted_assets,
         clear_deleted_outline,
-        restore_deleted_outline_tree
+        clear_all_deleted_outlines
     ]
 }

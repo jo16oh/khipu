@@ -1,9 +1,9 @@
-DELETE FROM deleted_assets
+DELETE FROM assets
 WHERE
   hash NOT IN (
     SELECT
       hash
     FROM
-      deleted_assets
-      INNER JOIN deleted_outline_asset_rel ON hash = asset_hash
+      assets
+      INNER JOIN outline_asset_rel ON hash = asset_hash
   );

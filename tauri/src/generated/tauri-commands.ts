@@ -41,23 +41,17 @@ async isConflicting(id: string, doc: string) : Promise<boolean> {
 async upsertOutline(outline: Outline, yUpdates: Base64Bytes[], linkList: Link[], assetList: Asset[], newAssetData: Partial<{ [key in string]: Base64Bytes }>) : Promise<null> {
     return await TAURI_INVOKE("upsert_outline", { outline, yUpdates, linkList, assetList, newAssetData });
 },
-async deleteOutline(outlineId: string) : Promise<null> {
-    return await TAURI_INVOKE("delete_outline", { outlineId });
+async fetchDeletedOutlineTrees(offset: number) : Promise<[Outline[], Outline[]]> {
+    return await TAURI_INVOKE("fetch_deleted_outline_trees", { offset });
 },
 async clearUnreferencedDeletedAssets() : Promise<null> {
     return await TAURI_INVOKE("clear_unreferenced_deleted_assets");
 },
-async fetchDeletedOutlineTrees(offset: number) : Promise<[Outline[], Outline[]]> {
-    return await TAURI_INVOKE("fetch_deleted_outline_trees", { offset });
-},
-async clearAllDeletedOutlines() : Promise<null> {
-    return await TAURI_INVOKE("clear_all_deleted_outlines");
-},
 async clearDeletedOutline(id: string) : Promise<null> {
     return await TAURI_INVOKE("clear_deleted_outline", { id });
 },
-async restoreDeletedOutlineTree(id: string) : Promise<null> {
-    return await TAURI_INVOKE("restore_deleted_outline_tree", { id });
+async clearAllDeletedOutlines() : Promise<null> {
+    return await TAURI_INVOKE("clear_all_deleted_outlines");
 }
 }
 

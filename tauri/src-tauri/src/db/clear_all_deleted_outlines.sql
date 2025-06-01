@@ -1,1 +1,3 @@
-DELETE FROM deleted_outlines;
+DELETE FROM outlines
+WHERE
+  deleted = true;

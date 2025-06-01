@@ -11,12 +11,16 @@ WITH RECURSIVE
       o.completed,
       o.collapsed
     FROM
-      deleted_outlines o
-      LEFT JOIN deleted_outlines parent ON o.parent_id = parent.id
+      outlines o
+      LEFT JOIN outlines parent ON o.parent_id = parent.id
     WHERE
-      parent.id IS NULL
+      o.deleted = true
+      AND (
+        o.parent_id IS NULL
+        OR parent.derived_deleted = false
+      )
     ORDER BY
-      o.deleted_at DESC
+      o.updated_at DESC
     LIMIT
       10
     OFFSET
@@ -39,7 +43,7 @@ WITH RECURSIVE
       child.completed,
       child.collapsed
     FROM
-      deleted_outlines child
+      outlines child
       INNER JOIN tree parent ON child.parent_id = parent.id
   )
 SELECT
