@@ -7,7 +7,8 @@ SELECT
   o.created_at,
   o.updated_at,
   o.completed,
-  o.collapsed
+  o.collapsed,
+  o.deleted
 FROM
   outlines headings
   INNER JOIN outlines o ON o.path LIKE headings.path || ',%'

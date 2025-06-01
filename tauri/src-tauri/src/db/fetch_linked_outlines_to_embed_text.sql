@@ -9,7 +9,8 @@ WITH RECURSIVE
       `to`.created_at,
       `to`.updated_at,
       `to`.completed,
-      `to`.collapsed
+      `to`.collapsed,
+      `to`.deleted
     FROM
       json_each(json(?)) AS `from`
       INNER JOIN outline_links links ON links.id_from = `from`.value
@@ -24,7 +25,8 @@ WITH RECURSIVE
       parent.created_at,
       parent.updated_at,
       parent.completed,
-      parent.collapsed
+      parent.collapsed,
+      parent.deleted
     FROM
       outlines parent
       INNER JOIN linked_outlines links ON parent.id = links.parent_id

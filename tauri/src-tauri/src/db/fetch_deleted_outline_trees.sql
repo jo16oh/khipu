@@ -9,7 +9,8 @@ WITH RECURSIVE
       o.created_at,
       o.updated_at,
       o.completed,
-      o.collapsed
+      o.collapsed,
+      o.deleted
     FROM
       outlines o
       LEFT JOIN outlines parent ON o.parent_id = parent.id
@@ -41,7 +42,8 @@ WITH RECURSIVE
       child.created_at,
       child.updated_at,
       child.completed,
-      child.collapsed
+      child.collapsed,
+      child.deleted
     FROM
       outlines child
       INNER JOIN tree parent ON child.parent_id = parent.id

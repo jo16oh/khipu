@@ -10,6 +10,7 @@ WITH RECURSIVE
         WHEN ?2 = 'updated_at' THEN updated_at BETWEEN ?1 AND ?1  + (60 * 60 * 24 * 1000)
         ELSE false
       END
+      AND derived_deleted = false
     UNION ALL
     SELECT
       parent.*
@@ -26,7 +27,8 @@ SELECT
   o.created_at,
   o.updated_at,
   o.completed,
-  o.collapsed
+  o.collapsed,
+  o.deleted
 FROM
   tree o
 WHERE

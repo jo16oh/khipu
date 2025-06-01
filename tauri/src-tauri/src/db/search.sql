@@ -38,7 +38,8 @@ SELECT
   o.created_at,
   o.updated_at,
   o.completed,
-  o.collapsed
+  o.collapsed,
+  o.deleted
 FROM
   matches o
   INNER JOIN timestamps_of_tree ON timestamps_of_tree.root_id = o.root_id

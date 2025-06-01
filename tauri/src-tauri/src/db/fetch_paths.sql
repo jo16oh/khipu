@@ -9,7 +9,8 @@ WITH RECURSIVE
       parent.created_at,
       parent.updated_at,
       parent.completed,
-      parent.collapsed
+      parent.collapsed,
+      parent.deleted
     FROM
       outlines o
       INNER JOIN json_each(json(?)) AS ids ON ids.value = o.id
@@ -24,7 +25,8 @@ WITH RECURSIVE
       parent.created_at,
       parent.updated_at,
       parent.completed,
-      parent.collapsed
+      parent.collapsed,
+      parent.deleted
     FROM
       outlines parent
       INNER JOIN path ON parent.id = path.parent_id

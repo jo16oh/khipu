@@ -9,7 +9,8 @@ WITH RECURSIVE
       parent.created_at,
       parent.updated_at,
       parent.completed,
-      parent.collapsed
+      parent.collapsed,
+      parent.deleted
     FROM
       outlines o
       INNER JOIN outlines parent ON parent.id = o.parent_id
@@ -25,7 +26,8 @@ WITH RECURSIVE
       parent.created_at,
       parent.updated_at,
       parent.completed,
-      parent.collapsed
+      parent.collapsed,
+      parent.deleted
     FROM
       outlines parent
       INNER JOIN path ON parent.id = path.parent_id
@@ -40,7 +42,8 @@ WITH RECURSIVE
       o.created_at,
       o.updated_at,
       o.completed,
-      o.collapsed
+      o.collapsed,
+      o.deleted
     FROM
       outlines o
     WHERE
@@ -55,7 +58,8 @@ WITH RECURSIVE
       child.created_at,
       child.updated_at,
       child.completed,
-      child.collapsed
+      child.collapsed,
+      child.deleted
     FROM
       outlines child
       INNER JOIN tree ON tree.id = child.parent_id
@@ -74,7 +78,8 @@ WITH RECURSIVE
       `to`.created_at,
       `to`.updated_at,
       `to`.completed,
-      `to`.collapsed
+      `to`.collapsed,
+      `to`.deleted
     FROM
       tree `from`
       INNER JOIN outline_links links ON links.id_from = `from`.id
@@ -89,7 +94,8 @@ WITH RECURSIVE
       parent.created_at,
       parent.updated_at,
       parent.completed,
-      parent.collapsed
+      parent.collapsed,
+      parent.deleted
     FROM
       outlines parent
       INNER JOIN linked_outlines links ON parent.id = links.parent_id

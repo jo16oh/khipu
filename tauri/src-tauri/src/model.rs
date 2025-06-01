@@ -16,6 +16,7 @@ pub struct Outline {
     pub updated_at: i64,
     pub completed: SqliteBool,
     pub collapsed: SqliteBool,
+    pub deleted: SqliteBool,
 }
 
 #[derive(Serialize, Deserialize, specta::Type, Display, EnumString, Clone, Debug)]
@@ -233,6 +234,7 @@ impl Outline {
             updated_at: now,
             completed: SqliteBool(false),
             collapsed: SqliteBool(false),
+            deleted: SqliteBool(false),
         }
     }
 
@@ -249,6 +251,7 @@ impl Outline {
             updated_at: now,
             completed: SqliteBool(false),
             collapsed: SqliteBool(false),
+            deleted: SqliteBool(false),
         }
     }
 

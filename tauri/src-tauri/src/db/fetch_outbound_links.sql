@@ -38,7 +38,8 @@ SELECT
   o.created_at,
   o.updated_at,
   o.completed,
-  o.collapsed
+  o.collapsed,
+  o.deleted
 FROM
   headings o
   INNER JOIN (

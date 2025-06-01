@@ -278,7 +278,8 @@ pub async fn upsert_outline(tx: &mut SqliteTransaction<'_>, outline: &Outline) -
         outline.created_at,
         outline.updated_at,
         outline.completed,
-        outline.collapsed
+        outline.collapsed,
+        outline.deleted
     )
     .fetch_one(&mut **tx)
     .await?;
