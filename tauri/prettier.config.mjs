@@ -2,8 +2,8 @@
 const prettierConfig = {
   plugins: [
     "prettier-plugin-sql",
-    "@trivago/prettier-plugin-sort-imports",
     "@pandabox/prettier-plugin",
+    "@trivago/prettier-plugin-sort-imports",
   ],
 };
 
