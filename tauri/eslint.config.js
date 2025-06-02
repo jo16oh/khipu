@@ -20,6 +20,18 @@ export default defineConfig([
   pluginReact.configs.flat.recommended,
   eslintConfigPrettier,
   {
+    files: ["**/*.{js,jsx,mjs,cjs,ts,tsx}"],
+    settings: {
+      react: {
+        version: "detect",
+      },
+    },
+    rules: {
+      "react/react-in-jsx-scope": "off",
+      "react/jsx-uses-react": "off",
+    },
+  },
+  {
     files: ["**/*.json"],
     plugins: { json },
     language: "json/json",
