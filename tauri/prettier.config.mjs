@@ -12,7 +12,14 @@ const prettierPluginSqlConfig = {
 };
 
 /** @type {import('@trivago/prettier-plugin-sort-imports').PluginConfig} */
-const prettierPluginSortImportsConfig = {};
+const prettierPluginSortImportsConfig = {
+  importOrder: [
+    "^(react/(.*)$)|^(react$)",
+    "<THIRD_PARTY_MODULES>",
+    "^../",
+    "^[./]",
+  ],
+};
 
 const config = {
   ...prettierConfig,
