@@ -22,3 +22,7 @@ dist-ssr
 *.njsproj
 *.sln
 *.sw?
+
+## Panda
+src/generated/styled-system
+src/generated/styled-system-studio

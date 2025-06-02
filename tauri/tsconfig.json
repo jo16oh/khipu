@@ -28,6 +28,6 @@
     "noImplicitOverride": true
   },
   "include": ["src"],
-  "exclude": ["src/generated/**/*"],
+  "exclude": ["src/generated/tauri-commands.js"],
   "references": [{ "path": "./tsconfig.node.json" }]
 }

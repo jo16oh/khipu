@@ -1,7 +1,8 @@
 import { useState } from "react";
 import { invoke } from "@tauri-apps/api/core";
-import "./App.css";
+import "../index.css";
 import reactLogo from "./assets/react.svg";
+import { css } from "./generated/styled-system/css";
 
 function App() {
   const [greetMsg, setGreetMsg] = useState("");
@@ -45,6 +46,15 @@ function App() {
         <button type="submit">Greet</button>
       </form>
       <p>{greetMsg}</p>
+      <p
+        className={css({
+          color: "purple",
+          fontSize: "2xl",
+          fontWeight: "bold",
+        })}
+      >
+        Panda🐼
+      </p>
     </main>
   );
 }
