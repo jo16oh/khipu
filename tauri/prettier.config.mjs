@@ -1,6 +1,10 @@
 /** @type {import('prettier').Config} */
 const prettierConfig = {
-  plugins: ["prettier-plugin-sql", "@trivago/prettier-plugin-sort-imports"],
+  plugins: [
+    "prettier-plugin-sql",
+    "@trivago/prettier-plugin-sort-imports",
+    "@pandabox/prettier-plugin",
+  ],
 };
 
 /** @type {import('prettier-plugin-sql').SqlBaseOptions} */

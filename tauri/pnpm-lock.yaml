@@ -30,9 +30,15 @@ importers:
       '@eslint/json':
         specifier: ^0.12.0
         version: 0.12.0
+      '@pandabox/prettier-plugin':
+        specifier: ^0.1.3
+        version: 0.1.3(@pandacss/config@0.53.7)(@pandacss/core@0.53.7)(@pandacss/is-valid-prop@0.53.7)(@pandacss/node@0.53.7(typescript@5.6.3))(@pandacss/preset-base@0.53.7)(@pandacss/shared@0.53.7)
       '@pandacss/dev':
         specifier: ^0.53.7
         version: 0.53.7(typescript@5.6.3)
+      '@pandacss/eslint-plugin':
+        specifier: ^0.2.9
+        version: 0.2.9(eslint@9.28.0)(typescript@5.6.3)
       '@tauri-apps/cli':
         specifier: ^2
         version: 2.5.0
@@ -448,6 +454,16 @@ packages:
     resolution: {integrity: sha512-oGB+UxlgWcgQkgwo8GcEGwemoTFt3FIO9ababBmaGwXIoBKZ+GTy0pP185beGg7Llih/NSHSV2XAs1lnznocSg==}
     engines: {node: '>= 8'}
 
+  '@pandabox/prettier-plugin@0.1.3':
+    resolution: {integrity: sha512-EvwXOpFatVYloXvYEPTm2HL53k6SEUSHRYp+DUdSRIT/KivrFmkSGfl0j8WfdDtxc+4j9tYQNs0rBkSvvxuChA==}
+    peerDependencies:
+      '@pandacss/config': '>=0.36.1'
+      '@pandacss/core': '>=0.36.1'
+      '@pandacss/is-valid-prop': '>=0.36.1'
+      '@pandacss/node': '>=0.36.1'
+      '@pandacss/preset-base': '>=0.36.1'
+      '@pandacss/shared': '>=0.36.1'
+
   '@pandacss/config@0.53.7':
     resolution: {integrity: sha512-cwtvAMkWoM/9lIyxpDFvHM2op2K1fuPiP0s112h60atko1QJQDL96GbpWxRgQr9HOvjKmIRXjgQsS/sfJbv6sw==}
 
@@ -457,6 +473,11 @@ packages:
   '@pandacss/dev@0.53.7':
     resolution: {integrity: sha512-wzDNtP+hApLNRRzMXYBBSQF6FBjBaRJQ0TnLbxVEQSQCOAq8M4AspLYn36QuriXwgxut+xIdxQ6g7T3I3LfMlQ==}
     hasBin: true
+
+  '@pandacss/eslint-plugin@0.2.9':
+    resolution: {integrity: sha512-0KyxDGsx5yLuqglAEmcKT67JbfhdGS8PVC4lUhnABaIc6Mfgz0g/ZoxXFFDFye7SBr/29MemSmPmvTvH6Th3+A==}
+    peerDependencies:
+      eslint: '*'
 
   '@pandacss/extractor@0.53.7':
     resolution: {integrity: sha512-ZN9TtFpv31h1gbeVOBD+ksFkiXtIbHoHHJg+25EXuqjKv1waFzJ4M4m0tl/+WLloVyWkwGKO5TkSD5+jWcGuhw==}
@@ -496,6 +517,10 @@ packages:
 
   '@pandacss/types@0.53.7':
     resolution: {integrity: sha512-BBl4a2G5PQT45crYfVqDKhvfhjnltDwD9HtCbMP6375LFrBKDjoKqj8N5GaLE6xSuP09OZYbVXhRsQOaRVSXHA==}
+
+  '@pkgr/core@0.1.2':
+    resolution: {integrity: sha512-fdDH1LSGfZdTH2sxdpVMw31BanV28K/Gry0cVFxaNP77neJSkd82mM8ErPNYs9e+0O7SdHBLTDzDgwUuy18RnQ==}
+    engines: {node: ^12.20.0 || ^14.18.0 || >=16.0.0}
 
   '@rolldown/pluginutils@1.0.0-beta.9':
     resolution: {integrity: sha512-e9MeMtVWo186sgvFFJOPGy7/d2j2mZhLJIdVW0C/xDluuOvymEATqz6zKsP0ZmXGzQtqlyjz5sC1sYQUoJG98w==}
@@ -2022,6 +2047,10 @@ packages:
     resolution: {integrity: sha512-ot0WnXS9fgdkgIcePe6RHNk1WA8+muPa6cSjeR3V8K27q9BB1rTE3R1p7Hv0z1ZyAc8s6Vvv8DIyWf681MAt0w==}
     engines: {node: '>= 0.4'}
 
+  synckit@0.9.3:
+    resolution: {integrity: sha512-JJoOEKTfL1urb1mDoEblhD9NhEbWmq9jHEMEnxoC4ujUaZ4itA8vKgwkFAyNClgxplLi9tsUKX+EduK0p/l7sg==}
+    engines: {node: ^14.18.0 || >=16.0.0}
+
   table@6.9.0:
     resolution: {integrity: sha512-9kY+CygyYM6j02t5YFHbNz2FN5QmYGv9zAjVp4lCDjlCw7amdckXlEt/bjMhUIfj4ThGRE4gCUH5+yGnNuPo5A==}
     engines: {node: '>=10.0.0'}
@@ -2541,6 +2570,16 @@ snapshots:
       '@nodelib/fs.scandir': 2.1.5
       fastq: 1.19.1
 
+  '@pandabox/prettier-plugin@0.1.3(@pandacss/config@0.53.7)(@pandacss/core@0.53.7)(@pandacss/is-valid-prop@0.53.7)(@pandacss/node@0.53.7(typescript@5.6.3))(@pandacss/preset-base@0.53.7)(@pandacss/shared@0.53.7)':
+    dependencies:
+      '@pandacss/config': 0.53.7
+      '@pandacss/core': 0.53.7
+      '@pandacss/is-valid-prop': 0.53.7
+      '@pandacss/node': 0.53.7(typescript@5.6.3)
+      '@pandacss/preset-base': 0.53.7
+      '@pandacss/shared': 0.53.7
+      micromatch: 4.0.8
+
   '@pandacss/config@0.53.7':
     dependencies:
       '@pandacss/logger': 0.53.7
@@ -2591,6 +2630,21 @@ snapshots:
       cac: 6.7.14
     transitivePeerDependencies:
       - jsdom
+      - typescript
+
+  '@pandacss/eslint-plugin@0.2.9(eslint@9.28.0)(typescript@5.6.3)':
+    dependencies:
+      '@pandacss/config': 0.53.7
+      '@pandacss/generator': 0.53.7
+      '@pandacss/node': 0.53.7(typescript@5.6.3)
+      '@pandacss/shared': 0.53.7
+      '@typescript-eslint/utils': 8.33.0(eslint@9.28.0)(typescript@5.6.3)
+      eslint: 9.28.0
+      hookable: 5.5.3
+      synckit: 0.9.3
+    transitivePeerDependencies:
+      - jsdom
+      - supports-color
       - typescript
 
   '@pandacss/extractor@0.53.7(typescript@5.6.3)':
@@ -2709,6 +2763,8 @@ snapshots:
       ts-pattern: 5.0.8
 
   '@pandacss/types@0.53.7': {}
+
+  '@pkgr/core@0.1.2': {}
 
   '@rolldown/pluginutils@1.0.0-beta.9': {}
 
@@ -4407,6 +4463,11 @@ snapshots:
       has-flag: 4.0.0
 
   supports-preserve-symlinks-flag@1.0.0: {}
+
+  synckit@0.9.3:
+    dependencies:
+      '@pkgr/core': 0.1.2
+      tslib: 2.8.1
 
   table@6.9.0:
     dependencies:

@@ -1,5 +1,6 @@
 import js from "@eslint/js";
 import json from "@eslint/json";
+import panda from "@pandacss/eslint-plugin";
 import eslintConfigPrettier from "eslint-config-prettier/flat";
 import pluginReact from "eslint-plugin-react";
 import { defineConfig, globalIgnores } from "eslint/config";
@@ -18,8 +19,8 @@ export default defineConfig([
     languageOptions: { globals: globals.browser },
   },
   tseslint.configs.recommended,
-  pluginReact.configs.flat.recommended,
   eslintConfigPrettier,
+  pluginReact.configs.flat.recommended,
   {
     files: ["**/*.{js,jsx,mjs,cjs,ts,tsx}"],
     settings: {
@@ -50,6 +51,12 @@ export default defineConfig([
     language: "json/json5",
     extends: ["json/recommended"],
   },
+  // {
+  //   files: ["**/*.css"],
+  //   plugins: { css },
+  //   language: "css/css",
+  //   extends: ["css/recommended"],
+  // },
   {
     plugins: {
       "@pandacss": panda,
