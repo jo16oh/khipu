@@ -7,7 +7,11 @@
     "dev": "vite",
     "build": "tsc && vite build",
     "preview": "vite preview",
-    "tauri": "tauri"
+    "tauri": "tauri",
+    "lint": "eslint --ext .js,.ts,.jsx,.tsx ./src",
+    "fix": "npm run format && npm run lint:fix",
+    "format": "prettier --write ./src",
+    "lint:fix": "eslint --fix --ext .js,.ts,.jsx,.tsx ./src"
   },
   "dependencies": {
     "@tauri-apps/api": "^2",
