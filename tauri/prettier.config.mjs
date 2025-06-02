@@ -1,10 +1,6 @@
 /** @type {import('prettier').Config} */
 const prettierConfig = {
-  plugins: [
-    "prettier-plugin-sql",
-    "@pandabox/prettier-plugin",
-    "@trivago/prettier-plugin-sort-imports",
-  ],
+  plugins: ["prettier-plugin-sql", "@pandabox/prettier-plugin"],
 };
 
 /** @type {import('prettier-plugin-sql').SqlBaseOptions} */
@@ -15,20 +11,9 @@ const prettierPluginSqlConfig = {
   functionCase: "lower",
 };
 
-/** @type {import('@trivago/prettier-plugin-sort-imports').PluginConfig} */
-const prettierPluginSortImportsConfig = {
-  importOrder: [
-    "^(react/(.*)$)|^(react$)",
-    "<THIRD_PARTY_MODULES>",
-    "^../",
-    "^[./]",
-  ],
-};
-
 const config = {
   ...prettierConfig,
   ...prettierPluginSqlConfig,
-  ...prettierPluginSortImportsConfig,
 };
 
 export default config;

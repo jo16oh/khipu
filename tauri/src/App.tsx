@@ -1,6 +1,7 @@
-import { useState } from "react";
-import { invoke } from "@tauri-apps/api/core";
 import "../index.css";
+
+import { invoke } from "@tauri-apps/api/core";
+import { useState } from "react";
 import reactLogo from "./assets/react.svg";
 import { css } from "./generated/styled-system/css";
 
@@ -48,9 +49,10 @@ function App() {
       <p>{greetMsg}</p>
       <p
         className={css({
-          color: "purple",
+          color: "purple.500",
           fontSize: "2xl",
           fontWeight: "bold",
+          bg: "red.500",
         })}
       >
         Panda🐼
