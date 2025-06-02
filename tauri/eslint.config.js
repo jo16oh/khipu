@@ -1,4 +1,3 @@
-import css from "@eslint/css";
 import js from "@eslint/js";
 import json from "@eslint/json";
 import eslintConfigPrettier from "eslint-config-prettier/flat";
@@ -39,9 +38,13 @@ export default defineConfig([
     extends: ["json/recommended"],
   },
   {
-    files: ["**/*.css"],
-    plugins: { css },
-    language: "css/css",
-    extends: ["css/recommended"],
+    plugins: {
+      "@pandacss": panda,
+    },
+    rules: {
+      ...panda.configs.recommended.rules,
+      "@pandacss/prefer-shorthand-properties": "warn",
+      "@pandacss/no-margin-properties": "warn",
+    },
   },
 ]);
