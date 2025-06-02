@@ -2,11 +2,12 @@ import js from "@eslint/js";
 import json from "@eslint/json";
 import eslintConfigPrettier from "eslint-config-prettier/flat";
 import pluginReact from "eslint-plugin-react";
-import { defineConfig } from "eslint/config";
+import { defineConfig, globalIgnores } from "eslint/config";
 import globals from "globals";
 import tseslint from "typescript-eslint";
 
 export default defineConfig([
+  globalIgnores(["src/generated/**/*"]),
   {
     files: ["**/*.{js,mjs,cjs,ts,mts,cts,jsx,tsx}"],
     plugins: { js },
