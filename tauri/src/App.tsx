@@ -1,6 +1,6 @@
 import "../index.css";
 
-import { css } from "./generated/styled-system/css";
+import { css } from "generated/styled-system/css";
 
 function App() {
   return (

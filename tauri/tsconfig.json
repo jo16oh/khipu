@@ -25,7 +25,13 @@
     "noPropertyAccessFromIndexSignature": true,
     "exactOptionalPropertyTypes": true,
     "noImplicitReturns": true,
-    "noImplicitOverride": true
+    "noImplicitOverride": true,
+
+    /* path alias */
+    "baseUrl": "./",
+    "paths": {
+      "generated/*": ["src/generated/*"]
+    }
   },
   "include": ["src"],
   "exclude": ["src/generated/tauri-commands.js"],
