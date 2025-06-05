@@ -1,3 +1,4 @@
+import type { JSONContent } from "@tiptap/react";
 import { OutlineType, Outline as RawOutline } from "generated/tauri-commands";
 
 export type { Outline as RawOutline } from "generated/tauri-commands";
@@ -25,8 +26,3 @@ export const Outline = {
     };
   },
 } as const;
-
-export type JSONContent = {
-  text?: string;
-  content?: JSONContent[];
-};

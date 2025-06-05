@@ -1,4 +1,5 @@
-import { JSONContent, Outline } from "src/model";
+import type { JSONContent } from "@tiptap/react";
+import { Outline } from "src/model";
 import { FractionallyIndexedList } from "src/utils";
 import type { DeepReadonly } from "ts-essentials";
 import * as Y from "yjs";
