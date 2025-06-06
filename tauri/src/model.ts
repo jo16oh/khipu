@@ -1,9 +1,10 @@
 import type { JSONContent } from "@tiptap/react";
 import { OutlineType, Outline as RawOutline } from "generated/tauri-commands";
+import type { DeepReadonly } from "ts-essentials";
 
 export type { Outline as RawOutline } from "generated/tauri-commands";
 
-export type Outline = {
+export type Outline = DeepReadonly<{
   id: string;
   parentId: string | null;
   findex: string;
@@ -14,7 +15,7 @@ export type Outline = {
   completed: boolean;
   collapsed: boolean;
   deleted: boolean;
-};
+}>;
 
 export const Outline = {
   from(data: RawOutline): Outline {
