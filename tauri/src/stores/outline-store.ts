@@ -159,8 +159,8 @@ export class OutlineStore {
     return this.#outlines.get(id);
   }
 
-  getOutlineChildren(id: string): DeepReadonly<string[]> {
-    return this.#children.get(id);
+  getOutlineChildren(id: string) {
+    return this.#children.get(id)?.intoArray();
   }
 
   getYDoc(id: string) {
