@@ -1,6 +1,7 @@
 import type { JSONContent } from "@tiptap/react";
+import { generateKeyBetween } from "fractional-indexing-jittered";
 import { Outline } from "src/model";
-import { FractionallyIndexedList } from "src/utils";
+import { FractionallyIndexedList, uuidv7bs58 } from "src/utils";
 import type { DeepReadonly } from "ts-essentials";
 import * as Y from "yjs";
 
@@ -43,7 +44,7 @@ class SubscribersMap<Args extends unknown[]> {
   }
 }
 
-class ChildrenStore {
+class OutlineChildrenStore {
   #parentToChildrenMap = new Map<
     string,
     FractionallyIndexedList<{ id: string; findex: string }>
@@ -105,9 +106,8 @@ class ChildrenStore {
     this.#parentToChildrenMap.delete(outlineId);
   }
 
-  get(id: string): DeepReadonly<string[]> {
-    const children = this.#parentToChildrenMap.get(id);
-    return children ? Array.from(children, (c) => c.id) : [];
+  get(id: string) {
+    return this.#parentToChildrenMap.get(id);
   }
 
   subscribe(id: string, cb: () => void) {
@@ -120,11 +120,13 @@ class ChildrenStore {
 
 export class OutlineStore {
   #outlines = new Map<string, Outline>();
-  #children = new ChildrenStore();
+  #children = new OutlineChildrenStore();
   #ydocs = new Map<string, Y.Doc>();
   #pendingYUpdates = new Map<string, Uint8Array[]>();
   #outlineSubscribers = new SubscribersMap<[]>();
   #docUpdateNotifier: DocUpdateNotifier;
+
+  readonly reducer = new OutlineStoreReducer(this, this.#children);
 
   constructor(docUpdateNotifier: DocUpdateNotifier) {
     this.#docUpdateNotifier = docUpdateNotifier;
@@ -207,4 +209,92 @@ export class DocUpdateNotifier {
   notify(id: string, doc: JSONContent) {
     this.#subscribers.notify(id, doc);
   }
+}
+
+type Id = string;
+
+class OutlineStoreReducer {
+  #store: OutlineStore;
+  #childrenStore: OutlineChildrenStore;
+
+  constructor(store: OutlineStore, childrenStore: OutlineChildrenStore) {
+    this.#store = store;
+    this.#childrenStore = childrenStore;
+  }
+
+  create(
+    parentId: string | null = null,
+    position: "start" | "end" | { after: Outline } = "start",
+  ) {
+    const findex = (() => {
+      if (!parentId) return generateKeyBetween(null, null);
+      const list = this.#childrenStore.get(parentId);
+      if (!list) throw new Error("Insert target outline not found");
+      return list.generateFractionalIndex(position);
+    })();
+
+    const now = new Date();
+
+    const o: Outline = {
+      id: uuidv7bs58(),
+      parentId,
+      doc: {},
+      type: "bullet",
+      findex,
+      completed: false,
+      collapsed: false,
+      deleted: false,
+      createdAt: now,
+      updatedAt: now,
+    };
+
+    const ydoc = this.#store.getYDoc(o.id);
+    const ymap = ydoc.getMap("khipu");
+    ymap.set("parentId", o.parentId);
+    ymap.set("doc", new Y.XmlFragment());
+    ymap.set("type", o.type);
+    ymap.set("findex", o.findex);
+    ymap.set("completed", o.completed);
+    ymap.set("collapsed", o.collapsed);
+    ymap.set("deleted", o.deleted);
+
+    this.#store.register(o);
+  }
+
+  move(
+    outlineIds: Id[],
+    to: Id | "root",
+    position: "start" | "end" | { after: Outline },
+  ) {
+    const parentId = to === "root" ? null : to;
+
+    const findex = (() => {
+      if (to === "root") return generateKeyBetween(null, null);
+      const list = this.#childrenStore.get(to);
+      if (!list) throw new Error("Insert target outline not found");
+      return list.generateFractionalIndex(position);
+    })();
+
+    const now = new Date();
+
+    const outlines = outlineIds.map((id, i) => {
+      const o = this.#store.getOutline(id);
+      if (!o) throw new Error("Target outline not found");
+
+      const ydoc = this.#store.getYDoc(o.id);
+      const ymap = ydoc.getMap("khipu");
+      ymap.set("parentId", o.parentId);
+      ymap.set("findex", o.findex);
+
+      return {
+        ...o,
+        parentId,
+        findex: findex + String(i),
+        updatedAt: now,
+      };
+    });
+
+    this.#store.register(...outlines);
+  }
+
 }
