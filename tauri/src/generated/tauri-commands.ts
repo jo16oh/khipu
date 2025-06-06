@@ -69,7 +69,7 @@ export type Link = { id: string; type: LinkType }
 export type LinkType = "tag" | "link" | "quote"
 export type OrderBy = "createdAt" | "updatedAt"
 export type Outline = { id: string; parentId: string | null; findex: string; type: OutlineType; doc: string; createdAt: number; updatedAt: number; completed: SqliteBool; collapsed: SqliteBool; deleted: SqliteBool }
-export type OutlineType = "heading" | "bullet" | "paragraph"
+export type OutlineType = "heading" | "bullet" | "card" | "code"
 export type SqliteBool = boolean
 export type TimelinePosition = { before: number } | { after: number } | "latest"
 

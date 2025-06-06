@@ -25,7 +25,8 @@ pub struct Outline {
 pub enum OutlineType {
     Heading,
     Bullet,
-    Paragraph,
+    Card,
+    Code,
 }
 
 impl sqlx::Type<Sqlite> for OutlineType {
