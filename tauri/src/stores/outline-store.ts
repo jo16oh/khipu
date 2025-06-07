@@ -1,6 +1,7 @@
 import type { JSONContent } from "@tiptap/react";
 import { generateKeyBetween } from "fractional-indexing-jittered";
 import { OutlineType } from "generated/tauri-commands";
+import { WritableDraft, produce } from "immer";
 import { getSchemaOf } from "src/editor/schema";
 import { Outline } from "src/model";
 import { FractionallyIndexedList, uuidv7bs58 } from "src/utils";
@@ -121,6 +122,11 @@ class OutlineChildrenStore {
   }
 }
 
+type OutlineStoreUpdater = (
+  id: string,
+  update: (draft: WritableDraft<Outline>) => void,
+) => void;
+
 export class OutlineStore {
   #outlines = new Map<string, Outline>();
   #children = new OutlineChildrenStore();
@@ -129,11 +135,45 @@ export class OutlineStore {
   #outlineSubscribers = new SubscribersMap<[]>();
   #docUpdateNotifier: DocUpdateNotifier;
 
-  readonly reducer = new OutlineStoreReducer(this, this.#children);
-
   constructor(docUpdateNotifier: DocUpdateNotifier) {
     this.#docUpdateNotifier = docUpdateNotifier;
   }
+
+  #update: OutlineStoreUpdater = (id, update) => {
+    const before = this.getOutline(id);
+    if (!before) throw new Error("outline not found");
+
+    const after = produce(before, (draft) => {
+      update(draft);
+      draft.id = before.id;
+      draft.updatedAt = new Date();
+    });
+
+    this.#updateYDoc(before, after);
+    this.#outlines.set(id, after);
+    this.#outlineSubscribers.notify(id);
+  };
+
+  #updateYDoc(before: Outline, after: Outline) {
+    const ydoc = this.getYDoc(before.id);
+    const ymap = ydoc.getMap("props");
+
+    if (before.parentId !== after.parentId)
+      ymap.set("parentId", after.parentId);
+    if (before.findex !== after.findex) ymap.set("findex", after.findex);
+    if (before.type !== after.type) ymap.set("type", after.type);
+    if (before.completed !== after.completed)
+      ymap.set("completed", after.completed);
+    if (before.collapsed !== after.collapsed)
+      ymap.set("collapsed", after.collapsed);
+    if (before.deleted !== after.deleted) ymap.set("deleted", after.deleted);
+  }
+
+  readonly reducer = new OutlineStoreReducer(
+    this,
+    this.#children,
+    this.#update,
+  );
 
   register(...outlines: Outline[]) {
     for (const o of outlines) {
@@ -147,7 +187,7 @@ export class OutlineStore {
       if (!old) {
         const unsubscribe = this.#docUpdateNotifier.subscribe(o.id, (doc) => {
           const outline = this.#outlines.get(o.id);
-          if (outline) this.#outlines.set(o.id, { ...outline, doc });
+          if (outline) this.#update(outline.id, (draft) => (draft.doc = doc));
         });
 
         this.#outlineSubscribers.onUnsubscribedAll(o.id, () => {
@@ -219,10 +259,16 @@ type Id = string;
 class OutlineStoreReducer {
   #store: OutlineStore;
   #childrenStore: OutlineChildrenStore;
+  #updateOutline: OutlineStoreUpdater;
 
-  constructor(store: OutlineStore, childrenStore: OutlineChildrenStore) {
+  constructor(
+    store: OutlineStore,
+    childrenStore: OutlineChildrenStore,
+    updateOutline: OutlineStoreUpdater,
+  ) {
     this.#store = store;
     this.#childrenStore = childrenStore;
+    this.#updateOutline = updateOutline;
   }
 
   create(
@@ -283,26 +329,16 @@ class OutlineStoreReducer {
       return list.generateFractionalIndex(position);
     })();
 
-    const now = new Date();
-
-    const outlines = outlineIds.map((id, i) => {
-      const o = this.#store.getOutline(id);
-      if (!o) throw new Error("Target outline not found");
-
-      const ydoc = this.#store.getYDoc(o.id);
-      const ymap = ydoc.getMap("props");
-      ymap.set("parentId", o.parentId);
-      ymap.set("findex", o.findex);
-
-      return {
-        ...o,
-        parentId,
-        findex: findex + String(i),
-        updatedAt: now,
-      };
-    });
-
-    this.#store.register(...outlines);
+    for (const [i, id] of outlineIds.entries()) {
+      this.#updateOutline(id, (draft) => {
+        draft.parentId = parentId;
+        draft.findex = findex + String(i);
+      });
+    }
   }
+
+
+
+
 
 }
