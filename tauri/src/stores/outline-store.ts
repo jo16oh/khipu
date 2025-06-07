@@ -1,8 +1,11 @@
 import type { JSONContent } from "@tiptap/react";
 import { generateKeyBetween } from "fractional-indexing-jittered";
+import { OutlineType } from "generated/tauri-commands";
+import { getSchemaOf } from "src/editor/schema";
 import { Outline } from "src/model";
 import { FractionallyIndexedList, uuidv7bs58 } from "src/utils";
 import type { DeepReadonly } from "ts-essentials";
+import { prosemirrorJSONToYXmlFragment } from "y-prosemirror";
 import * as Y from "yjs";
 
 class SubscribersMap<Args extends unknown[]> {
@@ -225,6 +228,8 @@ class OutlineStoreReducer {
   create(
     parentId: string | null = null,
     position: "start" | "end" | { after: Outline } = "start",
+    type: OutlineType,
+    doc: JSONContent = {},
   ) {
     const findex = (() => {
       if (!parentId) return generateKeyBetween(null, null);
@@ -238,8 +243,8 @@ class OutlineStoreReducer {
     const o: Outline = {
       id: uuidv7bs58(),
       parentId,
-      doc: {},
-      type: "bullet",
+      doc: doc,
+      type,
       findex,
       completed: false,
       collapsed: false,
@@ -249,9 +254,10 @@ class OutlineStoreReducer {
     };
 
     const ydoc = this.#store.getYDoc(o.id);
-    const ymap = ydoc.getMap("khipu");
+    const ymap = ydoc.getMap("props");
+    const yxml = ydoc.getXmlFragment("doc");
+    prosemirrorJSONToYXmlFragment(getSchemaOf(type), doc, yxml);
     ymap.set("parentId", o.parentId);
-    ymap.set("doc", new Y.XmlFragment());
     ymap.set("type", o.type);
     ymap.set("findex", o.findex);
     ymap.set("completed", o.completed);
@@ -259,6 +265,8 @@ class OutlineStoreReducer {
     ymap.set("deleted", o.deleted);
 
     this.#store.register(o);
+
+    return o.id;
   }
 
   move(
@@ -282,7 +290,7 @@ class OutlineStoreReducer {
       if (!o) throw new Error("Target outline not found");
 
       const ydoc = this.#store.getYDoc(o.id);
-      const ymap = ydoc.getMap("khipu");
+      const ymap = ydoc.getMap("props");
       ymap.set("parentId", o.parentId);
       ymap.set("findex", o.findex);
 
