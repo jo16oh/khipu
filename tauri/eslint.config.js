@@ -67,12 +67,6 @@ export default defineConfig([
     language: "json/json5",
     extends: ["json/recommended"],
   },
-  // {
-  //   files: ["**/*.css"],
-  //   plugins: { css },
-  //   language: "css/css",
-  //   extends: ["css/recommended"],
-  // },
   {
     plugins: {
       "@pandacss": panda,
