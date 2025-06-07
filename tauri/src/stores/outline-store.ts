@@ -317,8 +317,29 @@ class OutlineStoreReducer {
     }
   }
 
+  toggleCompleted(...ids: string[]) {
+    for (const id of ids) {
+      this.#updateOutline(id, (draft) => {
+        draft.completed = !draft.completed;
+      });
+    }
+  }
 
+  toggleCollapsed(...ids: string[]) {
+    for (const id of ids) {
+      this.#updateOutline(id, (draft) => {
+        draft.collapsed = !draft.collapsed;
+      });
+    }
+  }
 
+  delete(...ids: string[]) {
+    for (const id of ids) {
+      this.#updateOutline(id, (draft) => {
+        draft.deleted = true;
+      });
+    }
+  }
 
 
 }
