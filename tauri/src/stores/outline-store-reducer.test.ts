@@ -1,7 +1,8 @@
 import type { JSONContent } from "@tiptap/react";
 import { YXmlFragment } from "node_modules/yjs/dist/src/internals";
 import { describe, expect, it } from "vitest";
-import { DocUpdateNotifier, OutlineStore } from "./outline-store";
+import { DocUpdateNotifier } from "./doc-update-notifier";
+import { OutlineStore } from "./outline-store";
 
 const Notifier = new DocUpdateNotifier();
 const Store = new OutlineStore(Notifier);

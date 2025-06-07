@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { type FractionallyIndexedItem, FractionallyIndexedList } from "./utils";
+import { type FractionallyIndexedItem, FractionallyIndexedList } from "./fractionally-indexed-list";
 
 interface TestItem extends FractionallyIndexedItem {
   name: string;
