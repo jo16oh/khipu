@@ -54,15 +54,17 @@ export class OutlineStoreReducer {
     };
 
     const ydoc = this.#store.getYDoc(o.id);
-    const ymap = ydoc.getMap("props");
-    const yxml = ydoc.getXmlFragment("doc");
-    prosemirrorJSONToYXmlFragment(getSchemaOf(type), doc, yxml);
-    ymap.set("parentId", o.parentId);
-    ymap.set("type", o.type);
-    ymap.set("findex", o.findex);
-    ymap.set("completed", o.completed);
-    ymap.set("collapsed", o.collapsed);
-    ymap.set("deleted", o.deleted);
+    ydoc.transact(() => {
+      const ymap = ydoc.getMap("props");
+      const yxml = ydoc.getXmlFragment("doc");
+      prosemirrorJSONToYXmlFragment(getSchemaOf(type), doc, yxml);
+      ymap.set("parentId", o.parentId);
+      ymap.set("type", o.type);
+      ymap.set("findex", o.findex);
+      ymap.set("completed", o.completed);
+      ymap.set("collapsed", o.collapsed);
+      ymap.set("deleted", o.deleted);
+    });
 
     this.#store.register(o);
 
@@ -86,8 +88,6 @@ export class OutlineStoreReducer {
       });
     }
   }
-
-  merge() {}
 
   convertType() {}
 

@@ -43,12 +43,14 @@ export class OutlineStore {
     const ydoc = this.getYDoc(before.id);
     const ymap = ydoc.getMap("props");
 
-    if (before.parentId !== after.parentId) ymap.set("parentId", after.parentId);
-    if (before.findex !== after.findex) ymap.set("findex", after.findex);
-    if (before.type !== after.type) ymap.set("type", after.type);
-    if (before.completed !== after.completed) ymap.set("completed", after.completed);
-    if (before.collapsed !== after.collapsed) ymap.set("collapsed", after.collapsed);
-    if (before.deleted !== after.deleted) ymap.set("deleted", after.deleted);
+    ydoc.transact(() => {
+      if (before.parentId !== after.parentId) ymap.set("parentId", after.parentId);
+      if (before.findex !== after.findex) ymap.set("findex", after.findex);
+      if (before.type !== after.type) ymap.set("type", after.type);
+      if (before.completed !== after.completed) ymap.set("completed", after.completed);
+      if (before.collapsed !== after.collapsed) ymap.set("collapsed", after.collapsed);
+      if (before.deleted !== after.deleted) ymap.set("deleted", after.deleted);
+    });
   }
 
   readonly reducer = new OutlineStoreReducer(this, this.#children, this.#update);
