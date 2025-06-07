@@ -20,10 +20,7 @@ export class FractionallyIndexedList<T extends FractionallyIndexedItem> {
    * This ensures consistent ordering for sorting and binary search.
    * @returns negative value if a < b, positive value if a > b, 0 if a === b
    */
-  static #compare(
-    a: { findex: string; id: string },
-    b: { findex: string; id: string },
-  ): number {
+  static #compare(a: { findex: string; id: string }, b: { findex: string; id: string }): number {
     if (a.findex < b.findex) return -1;
     if (a.findex > b.findex) return 1;
     if (a.id < b.id) return -1;
@@ -45,10 +42,7 @@ export class FractionallyIndexedList<T extends FractionallyIndexedItem> {
 
     while (low < high) {
       const mid = (low + high) >>> 1;
-      const comparison = FractionallyIndexedList.#compare(
-        this.#array[mid]!,
-        item,
-      );
+      const comparison = FractionallyIndexedList.#compare(this.#array[mid]!, item);
 
       if (comparison < 0) {
         low = mid + 1;
@@ -58,8 +52,7 @@ export class FractionallyIndexedList<T extends FractionallyIndexedItem> {
     }
 
     const found =
-      low < this.#array.length &&
-      FractionallyIndexedList.#compare(this.#array[low]!, item) === 0;
+      low < this.#array.length && FractionallyIndexedList.#compare(this.#array[low]!, item) === 0;
 
     return { index: low, found };
   }
@@ -68,9 +61,7 @@ export class FractionallyIndexedList<T extends FractionallyIndexedItem> {
     iterable: Iterable<T>,
   ): FractionallyIndexedList<T> {
     const list = new FractionallyIndexedList<T>();
-    const arr: T[] = Array.from(
-      new Map(Array.from(iterable, (i) => [i.id, i])).values(),
-    );
+    const arr: T[] = Array.from(new Map(Array.from(iterable, (i) => [i.id, i])).values());
 
     arr.sort(FractionallyIndexedList.#compare);
 
@@ -106,9 +97,7 @@ export class FractionallyIndexedList<T extends FractionallyIndexedItem> {
       const { index, found } = this.#findIndex(position.after);
 
       if (!found) {
-        throw new Error(
-          "The item specified in 'after' was not found in the list.",
-        );
+        throw new Error("The item specified in 'after' was not found in the list.");
       }
 
       const lower = this.#array[index]!.findex;

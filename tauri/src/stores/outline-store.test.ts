@@ -10,9 +10,7 @@ describe("OutlineStoreReducer", () => {
   it("doc initialization", () => {
     const doc: JSONContent = {
       type: "doc",
-      content: [
-        { type: "paragraph", content: [{ type: "text", text: "test" }] },
-      ],
+      content: [{ type: "paragraph", content: [{ type: "text", text: "test" }] }],
     };
 
     const id = Store.reducer.create(null, undefined, "bullet", doc);

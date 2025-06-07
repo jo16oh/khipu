@@ -34,19 +34,9 @@ export function createExtensions(
         createUpdateNotifierExtension(outlineId, notifier),
       ];
     case "card":
-      return [
-        Document,
-        Paragraph,
-        Text,
-        createUpdateNotifierExtension(outlineId, notifier),
-      ];
+      return [Document, Paragraph, Text, createUpdateNotifierExtension(outlineId, notifier)];
     case "code":
-      return [
-        Document,
-        Paragraph,
-        Text,
-        createUpdateNotifierExtension(outlineId, notifier),
-      ];
+      return [Document, Paragraph, Text, createUpdateNotifierExtension(outlineId, notifier)];
   }
 }
 

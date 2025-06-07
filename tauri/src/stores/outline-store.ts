@@ -49,10 +49,7 @@ class SubscribersMap<Args extends unknown[]> {
 }
 
 class OutlineChildrenStore {
-  #parentToChildrenMap = new Map<
-    string,
-    FractionallyIndexedList<{ id: string; findex: string }>
-  >();
+  #parentToChildrenMap = new Map<string, FractionallyIndexedList<{ id: string; findex: string }>>();
   #childToParentMap = new Map<string, string>();
   #subscribers = new SubscribersMap<[]>();
 
@@ -84,10 +81,7 @@ class OutlineChildrenStore {
           if (children) {
             children.insert(o);
           } else {
-            this.#parentToChildrenMap.set(
-              o.parentId,
-              FractionallyIndexedList.from([o]),
-            );
+            this.#parentToChildrenMap.set(o.parentId, FractionallyIndexedList.from([o]));
           }
         } else if (prevParentId) {
           this.#parentToChildrenMap.get(prevParentId)?.delete(o.id);
@@ -122,10 +116,7 @@ class OutlineChildrenStore {
   }
 }
 
-type OutlineStoreUpdater = (
-  id: string,
-  update: (draft: WritableDraft<Outline>) => void,
-) => void;
+type OutlineStoreUpdater = (id: string, update: (draft: WritableDraft<Outline>) => void) => void;
 
 export class OutlineStore {
   #outlines = new Map<string, Outline>();
@@ -158,22 +149,15 @@ export class OutlineStore {
     const ydoc = this.getYDoc(before.id);
     const ymap = ydoc.getMap("props");
 
-    if (before.parentId !== after.parentId)
-      ymap.set("parentId", after.parentId);
+    if (before.parentId !== after.parentId) ymap.set("parentId", after.parentId);
     if (before.findex !== after.findex) ymap.set("findex", after.findex);
     if (before.type !== after.type) ymap.set("type", after.type);
-    if (before.completed !== after.completed)
-      ymap.set("completed", after.completed);
-    if (before.collapsed !== after.collapsed)
-      ymap.set("collapsed", after.collapsed);
+    if (before.completed !== after.completed) ymap.set("completed", after.completed);
+    if (before.collapsed !== after.collapsed) ymap.set("collapsed", after.collapsed);
     if (before.deleted !== after.deleted) ymap.set("deleted", after.deleted);
   }
 
-  readonly reducer = new OutlineStoreReducer(
-    this,
-    this.#children,
-    this.#update,
-  );
+  readonly reducer = new OutlineStoreReducer(this, this.#children, this.#update);
 
   register(...outlines: Outline[]) {
     for (const o of outlines) {
@@ -315,11 +299,7 @@ class OutlineStoreReducer {
     return o.id;
   }
 
-  move(
-    outlineIds: Id[],
-    to: Id | "root",
-    position: "start" | "end" | { after: Outline },
-  ) {
+  move(outlineIds: Id[], to: Id | "root", position: "start" | "end" | { after: Outline }) {
     const parentId = to === "root" ? null : to;
 
     const findex = (() => {

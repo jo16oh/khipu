@@ -13,9 +13,7 @@ describe("FractionallyIndexedList", () => {
   const item5: TestItem = { id: "e", findex: "b0", name: "Elderberry" }; // Same findex as item2, different id
 
   // Helper to convert list to array for easier inspection
-  const toArray = <T extends FractionallyIndexedItem>(
-    list: FractionallyIndexedList<T>,
-  ): T[] => {
+  const toArray = <T extends FractionallyIndexedItem>(list: FractionallyIndexedList<T>): T[] => {
     return Array.from(list);
   };
 
@@ -238,35 +236,13 @@ describe("FractionallyIndexedList", () => {
 
       list.insert(i4); // [1(a), 4(aa), 2(c)]
       list.insert(i5); // [1(a), 4(aa), 5(ab), 2(c)]
-      expect(toArray(list).map((i) => i.findex)).toEqual([
-        "a",
-        "aa",
-        "ab",
-        "c",
-      ]);
-      expect(toArray(list).map((i) => i.id)).toEqual([
-        "id1",
-        "id4",
-        "id5",
-        "id2",
-      ]);
+      expect(toArray(list).map((i) => i.findex)).toEqual(["a", "aa", "ab", "c"]);
+      expect(toArray(list).map((i) => i.id)).toEqual(["id1", "id4", "id5", "id2"]);
 
       const i6: TestItem = { id: "id6", findex: "aa", name: "6" }; // Same findex as i4, id6 > id4
       list.insert(i6);
-      expect(toArray(list).map((i) => i.id)).toEqual([
-        "id1",
-        "id4",
-        "id6",
-        "id5",
-        "id2",
-      ]);
-      expect(toArray(list).map((i) => i.findex)).toEqual([
-        "a",
-        "aa",
-        "aa",
-        "ab",
-        "c",
-      ]);
+      expect(toArray(list).map((i) => i.id)).toEqual(["id1", "id4", "id6", "id5", "id2"]);
+      expect(toArray(list).map((i) => i.findex)).toEqual(["a", "aa", "aa", "ab", "c"]);
 
       list.delete("id1");
       list.delete("id4");
