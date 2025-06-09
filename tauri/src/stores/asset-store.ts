@@ -2,20 +2,11 @@ import bs58 from "bs58";
 import { SubscribersMap } from "./subscribers-map";
 
 type ObjectURL = string;
-type LoadAssetCommand = (hash: string) => Promise<Blob>;
-type SaveAssetCommand = (hash: string, blob: Blob) => Promise<void>;
 
 export class AssetStore {
   #map = new Map<string, [ObjectURL, Blob]>();
   #newAssetsHashes = new Set<string>();
   #subscribers = new SubscribersMap<[]>();
-  #load: LoadAssetCommand;
-  #save: SaveAssetCommand;
-
-  constructor(load: LoadAssetCommand, save: SaveAssetCommand) {
-    this.#load = load;
-    this.#save = save;
-  }
 
   #set(hash: string, url: string, blob: Blob) {
     this.#map.set(hash, [url, blob]);
@@ -36,30 +27,18 @@ export class AssetStore {
     this.#newAssetsHashes.add(hash);
   }
 
-  async load(hash: string) {
-    if (this.#map.has(hash)) return;
-    const blob = await this.#load(hash);
-    const url = URL.createObjectURL(blob);
-    this.#set(hash, url, blob);
-  }
-
-  async save(hashes: string[]) {
-    const newAssetHashes = hashes.filter(this.#newAssetsHashes.has);
-
-    await Promise.all(
-      newAssetHashes.map((hash) => {
-        const [_, blob] = this.#map.get(hash)!;
-        return this.#save(hash, blob);
-      }),
-    );
-
-    for (const hash of newAssetHashes) {
-      this.#newAssetsHashes.delete(hash);
+  async load(hash: string): Promise<ObjectURL> {
+    const url = this.#map.get(hash)?.[0];
+    if (url) {
+      return url;
+    } else {
+      const request = new Request("bin://assets/" + hash);
+      const response = await fetch(request);
+      const blob = await response.blob();
+      const url = URL.createObjectURL(blob);
+      this.#set(hash, url, blob);
+      return url;
     }
-  }
-
-  getURL(hash: string) {
-    return this.#map.get(hash)?.[0];
   }
 
   subscribe(hash: string, cb: () => void) {
@@ -67,6 +46,20 @@ export class AssetStore {
     return () => {
       this.#subscribers.unsubscribe(hash, cb);
     };
+  }
+
+  getNewAssetHashes(hashes: string[]) {
+    return hashes.filter(this.#newAssetsHashes.has);
+  }
+
+  getBlob(hash: string) {
+    return this.#map.get(hash)?.[1];
+  }
+
+  markAssetsAsSaved(hashes: string[]) {
+    for (const hash of hashes) {
+      this.#newAssetsHashes.delete(hash);
+    }
   }
 }
 

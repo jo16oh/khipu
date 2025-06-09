@@ -4,6 +4,7 @@ import { Outline } from "src/model";
 import { uint8ArrayToBase64Async as uint8ArrayToBase64Async } from "src/utils";
 import type { DeepReadonly } from "ts-essentials";
 import * as Y from "yjs";
+import { AssetStore } from "./asset-store";
 import { DocUpdateNotifier } from "./doc-update-notifier";
 import { OutlineChildrenStore } from "./outline-children-store";
 import { OutlineStoreReducer } from "./outline-store-reducer";
@@ -23,6 +24,7 @@ export class OutlineStore {
   #pendingYUpdates = new Map<string, Uint8Array[]>();
   #outlineSubscribers = new SubscribersMap<[]>();
   #docUpdateNotifier: DocUpdateNotifier;
+  #assets = new AssetStore();
   #commands: Commands;
 
   constructor(docUpdateNotifier: DocUpdateNotifier, commands: Commands) {
@@ -86,6 +88,8 @@ export class OutlineStore {
     }
   }
 
+  readonly registerAsset = this.#assets.register;
+
   getOutline(id: string): DeepReadonly<Outline> | undefined {
     return this.#outlines.get(id);
   }
@@ -113,6 +117,8 @@ export class OutlineStore {
     }
   }
 
+  readonly getAsset = this.#assets.load;
+
   subscribeToOutline(id: string, cb: () => void) {
     this.#outlineSubscribers.subscribe(id, cb);
     return () => {
@@ -123,25 +129,41 @@ export class OutlineStore {
   subscribeToOutlineChildren(id: string, cb: () => void): () => void {
     return this.#children.subscribe(id, cb);
   }
+  readonly subscribeToAsset = this.#assets.subscribe;
 
   async save(id: string) {
-    const o = this.#outlines.get(id);
-    if (!o) throw new Error("outline not found");
+    const outline = this.#outlines.get(id);
+    if (!outline) throw new Error("outline not found");
     const promises = this.#pendingYUpdates.get(id)?.map(uint8ArrayToBase64Async);
     if (!promises) throw new Error("updates not found");
+
     const updates = await Promise.all(promises);
+
+    const newAssetsData = await Promise.all(
+      this.#assets.getNewAssetHashes([]).map(async (hash) => {
+        const bytes = this.#assets.getBlob(hash);
+        if (!bytes) throw new Error("asset is not found");
+        const base64bytes = await uint8ArrayToBase64Async(await bytes.arrayBuffer());
+        return [hash, base64bytes] as [string, string];
+      }),
+    ).then((arr) =>
+      arr.reduce((acc: { [key in string]: string }, [hash, bytes]) => {
+        acc[hash] = bytes;
+        return acc;
+      }, {}),
+    );
 
     await this.#commands.upsertOutline(
       {
-        ...o,
-        doc: JSON.stringify(o.doc),
-        createdAt: o.createdAt.getTime(),
-        updatedAt: o.updatedAt.getTime(),
+        ...outline,
+        doc: JSON.stringify(outline.doc),
+        createdAt: outline.createdAt.getTime(),
+        updatedAt: outline.updatedAt.getTime(),
       },
       updates,
       [],
       [],
-      {},
+      newAssetsData,
     );
   }
 }
