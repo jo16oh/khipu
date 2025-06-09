@@ -1,6 +1,6 @@
 import { commands } from "generated/tauri-commands";
 import { WritableDraft, produce } from "immer";
-import { Outline } from "src/model";
+import { Outline, RawOutline } from "src/model";
 import { uint8ArrayToBase64Async as uint8ArrayToBase64Async } from "src/utils";
 import type { DeepReadonly } from "ts-essentials";
 import * as Y from "yjs";
@@ -133,10 +133,10 @@ export class OutlineStore {
   async save(id: string) {
     const outline = this.#outlines.get(id);
     if (!outline) throw new Error("outline not found");
-    const promises = this.#pendingYUpdates.get(id)?.map(uint8ArrayToBase64Async);
-    if (!promises) throw new Error("updates not found");
+    const pendingYUpdatesPromises = this.#pendingYUpdates.get(id)?.map(uint8ArrayToBase64Async);
+    if (!pendingYUpdatesPromises) throw new Error("updates not found");
 
-    const updates = await Promise.all(promises);
+    const updates = await Promise.all(pendingYUpdatesPromises);
 
     const newAssetsData = await Promise.all(
       this.#assets.getNewAssetHashes([]).map(async (hash) => {
@@ -152,17 +152,6 @@ export class OutlineStore {
       }, {}),
     );
 
-    await this.#commands.upsertOutline(
-      {
-        ...outline,
-        doc: JSON.stringify(outline.doc),
-        createdAt: outline.createdAt.getTime(),
-        updatedAt: outline.updatedAt.getTime(),
-      },
-      updates,
-      [],
-      [],
-      newAssetsData,
-    );
+    await this.#commands.upsertOutline(RawOutline.from(outline), updates, [], [], newAssetsData);
   }
 }
