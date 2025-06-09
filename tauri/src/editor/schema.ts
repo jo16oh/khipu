@@ -4,7 +4,7 @@ import Text from "@tiptap/extension-text";
 import { Node } from "@tiptap/react";
 import { Extensions, getSchema } from "@tiptap/react";
 import { OutlineType } from "generated/tauri-commands";
-import { DocUpdateNotifier } from "src/stores/outline-store";
+import { DocUpdateNotifier } from "src/stores/doc-update-notifier";
 import { createUpdateNotifierExtension } from "./update-notifier";
 
 const SingleBlockDocument = Node.create({
