@@ -1,5 +1,7 @@
+import { commands } from "generated/tauri-commands";
 import { WritableDraft, produce } from "immer";
 import { Outline } from "src/model";
+import { uint8ArrayToBase64Async as uint8ArrayToBase64Async } from "src/utils";
 import type { DeepReadonly } from "ts-essentials";
 import * as Y from "yjs";
 import { DocUpdateNotifier } from "./doc-update-notifier";
@@ -12,6 +14,8 @@ export type OutlineStoreUpdater = (
   update: (draft: WritableDraft<Outline>) => void,
 ) => void;
 
+type Commands = Pick<typeof commands, "upsertOutline">;
+
 export class OutlineStore {
   #outlines = new Map<string, Outline>();
   #children = new OutlineChildrenStore();
@@ -19,9 +23,11 @@ export class OutlineStore {
   #pendingYUpdates = new Map<string, Uint8Array[]>();
   #outlineSubscribers = new SubscribersMap<[]>();
   #docUpdateNotifier: DocUpdateNotifier;
+  #commands: Commands;
 
-  constructor(docUpdateNotifier: DocUpdateNotifier) {
+  constructor(docUpdateNotifier: DocUpdateNotifier, commands: Commands) {
     this.#docUpdateNotifier = docUpdateNotifier;
+    this.#commands = commands;
   }
 
   #update: OutlineStoreUpdater = (id, update) => {
@@ -116,5 +122,26 @@ export class OutlineStore {
 
   subscribeToOutlineChildren(id: string, cb: () => void): () => void {
     return this.#children.subscribe(id, cb);
+  }
+
+  async save(id: string) {
+    const o = this.#outlines.get(id);
+    if (!o) throw new Error("outline not found");
+    const promises = this.#pendingYUpdates.get(id)?.map(uint8ArrayToBase64Async);
+    if (!promises) throw new Error("updates not found");
+    const updates = await Promise.all(promises);
+
+    await this.#commands.upsertOutline(
+      {
+        ...o,
+        doc: JSON.stringify(o.doc),
+        createdAt: o.createdAt.getTime(),
+        updatedAt: o.updatedAt.getTime(),
+      },
+      updates,
+      [],
+      [],
+      {},
+    );
   }
 }

@@ -5,7 +5,7 @@ import { DocUpdateNotifier } from "./doc-update-notifier";
 import { OutlineStore } from "./outline-store";
 
 const Notifier = new DocUpdateNotifier();
-const Store = new OutlineStore(Notifier);
+const Store = new OutlineStore(Notifier, { upsertOutline: async (_1, _2, _3, _4, _5) => null });
 
 describe("OutlineStoreReducer", () => {
   it("doc initialization", () => {
