@@ -30,7 +30,7 @@ export class AssetStore {
     const hash = await crypto.subtle
       .digest("SHA-256", buf)
       .then((buf) => bs58.encode(new Uint8Array(buf)));
-    const blob = new Blob([buf]);
+    const blob = new Blob([buf], { type: "application/octet-stream" });
     const url = URL.createObjectURL(blob);
     this.#set(hash, url, blob);
     this.#newAssetsHashes.add(hash);
