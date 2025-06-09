@@ -5,9 +5,9 @@ export function uuidv7bs58() {
   return bs58.encode(uuidv7obj().bytes);
 }
 
-export function uint8ArrayToBase64Async(uint8Array: BlobPart): Promise<string> {
+export function uint8ArrayToBase64Async(blobPart: BlobPart): Promise<string> {
   return new Promise((resolve, reject) => {
-    const blob = new Blob([uint8Array], { type: "application/octet-stream" });
+    const blob = new Blob([blobPart], { type: "application/octet-stream" });
     const reader = new FileReader();
 
     reader.onload = () => {
