@@ -126,9 +126,8 @@ export class OutlineStore {
     };
   }
 
-  subscribeToOutlineChildren(id: string, cb: () => void): () => void {
-    return this.#children.subscribe(id, cb);
-  }
+  readonly subscribeToOutlineChildren = this.#children.subscribe;
+
   readonly subscribeToAsset = this.#assets.subscribe;
 
   async save(id: string) {
