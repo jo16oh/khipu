@@ -68,7 +68,7 @@ export class OutlineStore {
     });
   }
 
-  readonly reducer = new OutlineStoreReducer(this, this.#children, this.#update);
+  readonly reducer = new OutlineStoreReducer(this, this.#undoManager, this.#children, this.#update);
 
   register(...outlines: Outline[]) {
     for (const o of outlines) {

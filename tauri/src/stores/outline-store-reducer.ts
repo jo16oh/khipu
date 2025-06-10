@@ -7,20 +7,24 @@ import { uuidv7bs58 } from "src/utils";
 import { prosemirrorJSONToYXmlFragment } from "y-prosemirror";
 import { OutlineChildrenStore } from "./outline-children-store";
 import { OutlineStore, OutlineStoreUpdater } from "./outline-store";
+import { UndoManager } from "./undo-manager";
 
 type Id = string;
 
 export class OutlineStoreReducer {
   #store: OutlineStore;
+  #undoManager: UndoManager;
   #childrenStore: OutlineChildrenStore;
   #updateOutline: OutlineStoreUpdater;
 
   constructor(
     store: OutlineStore,
+    undoManager: UndoManager,
     childrenStore: OutlineChildrenStore,
     updateOutline: OutlineStoreUpdater,
   ) {
     this.#store = store;
+    this.#undoManager = undoManager;
     this.#childrenStore = childrenStore;
     this.#updateOutline = updateOutline;
   }
@@ -113,5 +117,13 @@ export class OutlineStoreReducer {
         draft.deleted = true;
       });
     }
+  }
+
+  undo() {
+    this.#undoManager.undo();
+  }
+
+  redo() {
+    this.#undoManager.redo();
   }
 }
