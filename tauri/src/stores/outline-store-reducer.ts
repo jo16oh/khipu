@@ -57,6 +57,8 @@ export class OutlineStoreReducer {
       updatedAt: now,
     };
 
+    this.#store.register(o);
+
     const ydoc = this.#store.getYDoc(o.id);
     ydoc.transact(() => {
       const ymap = ydoc.getMap("props");
@@ -69,8 +71,6 @@ export class OutlineStoreReducer {
       ymap.set("collapsed", o.collapsed);
       ymap.set("deleted", o.deleted);
     });
-
-    this.#store.register(o);
 
     return o.id;
   }

@@ -25,19 +25,23 @@ export class OutlineStore {
   #paths = new OutlinePathStore(this);
   #ydocs = new Map<string, Y.Doc>();
   #yUndoManagers = new Map<string, Y.UndoManager>();
-  #undoManager = new UndoManager(this);
   #pendingYUpdates = new Map<string, Uint8Array[]>();
   #outlineSubscribers = new SubscribersMap<[]>();
   #docUpdateNotifier: DocUpdateNotifier;
   #assets = new AssetStore();
   #commands: Commands;
+  readonly #undoManager: UndoManager;
+
+  readonly reducer: OutlineStoreReducer;
 
   constructor(docUpdateNotifier: DocUpdateNotifier, commands: Commands) {
     this.#docUpdateNotifier = docUpdateNotifier;
+    this.#undoManager = new UndoManager(this, docUpdateNotifier);
     this.#commands = commands;
+    this.reducer = new OutlineStoreReducer(this, this.#undoManager, this.#children, this.#update);
   }
 
-  #update: OutlineStoreUpdater = (id, update) => {
+  readonly #update: OutlineStoreUpdater = (id, update) => {
     const before = this.getOutline(id);
     if (!before) throw new Error("outline not found");
 
@@ -67,8 +71,6 @@ export class OutlineStore {
       if (before.deleted !== after.deleted) ymap.set("deleted", after.deleted);
     });
   }
-
-  readonly reducer = new OutlineStoreReducer(this, this.#undoManager, this.#children, this.#update);
 
   register(...outlines: Outline[]) {
     for (const o of outlines) {
@@ -126,7 +128,9 @@ export class OutlineStore {
       const undoManager = new Y.UndoManager([ydoc.getMap("props"), ydoc.getXmlFragment("doc")]);
       this.#yUndoManagers.set(id, undoManager);
       undoManager.on("stack-item-added", (e) => {
-        if (e.type === "undo") this.#undoManager.addHistory(id);
+        if (e.type === "undo") {
+          this.#undoManager.addHistory(id);
+        }
       });
 
       return ydoc;
