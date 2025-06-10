@@ -171,4 +171,6 @@ export class OutlineStore {
 
     pendingYUpdates.splice(0, encodedPendingYUpdates.length);
   }
+
+  readonly has = this.#outlines.has;
 }
