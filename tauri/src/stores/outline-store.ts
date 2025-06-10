@@ -10,6 +10,7 @@ import { OutlineChildrenStore } from "./outline-children-store";
 import { OutlinePathStore } from "./outline-path-store";
 import { OutlineStoreReducer } from "./outline-store-reducer";
 import { SubscribersMap } from "./subscribers-map";
+import { UndoManager } from "./undo-manager";
 
 export type OutlineStoreUpdater = (
   id: string,
@@ -23,6 +24,8 @@ export class OutlineStore {
   #children = new OutlineChildrenStore();
   #paths = new OutlinePathStore(this);
   #ydocs = new Map<string, Y.Doc>();
+  #yUndoManagers = new Map<string, Y.UndoManager>();
+  #undoManager = new UndoManager(this);
   #pendingYUpdates = new Map<string, Uint8Array[]>();
   #outlineSubscribers = new SubscribersMap<[]>();
   #docUpdateNotifier: DocUpdateNotifier;
@@ -99,7 +102,7 @@ export class OutlineStore {
   }
 
   getOutlineChildren(id: string) {
-    return this.#children.get(id)?.map((c) => c.id);
+    return this.#children.get(id)?.map((c) => c.id) ?? [];
   }
 
   readonly getOutlinePath = this.#paths.getPath;
@@ -119,9 +122,18 @@ export class OutlineStore {
           this.#pendingYUpdates.set(id, [update]);
         }
       });
+
+      const undoManager = new Y.UndoManager([ydoc.getMap("props"), ydoc.getXmlFragment("doc")]);
+      this.#yUndoManagers.set(id, undoManager);
+      undoManager.on("stack-item-added", (e) => {
+        if (e.type === "undo") this.#undoManager.addHistory(id);
+      });
+
       return ydoc;
     }
   }
+
+  readonly getYUndoManager = this.#yUndoManagers.get;
 
   readonly getAsset = this.#assets.load;
 
