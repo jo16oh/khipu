@@ -95,7 +95,7 @@ export class OutlineStore {
   }
 
   getOutlineChildren(id: string) {
-    return this.#children.get(id)?.intoArray();
+    return this.#children.get(id)?.map((c) => c.id);
   }
 
   getYDoc(id: string) {
