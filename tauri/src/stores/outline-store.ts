@@ -7,6 +7,7 @@ import * as Y from "yjs";
 import { AssetStore } from "./asset-store";
 import { DocUpdateNotifier } from "./doc-update-notifier";
 import { OutlineChildrenStore } from "./outline-children-store";
+import { OutlinePathStore } from "./outline-path-store";
 import { OutlineStoreReducer } from "./outline-store-reducer";
 import { SubscribersMap } from "./subscribers-map";
 
@@ -20,6 +21,7 @@ type Commands = Pick<typeof commands, "upsertOutline">;
 export class OutlineStore {
   #outlines = new Map<string, Outline>();
   #children = new OutlineChildrenStore();
+  #paths = new OutlinePathStore(this);
   #ydocs = new Map<string, Y.Doc>();
   #pendingYUpdates = new Map<string, Uint8Array[]>();
   #outlineSubscribers = new SubscribersMap<[]>();
@@ -41,6 +43,8 @@ export class OutlineStore {
       draft.id = before.id;
       draft.updatedAt = new Date();
     });
+
+    if (before.parentId !== after.parentId) this.#paths.notify(id);
 
     this.#updateYDoc(before, after);
     this.#outlines.set(id, after);
@@ -98,6 +102,8 @@ export class OutlineStore {
     return this.#children.get(id)?.map((c) => c.id);
   }
 
+  readonly getOutlinePath = this.#paths.getPath;
+
   getYDoc(id: string) {
     const ydoc = this.#ydocs.get(id);
     if (ydoc) {
@@ -127,6 +133,8 @@ export class OutlineStore {
   }
 
   readonly subscribeToOutlineChildren = this.#children.subscribe;
+
+  readonly subscribeToOutlinePath = this.#paths.subscribe;
 
   readonly subscribeToAsset = this.#assets.subscribe;
 
