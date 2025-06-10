@@ -133,10 +133,11 @@ export class OutlineStore {
   async save(id: string) {
     const outline = this.#outlines.get(id);
     if (!outline) throw new Error("outline not found");
-    const pendingYUpdatesPromises = this.#pendingYUpdates.get(id)?.map(uint8ArrayToBase64Async);
-    if (!pendingYUpdatesPromises) throw new Error("updates not found");
 
-    const updates = await Promise.all(pendingYUpdatesPromises);
+    const pendingYUpdates = this.#pendingYUpdates.get(id);
+    if (!pendingYUpdates) return;
+
+    const encodedPendingYUpdates = await Promise.all(pendingYUpdates.map(uint8ArrayToBase64Async));
 
     const newAssetsData = await Promise.all(
       this.#assets.getNewAssetHashes([]).map(async (hash) => {
@@ -152,6 +153,14 @@ export class OutlineStore {
       }, {}),
     );
 
-    await this.#commands.upsertOutline(RawOutline.from(outline), updates, [], [], newAssetsData);
+    await this.#commands.upsertOutline(
+      RawOutline.from(outline),
+      encodedPendingYUpdates,
+      [],
+      [],
+      newAssetsData,
+    );
+
+    pendingYUpdates.splice(0, encodedPendingYUpdates.length);
   }
 }
