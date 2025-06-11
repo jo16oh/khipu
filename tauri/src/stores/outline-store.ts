@@ -8,6 +8,7 @@ import { AssetStore } from "./asset-store";
 import { DocUpdateNotifier } from "./doc-update-notifier";
 import { OutlineChildrenStore } from "./outline-children-store";
 import { OutlinePathStore } from "./outline-path-store";
+import { OutlineStoreLoader } from "./outline-store-loader";
 import { OutlineStoreReducer } from "./outline-store-reducer";
 import { SubscribersMap } from "./subscribers-map";
 import { UndoManager } from "./undo-manager";
@@ -17,7 +18,7 @@ export type OutlineStoreUpdater = (
   update: (draft: WritableDraft<Outline>) => void,
 ) => void;
 
-type Commands = Pick<typeof commands, "upsertOutline">;
+type Commands = Pick<typeof commands, "upsertOutline" | "tree">;
 
 export class OutlineStore {
   readonly #outlines = new Map<string, Outline>();
@@ -33,12 +34,14 @@ export class OutlineStore {
   readonly #undoManager: UndoManager;
 
   readonly reducer: OutlineStoreReducer;
+  readonly loader: OutlineStoreLoader;
 
   constructor(docUpdateNotifier: DocUpdateNotifier, commands: Commands) {
     this.#docUpdateNotifier = docUpdateNotifier;
     this.#undoManager = new UndoManager(this, docUpdateNotifier);
     this.#commands = commands;
     this.reducer = new OutlineStoreReducer(this, this.#undoManager, this.#children, this.#update);
+    this.loader = new OutlineStoreLoader(this, commands);
   }
 
   readonly #update: OutlineStoreUpdater = (id, update) => {
