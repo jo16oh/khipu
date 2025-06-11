@@ -6,24 +6,27 @@ import { Outline } from "src/model";
 import { uuidv7bs58 } from "src/utils";
 import { prosemirrorJSONToYXmlFragment } from "y-prosemirror";
 import { OutlineChildrenStore } from "./outline-children-store";
-import { OutlineStore, OutlineStoreUpdater } from "./outline-store";
+import { OutlineStore, OutlineStoreUpdater, RegisterToStore } from "./outline-store";
 import { UndoManager } from "./undo-manager";
 
 type Id = string;
 
 export class OutlineStoreReducer {
   #store: OutlineStore;
+  #registerToStore: RegisterToStore;
   #undoManager: UndoManager;
   #childrenStore: OutlineChildrenStore;
   #updateOutline: OutlineStoreUpdater;
 
   constructor(
     store: OutlineStore,
+    registerToStore: RegisterToStore,
     undoManager: UndoManager,
     childrenStore: OutlineChildrenStore,
     updateOutline: OutlineStoreUpdater,
   ) {
     this.#store = store;
+    this.#registerToStore = registerToStore;
     this.#undoManager = undoManager;
     this.#childrenStore = childrenStore;
     this.#updateOutline = updateOutline;
@@ -57,7 +60,7 @@ export class OutlineStoreReducer {
       updatedAt: now,
     };
 
-    this.#store.register(o);
+    this.#registerToStore(o);
 
     const ydoc = this.#store.getYDoc(o.id);
     ydoc.transact(() => {

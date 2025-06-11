@@ -18,6 +18,8 @@ export type OutlineStoreUpdater = (
   update: (draft: WritableDraft<Outline>) => void,
 ) => void;
 
+export type RegisterToStore = (...outlines: Outline[]) => void;
+
 type Commands = Pick<typeof commands, "upsertOutline" | "tree">;
 
 export class OutlineStore {
@@ -40,8 +42,14 @@ export class OutlineStore {
     this.#docUpdateNotifier = docUpdateNotifier;
     this.#undoManager = new UndoManager(this, docUpdateNotifier);
     this.#commands = commands;
-    this.reducer = new OutlineStoreReducer(this, this.#undoManager, this.#children, this.#update);
-    this.loader = new OutlineStoreLoader(this, commands);
+    this.reducer = new OutlineStoreReducer(
+      this,
+      this.#register,
+      this.#undoManager,
+      this.#children,
+      this.#update,
+    );
+    this.loader = new OutlineStoreLoader(this.#register, commands);
   }
 
   readonly #update: OutlineStoreUpdater = (id, update) => {
@@ -75,7 +83,7 @@ export class OutlineStore {
     });
   }
 
-  register(...outlines: Outline[]) {
+  #register: RegisterToStore = (...outlines) => {
     for (const o of outlines) {
       const old = this.#outlines.get(o.id);
       if (!old || old.updatedAt < o.updatedAt) {
@@ -98,7 +106,7 @@ export class OutlineStore {
         });
       }
     }
-  }
+  };
 
   readonly registerAsset = this.#assets.register;
 
