@@ -20,16 +20,16 @@ export type OutlineStoreUpdater = (
 type Commands = Pick<typeof commands, "upsertOutline">;
 
 export class OutlineStore {
-  #outlines = new Map<string, Outline>();
-  #children = new OutlineChildrenStore();
-  #paths = new OutlinePathStore(this);
-  #ydocs = new Map<string, Y.Doc>();
-  #yUndoManagers = new Map<string, Y.UndoManager>();
-  #pendingYUpdates = new Map<string, Uint8Array[]>();
-  #outlineSubscribers = new SubscribersMap<[]>();
-  #docUpdateNotifier: DocUpdateNotifier;
-  #assets = new AssetStore();
-  #commands: Commands;
+  readonly #outlines = new Map<string, Outline>();
+  readonly #children = new OutlineChildrenStore();
+  readonly #paths = new OutlinePathStore(this);
+  readonly #ydocs = new Map<string, Y.Doc>();
+  readonly #yUndoManagers = new Map<string, Y.UndoManager>();
+  readonly #pendingYUpdates = new Map<string, Uint8Array[]>();
+  readonly #outlineSubscribers = new SubscribersMap<[]>();
+  readonly #docUpdateNotifier: DocUpdateNotifier;
+  readonly #assets = new AssetStore();
+  readonly #commands: Commands;
   readonly #undoManager: UndoManager;
 
   readonly reducer: OutlineStoreReducer;
