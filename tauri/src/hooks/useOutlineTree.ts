@@ -1,4 +1,4 @@
-import { use, useMemo, useSyncExternalStore } from "react";
+import { useSyncExternalStore } from "react";
 import { useOutlineStore } from "src/Providers";
 import { Outline } from "src/model";
 
@@ -14,12 +14,6 @@ export function useOutlineTree(id: string): [Outline, string[]] {
     (cb) => store.subscribeToOutlineChildren(id, cb),
     () => store.getOutlineChildren(id),
   );
-
-  const fetchPromise = useMemo(async () => {
-    await store.loader.fetchTree(id);
-  }, [id]);
-
-  use(fetchPromise);
 
   if (!outline) throw new Error("outline not found");
 
