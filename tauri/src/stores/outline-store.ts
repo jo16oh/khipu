@@ -10,7 +10,7 @@ import { OutlinePathStore } from "./outline-path-store";
 import { OutlineStoreLoader } from "./outline-store-loader";
 import { OutlineStoreReducer } from "./outline-store-reducer";
 import { SubscribersMap } from "./subscribers-map";
-import { TimelineIndex } from "./timeline-index";
+import { Order, TimelineIndex } from "./timeline-index";
 import { UndoManager } from "./undo-manager";
 
 export type OutlineStoreUpdater = (
@@ -20,13 +20,13 @@ export type OutlineStoreUpdater = (
 
 export type RegisterToStore = (...outlines: Outline[]) => void;
 
-type Commands = Pick<typeof commands, "upsertOutline" | "tree">;
+type Commands = Pick<typeof commands, "upsertOutline" | "tree" | "timeline">;
 
 export class OutlineStore {
   readonly #outlines = new Map<string, Outline>();
   readonly #children = new OutlineChildrenStore();
   readonly #paths = new OutlinePathStore(this);
-  readonly #timeline = new TimelineIndex();
+  readonly #timeline = new TimelineIndex(this);
   readonly #ydocs = new Map<string, Y.Doc>();
   readonly #yUndoManagers = new Map<string, Y.UndoManager>();
   readonly #pendingYUpdates = new Map<string, Uint8Array[]>();
