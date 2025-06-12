@@ -11,6 +11,7 @@ import { OutlinePathStore } from "./outline-path-store";
 import { OutlineStoreLoader } from "./outline-store-loader";
 import { OutlineStoreReducer } from "./outline-store-reducer";
 import { SubscribersMap } from "./subscribers-map";
+import { TimelineIndex } from "./timeline-index";
 import { UndoManager } from "./undo-manager";
 
 export type OutlineStoreUpdater = (
@@ -26,6 +27,7 @@ export class OutlineStore {
   readonly #outlines = new Map<string, Outline>();
   readonly #children = new OutlineChildrenStore();
   readonly #paths = new OutlinePathStore(this);
+  readonly #timeline = new TimelineIndex();
   readonly #ydocs = new Map<string, Y.Doc>();
   readonly #yUndoManagers = new Map<string, Y.UndoManager>();
   readonly #pendingYUpdates = new Map<string, Uint8Array[]>();
@@ -67,6 +69,7 @@ export class OutlineStore {
     this.#updateYDoc(before, after);
     this.#outlines.set(id, after);
     this.#children.set(after);
+    this.#timeline.set(after);
     this.#outlineSubscribers.notify(id);
   };
 
@@ -90,6 +93,7 @@ export class OutlineStore {
       if (!old || old.updatedAt < o.updatedAt) {
         this.#outlines.set(o.id, o);
         this.#children.set(o);
+        this.#timeline.set(o);
       }
 
       // register cleanup callbacks
@@ -102,6 +106,7 @@ export class OutlineStore {
         this.#outlineSubscribers.onUnsubscribedAll(o.id, () => {
           this.#outlines.delete(o.id);
           this.#children.delete(o.id);
+          this.#timeline.delete(o.id, o.createdAt);
           this.#ydocs.delete(o.id);
           unsubscribe();
         });
@@ -151,6 +156,8 @@ export class OutlineStore {
 
   readonly getYUndoManager = this.#yUndoManagers.get;
 
+  readonly getTimeline = this.#timeline.get;
+
   readonly getAsset = this.#assets.load;
 
   subscribeToOutline(id: string, cb: () => void) {
@@ -163,6 +170,8 @@ export class OutlineStore {
   readonly subscribeToOutlineChildren = this.#children.subscribe;
 
   readonly subscribeToOutlinePath = this.#paths.subscribe;
+
+  readonly subscribeToTimeline = this.#timeline.subscribe;
 
   readonly subscribeToAsset = this.#assets.subscribe;
 
