@@ -2,7 +2,6 @@ import { commands } from "generated/tauri-commands";
 import { WritableDraft, produce } from "immer";
 import { Outline, RawOutline } from "src/model";
 import { uint8ArrayToBase64Async as uint8ArrayToBase64Async } from "src/utils";
-import type { DeepReadonly } from "ts-essentials";
 import * as Y from "yjs";
 import { AssetStore } from "./asset-store";
 import { DocUpdateNotifier } from "./doc-update-notifier";
@@ -116,7 +115,7 @@ export class OutlineStore {
 
   readonly registerAsset = this.#assets.register;
 
-  getOutline(id: string): DeepReadonly<Outline> | undefined {
+  getOutline(id: string): Outline | undefined {
     return this.#outlines.get(id);
   }
 
