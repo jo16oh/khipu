@@ -14,7 +14,7 @@ async closeDb() : Promise<null> {
 async deleteDb(dbName: string) : Promise<null> {
     return await TAURI_INVOKE("delete_db", { dbName });
 },
-async timeline(position: TimelinePosition, orderBy: OrderBy) : Promise<[Outline[], Outline[]]> {
+async timeline(position: TimelinePosition, orderBy: OrderBy) : Promise<TimelineResult> {
     return await TAURI_INVOKE("timeline", { position, orderBy });
 },
 async search(query: string, orderBy: OrderBy, offset: number) : Promise<[Outline[], Outline[]]> {
@@ -72,6 +72,7 @@ export type Outline = { id: string; parentId: string | null; findex: string; typ
 export type OutlineType = "heading" | "bullet" | "card" | "code"
 export type SqliteBool = boolean
 export type TimelinePosition = { before: number } | { after: number } | "latest"
+export type TimelineResult = { dayStart: number; outlines: Outline[] }
 
 /** tauri-specta globals **/
 

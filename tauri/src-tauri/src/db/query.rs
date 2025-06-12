@@ -20,6 +20,13 @@ mod fts_query_parser;
 #[cfg(test)]
 mod tests;
 
+#[derive(Serialize, Deserialize, specta::Type, Clone, Debug)]
+#[serde(rename_all = "camelCase")]
+pub struct TimelineResult {
+    day_start: i64,
+    outlines: Vec<Outline>,
+}
+
 #[derive(Serialize, Deserialize, specta::Type, Display, EnumString, Clone, Debug)]
 #[serde(rename_all = "camelCase")]
 #[strum(serialize_all = "snake_case")]
@@ -52,7 +59,7 @@ pub async fn timeline<'a>(
     conn: impl SqliteExecutor<'a> + Send + Copy,
     position: TimelinePosition,
     order_by: OrderBy,
-) -> eyre::Result<(Vec<Outline>, Vec<Outline>)> {
+) -> eyre::Result<TimelineResult> {
     let opt = order_by.to_string();
 
     let day_start = {
@@ -63,13 +70,13 @@ pub async fn timeline<'a>(
             .map(day_start)?
     };
 
-    let results =
+    let outlines =
         sqlx::query_file_as_unchecked!(Outline, "src/db/fetch_timeline.sql", day_start, opt)
             .fetch_all(conn)
             .await?;
 
     let links = {
-        let ids = serde_json::to_string(&results.iter().map(|o| &o.id).collect_vec())?;
+        let ids = serde_json::to_string(&outlines.iter().map(|o| &o.id).collect_vec())?;
         sqlx::query_file_as_unchecked!(
             Outline,
             "src/db/fetch_linked_outlines_to_embed_text.sql",
@@ -79,7 +86,10 @@ pub async fn timeline<'a>(
         .await?
     };
 
-    Ok((results, links))
+    Ok(TimelineResult {
+        day_start,
+        outlines: [outlines, links].into_iter().flatten().collect(),
+    })
 }
 
 pub async fn search<'a>(

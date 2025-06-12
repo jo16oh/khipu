@@ -21,7 +21,7 @@ async fn test_timeline() {
 
     tx.commit().await.unwrap();
 
-    let (r, _) = timeline(
+    let TimelineResult { outlines, .. } = timeline(
         &pool,
         TimelinePosition::Before((Utc::now() + Duration::days(2)).timestamp_millis()),
         OrderBy::UpdatedAt,
@@ -29,7 +29,7 @@ async fn test_timeline() {
     .await
     .unwrap();
 
-    assert_eq!(r.len(), 5);
+    assert_eq!(outlines.len(), 5);
 }
 
 #[tokio::test]
