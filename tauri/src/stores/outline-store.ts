@@ -66,6 +66,7 @@ export class OutlineStore {
 
     this.#updateYDoc(before, after);
     this.#outlines.set(id, after);
+    this.#children.set(after);
     this.#outlineSubscribers.notify(id);
   };
 
