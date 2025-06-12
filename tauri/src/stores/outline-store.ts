@@ -113,8 +113,8 @@ export class OutlineStore {
     }
   };
 
-  registerAsset() {
-    return this.#assets.register;
+  registerAsset(file: File) {
+    return this.#assets.register(file);
   }
 
   getOutline(id: string): Outline | undefined {
@@ -125,8 +125,8 @@ export class OutlineStore {
     return this.#children.get(id)?.map((c) => c.id) ?? [];
   }
 
-  getOutlinePath() {
-    return this.#paths.getPath;
+  getOutlinePath(id: string) {
+    return this.#paths.getPath(id);
   }
 
   getYDoc(id: string) {
@@ -176,20 +176,20 @@ export class OutlineStore {
     };
   }
 
-  subscribeToOutlineChildren() {
-    return this.#children.subscribe;
+  subscribeToOutlineChildren(id: string, cb: () => void) {
+    return this.#children.subscribe(id, cb);
   }
 
-  subscribeToOutlinePath() {
-    return this.#paths.subscribe;
+  subscribeToOutlinePath(id: string, cb: () => void) {
+    return this.#paths.subscribe(id, cb);
   }
 
-  subscribeToTimeline() {
-    return this.#timeline.subscribe;
+  subscribeToTimeline(dayStart: number, order: Order, cb: () => void) {
+    return this.#timeline.subscribe(dayStart, order, cb);
   }
 
-  subscribeToAsset() {
-    return this.#assets.subscribe;
+  subscribeToAsset(hash: string, cb: () => void) {
+    return this.#assets.subscribe(hash, cb);
   }
 
   async save(id: string) {
