@@ -2,7 +2,7 @@ import { startOfDay } from "date-fns";
 import { Outline } from "src/model";
 import { SubscribersMap } from "./subscribers-map";
 
-type Order = "createdAt" | "updatedAt";
+export type Order = "createdAt" | "updatedAt";
 
 export class TimelineIndex {
   #createdAtIndex = new Map<number, Set<string>>();
