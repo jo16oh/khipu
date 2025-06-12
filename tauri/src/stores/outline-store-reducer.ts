@@ -41,8 +41,8 @@ export class OutlineStoreReducer {
     const findex = (() => {
       if (!parentId) return generateKeyBetween(null, null);
       const list = this.#childrenStore.get(parentId);
-      if (!list) throw new Error("Insert target outline not found");
-      return list.generateFractionalIndex(position);
+      if (list) return list.generateFractionalIndex(position);
+      return generateKeyBetween(null, null);
     })();
 
     const now = new Date();
@@ -84,7 +84,7 @@ export class OutlineStoreReducer {
     const findex = (() => {
       if (to === "root") return generateKeyBetween(null, null);
       const list = this.#childrenStore.get(to);
-      if (!list) throw new Error("Insert target outline not found");
+      if (!list) return generateKeyBetween(null, null);
       return list.generateFractionalIndex(position);
     })();
 
