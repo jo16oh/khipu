@@ -6,7 +6,7 @@ type ObjectURL = string;
 export class AssetStore {
   #map = new Map<string, [ObjectURL, Blob]>();
   #newAssetsHashes = new Set<string>();
-  #subscribers = new SubscribersMap<[]>();
+  #subscribers = new SubscribersMap<string, []>();
 
   #set(hash: string, url: string, blob: Blob) {
     this.#map.set(hash, [url, blob]);

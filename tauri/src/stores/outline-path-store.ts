@@ -6,7 +6,7 @@ type Callback = () => void;
 
 export class OutlinePathStore {
   #store: OutlineStore;
-  #subscribers = new SubscribersMap<[]>();
+  #subscribers = new SubscribersMap<string, []>();
 
   constructor(store: OutlineStore) {
     this.#store = store;

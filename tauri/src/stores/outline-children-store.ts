@@ -5,7 +5,7 @@ import { SubscribersMap } from "./subscribers-map";
 export class OutlineChildrenStore {
   #parentToChildrenMap = new Map<string, FractionallyIndexedList<{ id: string; findex: string }>>();
   #childToParentMap = new Map<string, string>();
-  #subscribers = new SubscribersMap<[]>();
+  #subscribers = new SubscribersMap<string, []>();
 
   set(...outlines: Outline[]) {
     const changedParentIds = new Set<string>();

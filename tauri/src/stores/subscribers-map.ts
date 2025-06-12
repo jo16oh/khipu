@@ -1,38 +1,38 @@
-export class SubscribersMap<Args extends unknown[]> {
-  #subscribers = new Map<string, Set<(...args: Args) => void>>();
-  #cleanupCallbacks = new Map<string, Array<() => void>>();
+export class SubscribersMap<Key, Args extends unknown[]> {
+  #subscribers = new Map<Key, Set<(...args: Args) => void>>();
+  #cleanupCallbacks = new Map<Key, Array<() => void>>();
 
-  subscribe(id: string, listener: (...args: Args) => void) {
-    const set = this.#subscribers.get(id);
+  subscribe(key: Key, listener: (...args: Args) => void) {
+    const set = this.#subscribers.get(key);
     if (set) {
       set.add(listener);
     } else {
-      this.#subscribers.set(id, new Set([listener]));
+      this.#subscribers.set(key, new Set([listener]));
     }
   }
 
-  unsubscribe(id: string, cb: (...args: Args) => void) {
-    const set = this.#subscribers.get(id);
+  unsubscribe(key: Key, cb: (...args: Args) => void) {
+    const set = this.#subscribers.get(key);
     if (set) {
       set.delete(cb);
       if (set.size === 0) {
-        this.#subscribers.delete(id);
-        this.#cleanupCallbacks.get(id)?.forEach((cleanup) => cleanup());
-        this.#cleanupCallbacks.delete(id);
+        this.#subscribers.delete(key);
+        this.#cleanupCallbacks.get(key)?.forEach((cleanup) => cleanup());
+        this.#cleanupCallbacks.delete(key);
       }
     }
   }
 
-  notify(id: string, ...args: Args) {
-    this.#subscribers.get(id)?.forEach((cb) => cb(...args));
+  notify(key: Key, ...args: Args) {
+    this.#subscribers.get(key)?.forEach((cb) => cb(...args));
   }
 
-  onUnsubscribedAll(id: string, cb: () => void) {
-    const cleanupCallbacks = this.#cleanupCallbacks.get(id);
+  onUnsubscribedAll(key: Key, cb: () => void) {
+    const cleanupCallbacks = this.#cleanupCallbacks.get(key);
     if (cleanupCallbacks) {
       cleanupCallbacks.push(cb);
     } else {
-      this.#cleanupCallbacks.set(id, [cb]);
+      this.#cleanupCallbacks.set(key, [cb]);
     }
   }
 }

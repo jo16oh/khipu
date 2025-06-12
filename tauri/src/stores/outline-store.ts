@@ -29,7 +29,7 @@ export class OutlineStore {
   readonly #ydocs = new Map<string, Y.Doc>();
   readonly #yUndoManagers = new Map<string, Y.UndoManager>();
   readonly #pendingYUpdates = new Map<string, Uint8Array[]>();
-  readonly #outlineSubscribers = new SubscribersMap<[]>();
+  readonly #outlineSubscribers = new SubscribersMap<string, []>();
   readonly #docUpdateNotifier: DocUpdateNotifier;
   readonly #assets = new AssetStore();
   readonly #commands: Commands;
