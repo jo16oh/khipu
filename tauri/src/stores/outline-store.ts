@@ -113,7 +113,9 @@ export class OutlineStore {
     }
   };
 
-  readonly registerAsset = this.#assets.register;
+  registerAsset() {
+    return this.#assets.register;
+  }
 
   getOutline(id: string): Outline | undefined {
     return this.#outlines.get(id);
@@ -123,7 +125,9 @@ export class OutlineStore {
     return this.#children.get(id)?.map((c) => c.id) ?? [];
   }
 
-  readonly getOutlinePath = this.#paths.getPath;
+  getOutlinePath() {
+    return this.#paths.getPath;
+  }
 
   getYDoc(id: string) {
     const ydoc = this.#ydocs.get(id);
@@ -153,11 +157,17 @@ export class OutlineStore {
     }
   }
 
-  readonly getYUndoManager = this.#yUndoManagers.get;
+  getYUndoManager(id: string) {
+    return this.#yUndoManagers.get(id);
+  }
 
-  readonly getTimeline = this.#timeline.get;
+  getTimeline(dayStart: number, order: Order) {
+    return this.#timeline.get(dayStart, order);
+  }
 
-  readonly getAsset = this.#assets.load;
+  getAsset(hash: string) {
+    this.#assets.load(hash);
+  }
 
   subscribeToOutline(id: string, cb: () => void) {
     this.#outlineSubscribers.subscribe(id, cb);
@@ -166,13 +176,21 @@ export class OutlineStore {
     };
   }
 
-  readonly subscribeToOutlineChildren = this.#children.subscribe;
+  subscribeToOutlineChildren() {
+    return this.#children.subscribe;
+  }
 
-  readonly subscribeToOutlinePath = this.#paths.subscribe;
+  subscribeToOutlinePath() {
+    return this.#paths.subscribe;
+  }
 
-  readonly subscribeToTimeline = this.#timeline.subscribe;
+  subscribeToTimeline() {
+    return this.#timeline.subscribe;
+  }
 
-  readonly subscribeToAsset = this.#assets.subscribe;
+  subscribeToAsset() {
+    return this.#assets.subscribe;
+  }
 
   async save(id: string) {
     const outline = this.#outlines.get(id);
@@ -208,5 +226,7 @@ export class OutlineStore {
     pendingYUpdates.splice(0, encodedPendingYUpdates.length);
   }
 
-  readonly has = this.#outlines.has;
+  has(id: string) {
+    return this.#outlines.has(id);
+  }
 }
