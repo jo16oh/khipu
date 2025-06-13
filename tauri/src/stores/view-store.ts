@@ -3,7 +3,7 @@ import { type StoreApi, createStore } from "zustand";
 const MAX_HISTORY_LEN = 100;
 
 export type ViewState = {
-  id: string;
+  id: string | null;
   scrollPosition: number;
 };
 
@@ -33,6 +33,8 @@ export function createViewStore(): ViewStore {
 
     jump: (view) =>
       set((state) => {
+        if (view.id === state.id) return { scrollPosition: view.scrollPosition };
+
         const newBackHistory = state.id
           ? [...state.backHistory, { id: state.id, scrollPosition: state.scrollPosition }]
           : state.backHistory;
