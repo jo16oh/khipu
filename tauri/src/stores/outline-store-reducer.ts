@@ -33,9 +33,9 @@ export class OutlineStoreReducer {
   }
 
   create(
+    type: OutlineType,
     parentId: string | null = null,
     position: "start" | "end" | { after: Outline } = "start",
-    type: OutlineType,
     doc: JSONContent = { type: "doc", content: [] },
   ) {
     const findex = (() => {
