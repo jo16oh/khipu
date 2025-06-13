@@ -7,7 +7,7 @@ export type ViewState = {
   scrollPosition: number;
 };
 
-export type ViewStoreState = {
+export type ViewStateStoreState = {
   id: string | null;
   jump: (view: ViewState) => void;
   back: () => void;
@@ -16,16 +16,16 @@ export type ViewStoreState = {
   recordScrollPosition: (scrollPosition: number) => void;
 };
 
-type InternalViewStoreState = ViewStoreState & {
+type InternalViewStateStoreState = ViewStateStoreState & {
   scrollPosition: number;
   backHistory: ViewState[];
   nextHistory: ViewState[];
 };
 
-export type ViewStore = StoreApi<ViewStoreState>;
+export type ViewStateStore = StoreApi<ViewStateStoreState>;
 
-export function createViewStore(): ViewStore {
-  return createStore<InternalViewStoreState>((set, get) => ({
+export function createViewStateStore(): ViewStateStore {
+  return createStore<InternalViewStateStoreState>((set, get) => ({
     id: null,
     scrollPosition: 0,
     backHistory: [],
