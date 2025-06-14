@@ -3,10 +3,13 @@ import { getSchemaOf } from "src/editor/schema";
 import { yXmlFragmentToProseMirrorRootNode } from "y-prosemirror";
 import { DocUpdateNotifier } from "./doc-update-notifier";
 import { OutlineStore } from "./outline-store";
+import { ViewState } from "./view-state-store";
+import { useWindowState } from "./window-state-store";
 
 type HistoryItem = {
   id: string;
   type: OutlineType;
+  viewState: ViewState;
   unsubscribers: Array<() => void>;
 };
 
@@ -25,8 +28,20 @@ export class UndoManager {
     const outline = this.#outlineStore.getOutline(id);
     if (!outline) throw new Error("outline not found");
     const unsubscribers = [this.#outlineStore.subscribeToOutline(id, () => {})];
-    this.#undoStack.push({ id, unsubscribers, type: outline.type });
+
+    const viewStateStore = (() => {
+      const state = useWindowState.getState();
+      return state.hover ? state.hover.viewStateStore : state.main.viewStateStore;
+    })();
+
+    const viewState = (() => {
+      const state = viewStateStore.getState();
+      return { id: state.id, scrollPosition: state.currentScrollPosition() };
+    })();
+
+    this.#undoStack.push({ id, unsubscribers, type: outline.type, viewState });
     this.#redoStack = [];
+
     while (this.#undoStack.length > 100) {
       const history = this.#undoStack.shift();
       history?.unsubscribers.forEach((fn) => fn());
@@ -39,6 +54,14 @@ export class UndoManager {
       this.#redoStack.push(history);
       const undoManager = this.#outlineStore.getYUndoManager(history.id);
       if (undoManager) {
+        const { viewStateStore, focusManager } = (() => {
+          const state = useWindowState.getState();
+          return state.hover ? state.hover : state.main;
+        })();
+
+        viewStateStore.getState().jump(history.viewState);
+        focusManager.focus({ id: history.id, position: "end" });
+
         undoManager.undo();
         const ydoc = this.#outlineStore.getYDoc(history.id);
         const yxml = ydoc.getXmlFragment("doc");
