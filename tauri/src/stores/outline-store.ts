@@ -20,7 +20,7 @@ export type OutlineStoreUpdater = (
 
 export type RegisterToStore = (...outlines: Outline[]) => void;
 
-type Commands = Pick<typeof commands, "upsertOutline" | "tree" | "timeline">;
+type Commands = Pick<typeof commands, "upsertOutline" | "tree" | "timeline" | "search">;
 
 export class OutlineStore {
   readonly #outlines = new Map<string, Outline>();
@@ -228,5 +228,49 @@ export class OutlineStore {
 
   has(id: string) {
     return this.#outlines.has(id);
+  }
+
+  findSortedRootIds(outlineIds: string[], order: Order) {
+    const buf = new Map<string, Date>();
+
+    const outlinesToTimestamp: Map<string, [Outline, Date]> = new Map(
+      outlineIds
+        .map((id) => this.getOutline(id))
+        .filter((o) => o !== undefined)
+        .filter((o) => !o.deleted)
+        .map((o) => [o.id, [o, o[order]]]),
+    );
+
+    this.#findRootIdsOfImpl(outlinesToTimestamp, order, buf);
+
+    const result = Array.from(buf);
+    result.sort(([_a, a], [_b, b]) => b.getTime() - a.getTime());
+
+    return result.map(([id, _]) => id);
+  }
+
+  #findRootIdsOfImpl(
+    outlineToDerivedTimestamp: Map<string, [Outline, Date]>,
+    order: Order,
+    buf: Map<string, Date>,
+  ) {
+    const parents: Map<string, [Outline, Date]> = new Map();
+
+    for (const [_, [o, derivedDate]] of outlineToDerivedTimestamp) {
+      if (o.parentId) {
+        const parent = this.getOutline(o.parentId);
+        if (!parent) throw new Error(o.parentId);
+        const newDerivedDate = parent[order] > derivedDate ? parent[order] : derivedDate;
+        const value = parents.get(parent.id);
+        if (!value || value[1] < newDerivedDate) parents.set(parent.id, [parent, newDerivedDate]);
+      } else {
+        const derivedDate2 = buf.get(o.id);
+        if (!derivedDate2 || derivedDate2 < derivedDate) buf.set(o.id, derivedDate);
+      }
+    }
+
+    if (parents.size > 0) {
+      this.#findRootIdsOfImpl(parents, order, buf);
+    }
   }
 }

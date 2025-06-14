@@ -2,7 +2,7 @@ import { OrderBy, TimelinePosition, commands } from "generated/tauri-commands";
 import { Outline } from "src/model";
 import { RegisterToStore } from "./outline-store";
 
-type Commands = Pick<typeof commands, "tree" | "timeline">;
+type Commands = Pick<typeof commands, "tree" | "timeline" | "search">;
 
 export class OutlineStoreLoader {
   readonly #registerToStore: RegisterToStore;
@@ -27,5 +27,15 @@ export class OutlineStoreLoader {
     this.#registerToStore(...outlines);
 
     return outlines.length ? dayStart : null;
+  }
+
+  async fetchSearchResults(query: string, orderBy: OrderBy, offset: number) {
+    const [results, links]: [Outline[], Outline[]] = await this.#commands
+      .search(query, orderBy, offset)
+      .then(([results, links]) => [results.map(Outline.from), links.map(Outline.from)]);
+
+    this.#registerToStore(...results, ...links);
+
+    return results.map((r) => r.id);
   }
 }
