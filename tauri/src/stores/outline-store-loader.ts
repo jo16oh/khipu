@@ -4,7 +4,7 @@ import { RegisterToStore } from "./outline-store";
 
 type Commands = Pick<
   typeof commands,
-  "tree" | "timeline" | "search" | "inboundLinks" | "outboundLinks"
+  "tree" | "timeline" | "search" | "inboundLinks" | "outboundLinks" | "excerpt"
 >;
 
 export class OutlineStoreLoader {
@@ -60,5 +60,13 @@ export class OutlineStoreLoader {
     this.#registerToStore(...results);
 
     return results.map((r) => r.id);
+  }
+
+  async fetchExcerpt(id: string) {
+    const excerpt = await this.#commands.excerpt(id).then((results) => results.map(Outline.from));
+
+    this.#registerToStore(...excerpt);
+
+    return excerpt.map((r) => r.id);
   }
 }
