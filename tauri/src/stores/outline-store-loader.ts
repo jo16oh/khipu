@@ -2,7 +2,10 @@ import { OrderBy, TimelinePosition, commands } from "generated/tauri-commands";
 import { Outline } from "src/model";
 import { RegisterToStore } from "./outline-store";
 
-type Commands = Pick<typeof commands, "tree" | "timeline" | "search">;
+type Commands = Pick<
+  typeof commands,
+  "tree" | "timeline" | "search" | "inboundLinks" | "outboundLinks"
+>;
 
 export class OutlineStoreLoader {
   readonly #registerToStore: RegisterToStore;
@@ -32,6 +35,26 @@ export class OutlineStoreLoader {
   async fetchSearchResults(query: string, orderBy: OrderBy, offset: number) {
     const [results, links]: [Outline[], Outline[]] = await this.#commands
       .search(query, orderBy, offset)
+      .then(([results, links]) => [results.map(Outline.from), links.map(Outline.from)]);
+
+    this.#registerToStore(...results, ...links);
+
+    return results.map((r) => r.id);
+  }
+
+  async fetchInboundLinks(id: string, offset: number) {
+    const [results, links]: [Outline[], Outline[]] = await this.#commands
+      .inboundLinks(id, offset)
+      .then(([results, links]) => [results.map(Outline.from), links.map(Outline.from)]);
+
+    this.#registerToStore(...results, ...links);
+
+    return results.map((r) => r.id);
+  }
+
+  async fetchOutboundLinks(id: string, offset: number) {
+    const [results, links]: [Outline[], Outline[]] = await this.#commands
+      .outboundLinks(id, offset)
       .then(([results, links]) => [results.map(Outline.from), links.map(Outline.from)]);
 
     this.#registerToStore(...results, ...links);

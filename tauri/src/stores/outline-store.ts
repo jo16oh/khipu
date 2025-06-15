@@ -20,7 +20,10 @@ export type OutlineStoreUpdater = (
 
 export type RegisterToStore = (...outlines: Outline[]) => void;
 
-type Commands = Pick<typeof commands, "upsertOutline" | "tree" | "timeline" | "search">;
+type Commands = Pick<
+  typeof commands,
+  "upsertOutline" | "tree" | "timeline" | "search" | "inboundLinks" | "outboundLinks"
+>;
 
 export class OutlineStore {
   readonly #outlines = new Map<string, Outline>();
