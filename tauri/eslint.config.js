@@ -3,6 +3,7 @@ import json from "@eslint/json";
 import panda from "@pandacss/eslint-plugin";
 import eslintConfigPrettier from "eslint-config-prettier/flat";
 import pluginReact from "eslint-plugin-react";
+import reactHooks from "eslint-plugin-react-hooks";
 import { defineConfig, globalIgnores } from "eslint/config";
 import globals from "globals";
 import tseslint from "typescript-eslint";
@@ -37,6 +38,7 @@ export default defineConfig([
   },
   eslintConfigPrettier,
   pluginReact.configs.flat.recommended,
+  reactHooks.configs["recommended-latest"],
   {
     files: ["**/*.{js,jsx,mjs,cjs,ts,tsx}"],
     settings: {
