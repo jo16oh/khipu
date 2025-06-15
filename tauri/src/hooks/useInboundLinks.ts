@@ -17,7 +17,7 @@ export function useInboundLinks(id: string) {
       return store.loader.fetchInboundLinks(id, loadedLength);
     }
     return null;
-  }, [id, loadedLength]);
+  }, [id, store.loader, loadedLength]);
 
   const initialResults = initialResultsPromise ? use(initialResultsPromise) : null;
 
@@ -26,7 +26,7 @@ export function useInboundLinks(id: string) {
       setResults(store.findSortedRootIds(initialResults, "updatedAt"));
       setLoadedLength(initialResults.length);
     }
-  }, [initialResults]);
+  }, [store, initialResults]);
 
   const loadMore = useCallback(async () => {
     const moreResults = await (() => {
@@ -39,7 +39,7 @@ export function useInboundLinks(id: string) {
         setLoadedLength((prev) => prev + moreResults.length);
       });
     }
-  }, [id, loadedLength]);
+  }, [id, store, loadedLength]);
 
   return {
     results,

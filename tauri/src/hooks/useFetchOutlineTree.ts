@@ -6,7 +6,7 @@ export function useFetchOutlineTree(id: string) {
 
   const fetchPromise = useMemo(async () => {
     await store.loader.fetchTree(id);
-  }, [id]);
+  }, [store.loader, id]);
 
   use(fetchPromise);
 }

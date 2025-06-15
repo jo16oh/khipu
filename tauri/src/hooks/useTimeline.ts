@@ -9,7 +9,7 @@ export function useTimeline(position: TimelinePosition, order: OrderBy) {
 
   const fetchTimeline = useMemo(async () => {
     return await store.loader.fetchTimeline(position, order);
-  }, [order]);
+  }, [store.loader, position, order]);
 
   const dayStart = use(fetchTimeline);
 

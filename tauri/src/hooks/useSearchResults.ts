@@ -18,7 +18,7 @@ export function useSearchResults(query: string, orderBy: OrderBy) {
       return store.loader.fetchSearchResults(query, orderBy, 0);
     }
     return null;
-  }, [query, orderBy, loadedLength]);
+  }, [query, store.loader, orderBy, loadedLength]);
 
   const initialResults = initialResultsPromise ? use(initialResultsPromise) : null;
 
@@ -27,7 +27,7 @@ export function useSearchResults(query: string, orderBy: OrderBy) {
       setResults(store.findSortedRootIds(initialResults, orderBy));
       setLoadedLength(initialResults.length);
     }
-  }, [initialResults, orderBy]);
+  }, [store, initialResults, orderBy]);
 
   const loadMore = useCallback(async () => {
     const moreResults = await store.loader.fetchSearchResults(query, orderBy, loadedLength);
@@ -37,7 +37,7 @@ export function useSearchResults(query: string, orderBy: OrderBy) {
         setLoadedLength((prev) => prev + moreResults.length);
       });
     }
-  }, [query, orderBy, loadedLength]);
+  }, [store, query, orderBy, loadedLength]);
 
   return {
     results,
