@@ -53,9 +53,18 @@ pub async fn suggest(
 pub async fn outbound_links(
     conn: State<'_, ConnectionState>,
     id: String,
-) -> eyre::Result<(Vec<Outline>, Vec<Outline>)> {
+) -> eyre::Result<Vec<Outline>> {
     let pool = conn.pool().await?;
     super::outbound_links(&pool, &id).await
+}
+
+#[tauri::command]
+#[specta::specta]
+#[macros::eyre_to_any]
+#[macros::log_err]
+pub async fn excerpt(conn: State<'_, ConnectionState>, id: String) -> eyre::Result<Vec<Outline>> {
+    let pool = conn.pool().await?;
+    super::excerpt(&pool, &id).await
 }
 
 #[tauri::command]

@@ -147,47 +147,11 @@ pub async fn suggest<'a>(
     Ok((suggestions, paths))
 }
 
-pub async fn outbound_links(
-    pool: &SqlitePool,
-    id: &str,
-) -> eyre::Result<(Vec<Outline>, Vec<Outline>)> {
-    let links = sqlx::query_file_as_unchecked!(Outline, "src/db/fetch_outbound_links.sql", id)
+pub async fn outbound_links(pool: &SqlitePool, id: &str) -> eyre::Result<Vec<Outline>> {
+    sqlx::query_file_as_unchecked!(Outline, "src/db/fetch_outbound_links.sql", id)
         .fetch_all(pool)
-        .await?;
-
-    let contents: Vec<Outline> = JoinSet::from_iter(links.iter().map(|o| {
-        let pool = pool.clone();
-        let id = o.id.clone();
-        async move {
-            sqlx::query_file_as_unchecked!(Outline, "src/db/fetch_excerpt.sql", id)
-                .fetch_all(&pool)
-                .await
-        }
-    }))
-    .join_all()
-    .await
-    .into_iter()
-    .map(|r| r.map_err(eyre::Error::from))
-    .collect::<eyre::Result<Vec<Vec<Outline>>>>()?
-    .into_iter()
-    .flatten()
-    .collect();
-
-    let linked_outlines = {
-        let ids = serde_json::to_string(&contents.iter().map(|o| &o.id).collect_vec())?;
-        sqlx::query_file_as_unchecked!(
-            Outline,
-            "src/db/fetch_linked_outlines_to_embed_text.sql",
-            ids
-        )
-        .fetch_all(pool)
-        .await?
-    };
-
-    Ok((
-        links,
-        [contents, linked_outlines].into_iter().flatten().collect(),
-    ))
+        .await
+        .map_err(eyre::Error::from)
 }
 
 pub async fn inbound_links(
@@ -233,6 +197,29 @@ pub async fn inbound_links(
         links,
         [contents, linked_outlines].into_iter().flatten().collect(),
     ))
+}
+
+pub async fn excerpt<'a>(
+    conn: impl SqliteExecutor<'a> + Copy + Clone,
+    id: &str,
+) -> eyre::Result<Vec<Outline>> {
+    let contents: Vec<Outline> =
+        sqlx::query_file_as_unchecked!(Outline, "src/db/fetch_excerpt.sql", id)
+            .fetch_all(conn)
+            .await?;
+
+    let linked_outlines = {
+        let ids = serde_json::to_string(&contents.iter().map(|o| &o.id).collect_vec())?;
+        sqlx::query_file_as_unchecked!(
+            Outline,
+            "src/db/fetch_linked_outlines_to_embed_text.sql",
+            ids
+        )
+        .fetch_all(conn)
+        .await?
+    };
+
+    Ok([contents, linked_outlines].into_iter().flatten().collect())
 }
 
 pub async fn tree<'a>(conn: impl SqliteExecutor<'a>, id: &str) -> eyre::Result<Vec<Outline>> {

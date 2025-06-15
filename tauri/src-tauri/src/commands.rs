@@ -10,6 +10,7 @@ pub fn commands() -> tauri_specta::Commands<tauri::Wry> {
         suggest,
         outbound_links,
         inbound_links,
+        excerpt,
         tree,
         is_conflicting,
         upsert_outline,
