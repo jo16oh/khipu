@@ -38,6 +38,7 @@ export class OutlineStore {
   readonly #assets = new AssetStore();
   readonly #commands: Commands;
   readonly #undoManager: UndoManager;
+  readonly #onSaveInPathSubscribers = new SubscribersMap();
 
   readonly reducer: OutlineStoreReducer;
   readonly loader: OutlineStoreLoader;
@@ -227,6 +228,13 @@ export class OutlineStore {
     );
 
     pendingYUpdates.splice(0, encodedPendingYUpdates.length);
+
+    this.#onSaveInPathSubscribers.notify(outline.id);
+    let parent = outline.parentId ? this.#outlines.get(outline.parentId) : null;
+    while (parent) {
+      this.#onSaveInPathSubscribers.notify(parent.id);
+      parent = parent.parentId ? this.#outlines.get(parent.parentId) : null;
+    }
   }
 
   has(id: string) {
@@ -275,5 +283,12 @@ export class OutlineStore {
     if (parents.size > 0) {
       this.#findRootIdsOfImpl(parents, order, buf);
     }
+  }
+
+  onSaveInPath(id: string, cb: () => void) {
+    this.#onSaveInPathSubscribers.subscribe(id, cb);
+    return () => {
+      this.#onSaveInPathSubscribers.unsubscribe(id, cb);
+    };
   }
 }
