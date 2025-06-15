@@ -52,9 +52,9 @@ export class OutlineStoreLoader {
     return results.map((r) => r.id);
   }
 
-  async fetchOutboundLinks(id: string, offset: number) {
+  async fetchOutboundLinks(id: string) {
     const [results, links]: [Outline[], Outline[]] = await this.#commands
-      .outboundLinks(id, offset)
+      .outboundLinks(id)
       .then(([results, links]) => [results.map(Outline.from), links.map(Outline.from)]);
 
     this.#registerToStore(...results, ...links);
