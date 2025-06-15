@@ -72,8 +72,4 @@ FROM
 GROUP BY
   o.id
 ORDER BY
-  min(o.tree_full_findex) ASC
-LIMIT
-  10
-OFFSET
-  ?;
+  min(o.tree_full_findex) ASC;

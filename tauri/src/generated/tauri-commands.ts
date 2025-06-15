@@ -23,8 +23,8 @@ async search(query: string, orderBy: OrderBy, offset: number) : Promise<[Outline
 async suggest(id: string) : Promise<[Outline[], Outline[]]> {
     return await TAURI_INVOKE("suggest", { id });
 },
-async outboundLinks(id: string, offset: number) : Promise<[Outline[], Outline[]]> {
-    return await TAURI_INVOKE("outbound_links", { id, offset });
+async outboundLinks(id: string) : Promise<[Outline[], Outline[]]> {
+    return await TAURI_INVOKE("outbound_links", { id });
 },
 async inboundLinks(id: string, offset: number) : Promise<[Outline[], Outline[]]> {
     return await TAURI_INVOKE("inbound_links", { id, offset });

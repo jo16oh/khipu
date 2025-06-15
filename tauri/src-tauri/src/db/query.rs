@@ -150,12 +150,10 @@ pub async fn suggest<'a>(
 pub async fn outbound_links(
     pool: &SqlitePool,
     id: &str,
-    offset: i64,
 ) -> eyre::Result<(Vec<Outline>, Vec<Outline>)> {
-    let links =
-        sqlx::query_file_as_unchecked!(Outline, "src/db/fetch_outbound_links.sql", id, offset)
-            .fetch_all(pool)
-            .await?;
+    let links = sqlx::query_file_as_unchecked!(Outline, "src/db/fetch_outbound_links.sql", id)
+        .fetch_all(pool)
+        .await?;
 
     let contents: Vec<Outline> = JoinSet::from_iter(links.iter().map(|o| {
         let pool = pool.clone();

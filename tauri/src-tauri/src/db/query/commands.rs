@@ -53,10 +53,9 @@ pub async fn suggest(
 pub async fn outbound_links(
     conn: State<'_, ConnectionState>,
     id: String,
-    offset: i64,
 ) -> eyre::Result<(Vec<Outline>, Vec<Outline>)> {
     let pool = conn.pool().await?;
-    super::outbound_links(&pool, &id, offset).await
+    super::outbound_links(&pool, &id).await
 }
 
 #[tauri::command]

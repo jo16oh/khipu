@@ -128,7 +128,7 @@ async fn test_outbound_links() {
 
     tx.commit().await.unwrap();
 
-    let (r, _) = outbound_links(&pool, &t1[0].id, 0).await.unwrap();
+    let (r, _) = outbound_links(&pool, &t1[0].id).await.unwrap();
 
     // forwardlinks in the same tree should be grouped together
     assert_eq!(r.len(), 2);
