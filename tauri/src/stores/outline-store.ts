@@ -201,7 +201,7 @@ export class OutlineStore {
     if (!outline) throw new Error("outline not found");
 
     const pendingYUpdates = this.#pendingYUpdates.get(id);
-    if (!pendingYUpdates) return;
+    if (!pendingYUpdates || pendingYUpdates.length === 0) return;
 
     const encodedPendingYUpdates = await Promise.all(pendingYUpdates.map(uint8ArrayToBase64Async));
 
