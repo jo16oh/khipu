@@ -25,6 +25,7 @@ pub fn run() {
         .invoke_handler(specta_builder.invoke_handler())
         .setup(|app| {
             let win_builder = WebviewWindowBuilder::new(app, "main", WebviewUrl::default())
+                .title("Khipu")
                 .hidden_title(true)
                 .inner_size(1025.0, 800.0)
                 .min_inner_size(470.0, 380.0)
