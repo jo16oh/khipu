@@ -260,6 +260,14 @@ pub async fn is_conflicting<'a>(
         .map_err(eyre::Error::from)
 }
 
+pub async fn outline_exists<'a>(conn: impl SqliteExecutor<'a>, id: &str) -> eyre::Result<bool> {
+    sqlx::query_file_scalar!("src/db/outline_exists.sql", id)
+        .fetch_optional(conn)
+        .await
+        .map(|r| r.is_some())
+        .map_err(eyre::Error::from)
+}
+
 pub async fn upsert_outline(tx: &mut SqliteTransaction<'_>, outline: &Outline) -> eyre::Result<()> {
     delete_fts_index(tx, &outline.id).await?;
 

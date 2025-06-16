@@ -3,7 +3,7 @@ use std::collections::{HashMap, HashSet};
 use super::*;
 use crate::{
     db::ConnectionState,
-    model::{Base64Bytes, Outline},
+    model::{Base64Bytes, Outline, SqliteBool},
 };
 use tauri::{AppHandle, Manager, State};
 
@@ -116,10 +116,14 @@ pub async fn upsert_outline(
 ) -> eyre::Result<()> {
     let pool = conn.pool().await?;
     let mut tx = pool.begin().await?;
-    super::upsert_outline(&mut tx, &outline).await?;
-    super::insert_y_updates(&mut *tx, &y_updates, &outline.id, outline.updated_at).await?;
-    super::sync_links(&mut tx, &outline.id, link_list).await?;
-    super::sync_assets(&mut tx, &outline.id, asset_list, new_asset_data).await?;
+
+    if outline.deleted == SqliteBool(false) || super::outline_exists(&mut *tx, &outline.id).await? {
+        super::upsert_outline(&mut tx, &outline).await?;
+        super::insert_y_updates(&mut *tx, &y_updates, &outline.id, outline.updated_at).await?;
+        super::sync_links(&mut tx, &outline.id, link_list).await?;
+        super::sync_assets(&mut tx, &outline.id, asset_list, new_asset_data).await?;
+    }
+
     tx.commit().await?;
     eyre::Ok(())
 }
