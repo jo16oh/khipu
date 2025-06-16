@@ -1,7 +1,7 @@
 import "../index.css";
 
 import { css } from "generated/styled-system/css";
-import RootProviders from "./Providers";
+import { RootProviders } from "./Providers";
 
 function App() {
   return (
