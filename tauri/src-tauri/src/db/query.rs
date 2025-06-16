@@ -200,7 +200,7 @@ pub async fn inbound_links(
 }
 
 pub async fn excerpt<'a>(
-    conn: impl SqliteExecutor<'a> + Copy + Clone,
+    conn: impl SqliteExecutor<'a> + Copy,
     id: &str,
 ) -> eyre::Result<Vec<Outline>> {
     let contents: Vec<Outline> =
