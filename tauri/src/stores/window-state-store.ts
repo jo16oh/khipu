@@ -15,9 +15,23 @@ type WindowState = {
   focus: TabKind;
 };
 
+const mainViewStateStore = createViewStateStore();
+
+if (typeof localStorage !== "undefined") {
+  const prev = localStorage.getItem("mainView");
+  if (prev) {
+    const state = JSON.parse(prev);
+    if (typeof state?.id === "string") mainViewStateStore.setState({ id: state.id });
+  }
+  mainViewStateStore.subscribe((current) => {
+    const state = { id: current.id };
+    localStorage.setItem("mainView", JSON.stringify(state));
+  });
+}
+
 export const useWindowState = create<WindowState>((set) => ({
   main: {
-    viewStateStore: createViewStateStore(),
+    viewStateStore: mainViewStateStore,
     focusManager: new FocusManager(),
   },
   hover: null,
