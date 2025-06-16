@@ -2,6 +2,7 @@ pub use crate::db::commands::*;
 
 pub fn commands() -> tauri_specta::Commands<tauri::Wry> {
     tauri_specta::collect_commands![
+        list_db,
         open_db,
         close_db,
         delete_db,

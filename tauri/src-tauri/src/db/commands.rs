@@ -57,3 +57,31 @@ pub async fn delete_db(
 
     eyre::Ok(())
 }
+
+#[tauri::command]
+#[specta::specta]
+#[macros::eyre_to_any]
+#[macros::log_err]
+pub async fn list_db(app_handle: AppHandle) -> eyre::Result<Vec<String>> {
+    let dbs_path = app_handle.path().app_data_dir()?.join("databases");
+
+    if !dbs_path.exists() {
+        std::fs::create_dir_all(&dbs_path)?;
+    }
+
+    let list: Vec<String> = std::fs::read_dir(dbs_path)?
+        .filter_map(|entry| {
+            let entry = entry.ok()?;
+            let path = entry.path();
+            if path.is_file() {
+                path.to_str()
+                    .and_then(|s| s.strip_suffix(".sqlite3"))
+                    .map(|s| s.to_owned())
+            } else {
+                None
+            }
+        })
+        .collect();
+
+    eyre::Ok(list)
+}
