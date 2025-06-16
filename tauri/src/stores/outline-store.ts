@@ -22,7 +22,7 @@ export type RegisterToStore = (...outlines: Outline[]) => void;
 
 type Commands = Pick<
   typeof commands,
-  "upsertOutline" | "tree" | "timeline" | "search" | "inboundLinks" | "outboundLinks"
+  "upsertOutline" | "tree" | "timeline" | "search" | "inboundLinks" | "outboundLinks" | "excerpt"
 >;
 
 export class OutlineStore {
