@@ -3,10 +3,12 @@ import "../index.css";
 import { styled } from "generated/styled-system/jsx";
 import { RootProviders } from "./Providers";
 import Entry from "./components/Entry";
+import TitlebarHandler from "./components/TitlebarHandler";
 
 function App() {
   return (
     <RootProviders>
+      <TitlebarHandler />
       <Main>
         <Entry />
       </Main>
