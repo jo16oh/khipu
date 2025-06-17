@@ -1,15 +1,19 @@
+import { getVersion } from "@tauri-apps/api/app";
 import { css } from "generated/styled-system/css";
 import { styled } from "generated/styled-system/jsx";
-import { ReactNode } from "react";
+import { ReactNode, use, useMemo } from "react";
 import { Button } from "react-aria-components";
 
 function Entry() {
+  const versionPromise = useMemo(() => getVersion(), []);
+  const version = use(versionPromise);
+
   return (
     <Container>
       <AppIcon>
         <img src="assets/khipu-icon.svg" className={khipuIconStyle} />
         <img src="assets/khipu-app-name.svg" className={khipuLogoStyle} />
-        <div className={versionStyle}>v0.0.0</div>
+        <div className={versionStyle}>v{version}</div>
       </AppIcon>
       <Operations>
         <Operation>Create New Database</Operation>
