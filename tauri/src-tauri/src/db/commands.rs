@@ -1,5 +1,7 @@
+use std::path::PathBuf;
+
 use crate::db::ConnectionState;
-use eyre::OptionExt;
+use eyre::{OptionExt, bail};
 use tauri::{AppHandle, Manager, State};
 
 pub use super::query::commands::*;
@@ -8,20 +10,39 @@ pub use super::query::commands::*;
 #[specta::specta]
 #[macros::eyre_to_any]
 #[macros::log_err]
+pub async fn create_db(
+    app_handle: AppHandle,
+    conn: State<'_, ConnectionState>,
+    db_name: &str,
+) -> eyre::Result<()> {
+    let dbs_path = databases_dir_path(&app_handle)?;
+
+    let db_path = dbs_path.join(db_name.to_string() + ".sqlite3");
+    if db_path.exists() {
+        bail!("A database named `{}` already exists", db_name);
+    }
+
+    let url = db_path.to_str().ok_or_eyre("invalid sqlite url")?;
+    conn.open(url).await
+}
+
+#[tauri::command]
+#[specta::specta]
+#[macros::eyre_to_any]
+#[macros::log_err]
 pub async fn open_db(
     app_handle: AppHandle,
     conn: State<'_, ConnectionState>,
-    db_name: String,
+    db_name: &str,
 ) -> eyre::Result<()> {
-    let dbs_path = app_handle.path().app_data_dir()?.join("databases");
+    let dbs_path = databases_dir_path(&app_handle)?;
 
-    if !dbs_path.exists() {
-        std::fs::create_dir_all(dbs_path.as_path())?;
+    let db_path = dbs_path.join(db_name.to_string() + ".sqlite3");
+    if !db_path.exists() {
+        bail!("Database named `{}` not found", db_name);
     }
 
-    let db_path = dbs_path.join(db_name + ".sqlite3");
     let url = db_path.to_str().ok_or_eyre("invalid sqlite url")?;
-
     conn.open(url).await
 }
 
@@ -63,11 +84,7 @@ pub async fn delete_db(
 #[macros::eyre_to_any]
 #[macros::log_err]
 pub async fn list_db(app_handle: AppHandle) -> eyre::Result<Vec<String>> {
-    let dbs_path = app_handle.path().app_data_dir()?.join("databases");
-
-    if !dbs_path.exists() {
-        std::fs::create_dir_all(&dbs_path)?;
-    }
+    let dbs_path = databases_dir_path(&app_handle)?;
 
     let list: Vec<String> = std::fs::read_dir(dbs_path)?
         .filter_map(|entry| {
@@ -84,4 +101,14 @@ pub async fn list_db(app_handle: AppHandle) -> eyre::Result<Vec<String>> {
         .collect();
 
     eyre::Ok(list)
+}
+
+fn databases_dir_path(app_handle: &AppHandle) -> eyre::Result<PathBuf> {
+    let path = app_handle.path().app_data_dir()?.join("databases");
+
+    if !path.exists() {
+        std::fs::create_dir_all(&path)?;
+    }
+
+    eyre::Ok(path)
 }

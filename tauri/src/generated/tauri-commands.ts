@@ -8,6 +8,9 @@ export const commands = {
 async listDb() : Promise<string[]> {
     return await TAURI_INVOKE("list_db");
 },
+async createDb(dbName: string) : Promise<null> {
+    return await TAURI_INVOKE("create_db", { dbName });
+},
 async openDb(dbName: string) : Promise<null> {
     return await TAURI_INVOKE("open_db", { dbName });
 },
