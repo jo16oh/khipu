@@ -9,7 +9,7 @@ type ViewContexts = {
   focusManager: FocusManager;
 };
 
-type WindowState = {
+type WorkspaceState = {
   main: ViewContexts;
   hover: ViewContexts | null;
   focus: TabKind;
@@ -29,7 +29,7 @@ if (typeof localStorage !== "undefined") {
   });
 }
 
-export const useWindowState = create<WindowState>((set) => ({
+export const useWorkspaceState = create<WorkspaceState>((set) => ({
   main: {
     viewStateStore: mainViewStateStore,
     focusManager: new FocusManager(),

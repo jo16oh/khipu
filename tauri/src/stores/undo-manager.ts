@@ -4,7 +4,7 @@ import { yXmlFragmentToProseMirrorRootNode } from "y-prosemirror";
 import { DocUpdateNotifier } from "./doc-update-notifier";
 import { OutlineStore } from "./outline-store";
 import { ViewState } from "./view-state-store";
-import { useWindowState } from "./window-state-store";
+import { useWorkspaceState } from "./workspace-state-store";
 
 type HistoryItem = {
   id: string;
@@ -30,7 +30,7 @@ export class UndoManager {
     const unsubscribers = [this.#outlineStore.subscribeToOutline(id, () => {})];
 
     const viewStateStore = (() => {
-      const state = useWindowState.getState();
+      const state = useWorkspaceState.getState();
       return state.hover ? state.hover.viewStateStore : state.main.viewStateStore;
     })();
 
@@ -55,7 +55,7 @@ export class UndoManager {
       const undoManager = this.#outlineStore.getYUndoManager(history.id);
       if (undoManager) {
         const { viewStateStore, focusManager } = (() => {
-          const state = useWindowState.getState();
+          const state = useWorkspaceState.getState();
           return state.hover ? state.hover : state.main;
         })();
 
