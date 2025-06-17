@@ -7,8 +7,8 @@ function Entry() {
   return (
     <Container>
       <AppIcon>
-        <img src="assets/khipu-icon.svg" className={css(imageStyle, { p: "4" })} />
-        <img src="assets/khipu-app-name.svg" className={css(imageStyle, { pl: "2" })} />
+        <img src="assets/khipu-icon.svg" className={khipuIconStyle} />
+        <img src="assets/khipu-app-name.svg" className={khipuLogoStyle} />
         <div className={versionStyle}>v0.0.0</div>
       </AppIcon>
       <Operations>
@@ -46,6 +46,15 @@ const AppIcon = styled("div", {
 const imageStyle = css.raw({
   userSelect: "none",
   pointerEvents: "none",
+});
+
+const khipuIconStyle = css(imageStyle, {
+  p: "4",
+  filter: "[drop-shadow(0px 4px 2px rgba(0, 0, 0, .25))]",
+});
+
+const khipuLogoStyle = css(imageStyle, {
+  pl: "2",
 });
 
 const versionStyle = css({
