@@ -1,5 +1,5 @@
 import { commands } from "generated/tauri-commands";
-import { ReactNode, createContext, useContext } from "react";
+import { PropsWithChildren, createContext, useContext } from "react";
 import { DocUpdateNotifier } from "src/stores/doc-update-notifier";
 import { OutlineStore } from "src/stores/outline-store";
 import { useStore } from "zustand";
@@ -30,7 +30,7 @@ export function useViewStore(selector: (state: ViewStateStoreState) => void) {
   return useStore(viewStore, selector);
 }
 
-export function RootProviders({ children }: { children: ReactNode }) {
+export function RootProviders({ children }: PropsWithChildren) {
   const notifier = new DocUpdateNotifier();
   const focusManager = new FocusManager();
   const outlineStore = new OutlineStore(notifier, commands);

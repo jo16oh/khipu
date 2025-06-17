@@ -1,7 +1,7 @@
 import { getVersion } from "@tauri-apps/api/app";
 import { css } from "generated/styled-system/css";
 import { styled } from "generated/styled-system/jsx";
-import { ReactNode, use, useMemo } from "react";
+import { PropsWithChildren, use, useMemo } from "react";
 import { Button } from "react-aria-components";
 
 function Entry() {
@@ -10,11 +10,11 @@ function Entry() {
 
   return (
     <Container>
-      <AppIcon>
+      <AppIconContainer>
         <img src="assets/khipu-icon.svg" className={khipuIconStyle} />
         <img src="assets/khipu-app-name.svg" className={khipuLogoStyle} />
         <div className={versionStyle}>v{version}</div>
-      </AppIcon>
+      </AppIconContainer>
       <Operations>
         <Operation>Create New Database</Operation>
         <Operation>Open Database</Operation>
@@ -37,7 +37,7 @@ const Container = styled("div", {
   },
 });
 
-const AppIcon = styled("div", {
+const AppIconContainer = styled("div", {
   base: {
     display: "flex",
     flexDir: "column",
@@ -74,32 +74,30 @@ const Operations = styled("div", {
   },
 });
 
-const Operation = ({ children }: { children: ReactNode }) => {
-  return (
-    <div
+const Operation = ({ children }: PropsWithChildren) => (
+  <div
+    className={css({
+      display: "flex",
+      gap: "2",
+      justifyContent: "start",
+      alignItems: "center",
+      p: "1",
+    })}
+  >
+    <div className={css({ pb: "0.5", fontFamily: "mono", fontSize: "md" })}>◉</div>
+    <Button
       className={css({
-        display: "flex",
-        gap: "2",
-        justifyContent: "start",
-        alignItems: "center",
-        p: "1",
+        fontFamily: "mono",
+        fontSize: "md",
+        _hover: {
+          cursor: "pointer",
+          textDecoration: "underline",
+        },
       })}
     >
-      <div className={css({ pb: "0.5", fontFamily: "mono", fontSize: "md" })}>◉</div>
-      <Button
-        className={css({
-          fontFamily: "mono",
-          fontSize: "md",
-          _hover: {
-            cursor: "pointer",
-            textDecoration: "underline",
-          },
-        })}
-      >
-        {children}
-      </Button>
-    </div>
-  );
-};
+      {children}
+    </Button>
+  </div>
+);
 
 export default Entry;

@@ -1,7 +1,7 @@
 import { css } from "generated/styled-system/css";
-import { ReactNode } from "react";
+import { PropsWithChildren } from "react";
 
-export default function TitlebarHandler({ children }: { children?: ReactNode }) {
+export default function TitlebarHandler({ children }: PropsWithChildren) {
   return (
     <div
       data-tauri-drag-region
