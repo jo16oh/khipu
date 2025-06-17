@@ -1,8 +1,9 @@
 import "../index.css";
 
+import { getCurrentWebviewWindow } from "@tauri-apps/api/webviewWindow";
 import { styled } from "generated/styled-system/jsx";
 import { commands } from "generated/tauri-commands";
-import { use, useMemo } from "react";
+import { use, useEffect, useMemo } from "react";
 import { RootProviders } from "./Providers";
 import Entry from "./components/Entry";
 import TitlebarHandler from "./components/TitlebarHandler";
@@ -21,6 +22,10 @@ function App() {
   }, [appState]);
 
   if (openDb) use(openDb);
+
+  useEffect(() => {
+    getCurrentWebviewWindow().show();
+  }, []);
 
   return (
     <RootProviders>

@@ -30,7 +30,7 @@ pub fn run() {
                 .inner_size(1025.0, 800.0)
                 .min_inner_size(470.0, 380.0)
                 .resizable(true)
-                .visible(true);
+                .visible(false);
 
             // set transparent title bar only when building for macOS
             #[cfg(target_os = "macos")]
