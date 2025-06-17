@@ -87,6 +87,9 @@ importers:
       '@pandacss/eslint-plugin':
         specifier: ^0.2.9
         version: 0.2.9(eslint@9.28.0)(typescript@5.6.3)
+      '@pandacss/preset-panda':
+        specifier: ^0.54.0
+        version: 0.54.0
       '@tauri-apps/cli':
         specifier: ^2
         version: 2.5.0
@@ -114,6 +117,9 @@ importers:
       globals:
         specifier: ^16.2.0
         version: 16.2.0
+      pandacss-animate:
+        specifier: ^1.1.0
+        version: 1.1.0
       postcss:
         specifier: ^8.5.4
         version: 8.5.4
@@ -652,6 +658,9 @@ packages:
   '@pandacss/preset-panda@0.53.7':
     resolution: {integrity: sha512-lsOxyqIFOokGw/jzBd0W98EoXzQH571qOw/1ZHSVYbRGNuJe3n0Sm3KrKRbCwohrNEPGEiTpKYCFItyvLO7+eQ==}
 
+  '@pandacss/preset-panda@0.54.0':
+    resolution: {integrity: sha512-WBNoVwnGsS8pYHpxZQtLIiDUnVtFw0C+hFSozW/C2bisN0oJ9vyES+2pgYEPWmjZXcuYZe9tIxhfqp3N59QO8w==}
+
   '@pandacss/reporter@0.53.7':
     resolution: {integrity: sha512-dSalmwBKQDTBSxq7GoLpKINruaS2CUKIgW6X6s1do7LY6LS+L2Wihiuj94ywjCadZpY6LumGWSLQynMz83BhZg==}
 
@@ -663,6 +672,9 @@ packages:
 
   '@pandacss/types@0.53.7':
     resolution: {integrity: sha512-BBl4a2G5PQT45crYfVqDKhvfhjnltDwD9HtCbMP6375LFrBKDjoKqj8N5GaLE6xSuP09OZYbVXhRsQOaRVSXHA==}
+
+  '@pandacss/types@0.54.0':
+    resolution: {integrity: sha512-5kspg2UOgFWrawbHeoleZvbZ6id/kIBLHoDeD1CnLbl9fEbZAZ3Avi5Hi1mIFe9E8PFzp9V+N9IfQL7pYhavfA==}
 
   '@pkgr/core@0.1.2':
     resolution: {integrity: sha512-fdDH1LSGfZdTH2sxdpVMw31BanV28K/Gry0cVFxaNP77neJSkd82mM8ErPNYs9e+0O7SdHBLTDzDgwUuy18RnQ==}
@@ -2729,6 +2741,9 @@ packages:
   package-manager-detector@0.1.0:
     resolution: {integrity: sha512-qRwvZgEE7geMY6xPChI3T0qrM0PL4s/AKiLnNVjhg3GdN2/fUUSrpGA5Z8mejMXauT1BS6RJIgWvSGAdqg8NnQ==}
 
+  pandacss-animate@1.1.0:
+    resolution: {integrity: sha512-OFUga2pqz9o+I2Y09cLctdVNLu3tVFcMni0F3OgFm2hdpLuYh52SrQocnaVFlVO7JmvP/C8s26Q67c21zscRgQ==}
+
   parent-module@1.0.1:
     resolution: {integrity: sha512-GQ2EWRpQV8/o+Aw8YqtfZZPfNRWZYkbidE9k5rpl/hC3vtHHBfGm2Ifi6qWV+coDGkrUKZAxE3Lot5kcsRlh+g==}
     engines: {node: '>=6'}
@@ -4065,6 +4080,10 @@ snapshots:
     dependencies:
       '@pandacss/types': 0.53.7
 
+  '@pandacss/preset-panda@0.54.0':
+    dependencies:
+      '@pandacss/types': 0.54.0
+
   '@pandacss/reporter@0.53.7':
     dependencies:
       '@pandacss/core': 0.53.7
@@ -4085,6 +4104,8 @@ snapshots:
       ts-pattern: 5.0.8
 
   '@pandacss/types@0.53.7': {}
+
+  '@pandacss/types@0.54.0': {}
 
   '@pkgr/core@0.1.2': {}
 
@@ -6759,6 +6780,8 @@ snapshots:
       p-limit: 3.1.0
 
   package-manager-detector@0.1.0: {}
+
+  pandacss-animate@1.1.0: {}
 
   parent-module@1.0.1:
     dependencies:
