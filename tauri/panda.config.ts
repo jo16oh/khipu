@@ -23,4 +23,7 @@ export default defineConfig({
   outdir: "src/generated/styled-system",
 
   jsxFramework: "react",
+
+  strictTokens: true,
+  strictPropertyValues: true,
 });
