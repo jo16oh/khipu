@@ -16,6 +16,7 @@
     "prepare": "panda codegen"
   },
   "dependencies": {
+    "@tanstack/react-query": "^5.80.7",
     "@tauri-apps/api": "^2",
     "@tauri-apps/plugin-opener": "^2",
     "@tiptap/extension-document": "3.0.0-beta.6",
