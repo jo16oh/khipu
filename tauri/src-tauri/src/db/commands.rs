@@ -91,7 +91,8 @@ pub async fn list_db(app_handle: AppHandle) -> eyre::Result<Vec<String>> {
             let entry = entry.ok()?;
             let path = entry.path();
             if path.is_file() {
-                path.to_str()
+                path.file_name()
+                    .and_then(|s| s.to_str())
                     .and_then(|s| s.strip_suffix(".sqlite3"))
                     .map(|s| s.to_owned())
             } else {
