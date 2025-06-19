@@ -6,6 +6,7 @@ pub fn commands() -> tauri_specta::Commands<tauri::Wry> {
         create_db,
         open_db,
         close_db,
+        rename_db,
         delete_db,
         timeline,
         search,

@@ -83,6 +83,36 @@ pub async fn delete_db(
 #[specta::specta]
 #[macros::eyre_to_any]
 #[macros::log_err]
+pub async fn rename_db(
+    app_handle: AppHandle,
+    conn: State<'_, ConnectionState>,
+    old_name: &str,
+    new_name: &str,
+) -> eyre::Result<()> {
+    conn.close().await;
+
+    let dbs_path = databases_dir_path(&app_handle)?;
+    
+    let old_path = dbs_path.join(old_name.to_string() + ".sqlite3");
+    let new_path = dbs_path.join(new_name.to_string() + ".sqlite3");
+    
+    if !old_path.exists() {
+        bail!("Database named `{}` not found", old_name);
+    }
+    
+    if new_path.exists() {
+        bail!("A database named `{}` already exists", new_name);
+    }
+    
+    std::fs::rename(old_path, new_path)?;
+    
+    eyre::Ok(())
+}
+
+#[tauri::command]
+#[specta::specta]
+#[macros::eyre_to_any]
+#[macros::log_err]
 pub async fn list_db(app_handle: AppHandle) -> eyre::Result<Vec<String>> {
     let dbs_path = databases_dir_path(&app_handle)?;
 
