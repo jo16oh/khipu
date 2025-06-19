@@ -17,12 +17,15 @@ type WorkspaceState = {
 
 const mainViewStateStore = createViewStateStore();
 
-if (typeof localStorage !== "undefined") {
+// Check if localStorage is null to ensure localStorage is available.
+// I don't know why, but somehow there's a situation where localStorage is null.
+if (typeof localStorage !== "undefined" && localStorage !== null) {
   const prev = localStorage.getItem("mainView");
   if (prev) {
     const state = JSON.parse(prev);
     if (typeof state?.id === "string") mainViewStateStore.setState({ id: state.id });
   }
+
   mainViewStateStore.subscribe((current) => {
     const state = { id: current.id };
     localStorage.setItem("mainView", JSON.stringify(state));

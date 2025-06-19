@@ -17,7 +17,9 @@ export const useAppState = (() => {
     },
   }));
 
-  if (typeof localStorage !== "undefined") {
+  // Check if localStorage is null to ensure localStorage is available.
+  // I don't know why, but somehow there's a situation where localStorage is null.
+  if (typeof localStorage !== "undefined" && localStorage !== null) {
     const prev = JSON.parse(localStorage.getItem("appState") ?? "{}") as unknown;
 
     if (
