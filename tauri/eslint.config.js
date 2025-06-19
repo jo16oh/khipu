@@ -1,6 +1,7 @@
 import js from "@eslint/js";
 import json from "@eslint/json";
 import panda from "@pandacss/eslint-plugin";
+import pluginQuery from "@tanstack/eslint-plugin-query";
 import eslintConfigPrettier from "eslint-config-prettier/flat";
 import pluginReact from "eslint-plugin-react";
 import reactHooks from "eslint-plugin-react-hooks";
@@ -77,6 +78,14 @@ export default defineConfig([
       ...panda.configs.recommended.rules,
       "@pandacss/prefer-shorthand-properties": "warn",
       "@pandacss/no-margin-properties": "warn",
+    },
+  },
+  {
+    plugins: {
+      "@tanstack/query": pluginQuery,
+    },
+    rules: {
+      ...pluginQuery.configs.recommended.rules,
     },
   },
 ]);
