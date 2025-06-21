@@ -1,3 +1,4 @@
+import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { commands } from "generated/tauri-commands";
 import { PropsWithChildren, createContext, useContext } from "react";
 import { DocUpdateNotifier } from "src/stores/doc-update-notifier";
@@ -11,6 +12,8 @@ const OutlineStoreContext = createContext<OutlineStore | undefined>(undefined);
 const ViewStoreContext = createContext<ViewStateStore | undefined>(undefined);
 
 const FocusManagerContext = createContext<FocusManager | undefined>(undefined);
+
+const queryClient = new QueryClient();
 
 export function useOutlineStore() {
   const context = useContext(OutlineStoreContext);
@@ -35,8 +38,10 @@ export function RootProviders({ children }: PropsWithChildren) {
   const focusManager = new FocusManager();
   const outlineStore = new OutlineStore(notifier, commands);
   return (
-    <OutlineStoreContext.Provider value={outlineStore}>
-      <FocusManagerContext.Provider value={focusManager}>{children}</FocusManagerContext.Provider>
-    </OutlineStoreContext.Provider>
+    <QueryClientProvider client={queryClient}>
+      <OutlineStoreContext.Provider value={outlineStore}>
+        <FocusManagerContext.Provider value={focusManager}>{children}</FocusManagerContext.Provider>
+      </OutlineStoreContext.Provider>
+    </QueryClientProvider>
   );
 }
