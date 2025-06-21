@@ -26,4 +26,13 @@ export default defineConfig({
 
   strictTokens: true,
   strictPropertyValues: true,
+
+  globalCss: {
+    "html, body": {
+      cursor: "default",
+      fontSmoothing: "subpixel-antialiased",
+      userSelect: "none",
+      overscrollBehavior: "none",
+    },
+  },
 });
