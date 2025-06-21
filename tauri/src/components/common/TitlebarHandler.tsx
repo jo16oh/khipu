@@ -6,11 +6,12 @@ export default function TitlebarHandler({ children }: PropsWithChildren) {
     <div
       data-tauri-drag-region
       className={css({
-        zIndex: "10",
+        zIndex: 9999,
         pos: "fixed",
+        top: "0",
+        left: "0",
         w: "full",
         h: "[28px]",
-        userSelect: "none",
       })}
     >
       {children}
