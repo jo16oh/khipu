@@ -1,12 +1,20 @@
+import { useSuspenseQuery } from "@tanstack/react-query";
 import { getVersion } from "@tauri-apps/api/app";
 import { css } from "generated/styled-system/css";
 import { styled } from "generated/styled-system/jsx";
-import { PropsWithChildren, use, useMemo } from "react";
 import { Button } from "react-aria-components";
+import BulletButton from "./common/BulletButton";
+import CreateOrRenameDatabaseModal from "./modal/CreateOrRenameDatabaseModal";
+import OpenDatabaseModal from "./modal/OpenDatabaseModal";
+import SettingModal from "./modal/SettingModal";
 
 function Entry() {
-  const versionPromise = useMemo(() => getVersion(), []);
-  const version = use(versionPromise);
+  const { data: version } = useSuspenseQuery({
+    queryKey: ["version"],
+    queryFn: async () => {
+      return await getVersion();
+    },
+  });
 
   return (
     <Container>
@@ -16,9 +24,12 @@ function Entry() {
         <div className={versionStyle}>v{version}</div>
       </AppIconContainer>
       <Operations>
-        <Operation>Create New Database</Operation>
-        <Operation>Open Database</Operation>
-        <Operation>Setting</Operation>
+        <CreateOrRenameDatabaseModal
+          kind="create"
+          trigger={<OperationTrigger text="Create New Database" />}
+        />
+        <OpenDatabaseModal trigger={<OperationTrigger text="Open Database" />} />
+        <SettingModal trigger={<OperationTrigger text="Setting" />} />
       </Operations>
     </Container>
   );
@@ -33,7 +44,6 @@ const Container = styled("div", {
     alignItems: "center",
     w: "screen",
     h: "screen",
-    bg: "neutral.50",
   },
 });
 
@@ -74,28 +84,16 @@ const Operations = styled("div", {
   },
 });
 
-const Operation = ({ children }: PropsWithChildren) => (
-  <div
-    className={css({
-      display: "flex",
-      gap: "2",
-      justifyContent: "start",
-      alignItems: "center",
-      p: "1",
-    })}
-  >
-    <div className={css({ pb: "0.5", fontFamily: "mono", fontSize: "md" })}>◉</div>
+const OperationTrigger = ({ text }: { text: string }) => (
+  <div className={css({ display: "flex", gap: "2", alignItems: "center", p: "1" })}>
+    <BulletButton isCollapsed={true} isDisabled={false} />
     <Button
       className={css({
-        fontFamily: "mono",
-        fontSize: "md",
-        _hover: {
-          cursor: "pointer",
-          textDecoration: "underline",
-        },
+        color: "stone.900",
+        _hover: { cursor: "pointer", textDecoration: "underline" },
       })}
     >
-      {children}
+      {text}
     </Button>
   </div>
 );
