@@ -3,25 +3,31 @@ import "../index.css";
 import { getCurrentWebviewWindow } from "@tauri-apps/api/webviewWindow";
 import { styled } from "generated/styled-system/jsx";
 import { commands } from "generated/tauri-commands";
-import { use, useEffect, useMemo } from "react";
+import { Suspense, useEffect, useState } from "react";
 import { RootProviders } from "./Providers";
 import Entry from "./components/Entry";
-import TitlebarHandler from "./components/TitlebarHandler";
+import TitlebarHandler from "./components/common/TitlebarHandler";
 import { useAppState } from "./stores/app-state-store";
 
 function App() {
-  const appState = useAppState();
+  const dbName = useAppState((state) => state.dbName);
+  const closeDb = useAppState((state) => state.closeDb);
+  const [isLoading, setIsLoading] = useState(true);
 
-  const openDb = useMemo(() => {
-    return appState.dbName
-      ? commands.openDb(appState.dbName).catch((e) => {
-          console.warn(e);
-          appState.closeDb();
+  useEffect(() => {
+    if (dbName) {
+      commands
+        .openDb(dbName)
+        .then(() => console.log("open db successfully"))
+        .catch((e) => {
+          console.error(e);
+          closeDb();
         })
-      : null;
-  }, [appState]);
-
-  if (openDb) use(openDb);
+        .finally(() => setIsLoading(false));
+    } else {
+      setIsLoading(false);
+    }
+  }, [dbName, closeDb]);
 
   useEffect(() => {
     getCurrentWebviewWindow().show();
@@ -29,16 +35,30 @@ function App() {
 
   return (
     <RootProviders>
-      <TitlebarHandler />
-      <Main>{appState.dbName ? <div>workspace</div> : <Entry />}</Main>
+      <main>
+        <TitlebarHandler />
+        <Suspense>
+          {!isLoading && dbName ? (
+            <Workspace>
+              workspace: {dbName}
+              <button onClick={() => closeDb()}>close {dbName}</button>
+            </Workspace>
+          ) : (
+            <Entry />
+          )}
+        </Suspense>
+      </main>
     </RootProviders>
   );
 }
 
-const Main = styled("main", {
+const Workspace = styled("div", {
   base: {
-    cursor: "default",
-    userSelect: "none",
+    display: "grid",
+    w: "full",
+    h: "full",
+    bg: "pink.300",
+    placeContent: "center",
   },
 });
 

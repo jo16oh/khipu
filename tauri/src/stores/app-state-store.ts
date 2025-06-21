@@ -19,7 +19,7 @@ export const useAppState = (() => {
 
   // Check if localStorage is null to ensure localStorage is available.
   // I don't know why, but somehow there's a situation where localStorage is null.
-  if (typeof localStorage !== "undefined" && localStorage !== null) {
+  if (localStorage) {
     const prev = JSON.parse(localStorage.getItem("appState") ?? "{}") as unknown;
 
     if (
@@ -32,7 +32,7 @@ export const useAppState = (() => {
     }
 
     store.subscribe((state) => {
-      localStorage.setItem("appState", JSON.stringify(state));
+      if (localStorage) localStorage.setItem("appState", JSON.stringify(state));
     });
   }
 

@@ -19,7 +19,7 @@ const mainViewStateStore = createViewStateStore();
 
 // Check if localStorage is null to ensure localStorage is available.
 // I don't know why, but somehow there's a situation where localStorage is null.
-if (typeof localStorage !== "undefined" && localStorage !== null) {
+if (localStorage) {
   const prev = localStorage.getItem("mainView");
   if (prev) {
     const state = JSON.parse(prev);
@@ -28,7 +28,7 @@ if (typeof localStorage !== "undefined" && localStorage !== null) {
 
   mainViewStateStore.subscribe((current) => {
     const state = { id: current.id };
-    localStorage.setItem("mainView", JSON.stringify(state));
+    if (localStorage) localStorage.setItem("mainView", JSON.stringify(state));
   });
 }
 
