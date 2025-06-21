@@ -15,6 +15,7 @@ pub fn run() {
     let specta_builder = get_specta_builder();
 
     let app = tauri::Builder::default()
+        .plugin(tauri_plugin_store::Builder::new().build())
         .plugin(tauri_plugin_opener::init())
         .plugin(
             tauri_plugin_window_state::Builder::default()

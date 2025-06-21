@@ -92,20 +92,20 @@ pub async fn rename_db(
     conn.close().await;
 
     let dbs_path = databases_dir_path(&app_handle)?;
-    
+
     let old_path = dbs_path.join(old_name.to_string() + ".sqlite3");
     let new_path = dbs_path.join(new_name.to_string() + ".sqlite3");
-    
+
     if !old_path.exists() {
         bail!("Database named `{}` not found", old_name);
     }
-    
+
     if new_path.exists() {
         bail!("A database named `{}` already exists", new_name);
     }
-    
+
     std::fs::rename(old_path, new_path)?;
-    
+
     eyre::Ok(())
 }
 
