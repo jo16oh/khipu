@@ -46,7 +46,7 @@ function App() {
     <RootProviders>
       <main>
         <TitlebarHandler />
-        <Suspense fallback="loading...">
+        <Suspense>
           {!isLoading && dbName ? (
             <Workspace>
               workspace: {dbName}
