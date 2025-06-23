@@ -1,3 +1,4 @@
+import { LazyStore } from "@tauri-apps/plugin-store";
 import { create } from "zustand";
 import { FocusManager } from "./focus-manager";
 import { ViewState, ViewStateStore, createViewStateStore } from "./view-state-store";
@@ -16,21 +17,6 @@ type WorkspaceState = {
 };
 
 const mainViewStateStore = createViewStateStore();
-
-// Check if localStorage is null to ensure localStorage is available.
-// I don't know why, but somehow there's a situation where localStorage is null.
-if (localStorage) {
-  const prev = localStorage.getItem("mainView");
-  if (prev) {
-    const state = JSON.parse(prev);
-    if (typeof state?.id === "string") mainViewStateStore.setState({ id: state.id });
-  }
-
-  mainViewStateStore.subscribe((current) => {
-    const state = { id: current.id };
-    if (localStorage) localStorage.setItem("mainView", JSON.stringify(state));
-  });
-}
 
 export const useWorkspaceState = create<WorkspaceState>((set) => ({
   main: {
@@ -60,3 +46,16 @@ export const useWorkspaceState = create<WorkspaceState>((set) => ({
     });
   },
 }));
+
+export async function initWorkspaceState(stateStorage: LazyStore) {
+  const prev = stateStorage.get("mainView");
+
+  if (prev !== null && typeof prev === "object" && "id" in prev && typeof prev?.id === "string") {
+    mainViewStateStore.setState({ id: prev.id });
+  }
+
+  mainViewStateStore.subscribe((current) => {
+    const state = { id: current.id };
+    stateStorage.set("mainView", state);
+  });
+}

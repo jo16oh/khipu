@@ -1,3 +1,4 @@
+import { LazyStore } from "@tauri-apps/plugin-store";
 import { create } from "zustand";
 
 type AppState = {
@@ -6,35 +7,29 @@ type AppState = {
   closeDb: () => void;
 };
 
-export const useAppState = (() => {
-  const store = create<AppState>((set) => ({
-    dbName: null,
-    openDb: (dbName) => {
-      if (dbName.length > 0) set({ dbName });
-    },
-    closeDb: () => {
-      set({ dbName: null });
-    },
-  }));
+export const useAppState = create<AppState>((set) => ({
+  dbName: null,
+  openDb: (dbName) => {
+    if (dbName.length > 0) set({ dbName });
+  },
+  closeDb: () => {
+    set({ dbName: null });
+  },
+}));
 
-  // Check if localStorage is null to ensure localStorage is available.
-  // I don't know why, but somehow there's a situation where localStorage is null.
-  if (localStorage) {
-    const prev = JSON.parse(localStorage.getItem("appState") ?? "{}") as unknown;
+export async function initAppStateStore(stateStorage: LazyStore) {
+  const prev = await stateStorage.get("appState");
 
-    if (
-      typeof prev === "object" &&
-      prev !== null &&
-      "dbName" in prev &&
-      typeof prev.dbName === "string"
-    ) {
-      store.getState().openDb(prev.dbName);
-    }
-
-    store.subscribe((state) => {
-      if (localStorage) localStorage.setItem("appState", JSON.stringify(state));
-    });
+  if (
+    typeof prev === "object" &&
+    prev !== null &&
+    "dbName" in prev &&
+    typeof prev.dbName === "string"
+  ) {
+    useAppState.getState().openDb(prev.dbName);
   }
 
-  return store;
-})();
+  useAppState.subscribe((state) => {
+    stateStorage.set("appState", state);
+  });
+}

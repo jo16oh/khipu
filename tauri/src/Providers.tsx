@@ -46,6 +46,7 @@ export function RootProviders({ children }: PropsWithChildren) {
   const notifier = new DocUpdateNotifier();
   const focusManager = new FocusManager();
   const outlineStore = new OutlineStore(notifier, commands);
+
   return (
     <QueryClientProvider client={queryClient}>
       <OutlineStoreContext.Provider value={outlineStore}>
