@@ -23,7 +23,7 @@ const Bullet = ({
       },
     }}
   >
-    <Circle size="[0.4375rem]" bg="stone.900" />
+    <Circle size="[0.4375rem]" bg="stone.500" />
   </Circle>
 );
 
