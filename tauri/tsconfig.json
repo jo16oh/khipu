@@ -34,6 +34,6 @@
     }
   },
   "include": ["src"],
-  "exclude": ["src/generated/tauri-commands.js"],
+  "exclude": ["src/generated/tauri-commands.ts"],
   "references": [{ "path": "./tsconfig.node.json" }]
 }
