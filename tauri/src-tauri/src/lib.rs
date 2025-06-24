@@ -65,7 +65,9 @@ fn get_specta_builder() -> tauri_specta::Builder {
     #[cfg(debug_assertions)]
     builder
         .export(
-            Typescript::default().bigint(specta_typescript::BigIntExportBehavior::Number),
+            Typescript::default()
+                .header("// @ts-nocheck")
+                .bigint(specta_typescript::BigIntExportBehavior::Number),
             "../src/generated/tauri-commands.ts",
         )
         .expect("Failed to export typescript bindings");
