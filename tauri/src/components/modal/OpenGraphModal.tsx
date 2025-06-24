@@ -10,15 +10,15 @@ import { useAppState } from "src/stores/app-state-store";
 import Bullet from "../common/Bullet";
 import Dialog from "../common/Dialog";
 import EllipsisMenu from "../common/EllipsisMenu";
-import CreateOrRenameDatabaseModal from "./CreateOrRenameDatabaseModal";
-import DeleteDatabaseModal from "./DeleteDatabaseModal";
+import CreateOrRenameGraphModal from "./CreateOrRenameGraphModal";
+import DeleteGraphModal from "./DeleteGraphModal";
 
-export default function OpenDatabaseModal({ trigger }: { trigger: ReactNode }) {
-  const openDb = useAppState((state) => state.openDb);
+export default function OpenGraphModal({ trigger }: { trigger: ReactNode }) {
+  const openGraph = useAppState((state) => state.openGraph);
 
-  const { data: dbList } = useSuspenseQuery({
-    queryKey: ["dbList"],
-    queryFn: commands.listDb,
+  const { data: graphList } = useSuspenseQuery({
+    queryKey: ["graphList"],
+    queryFn: commands.listGraph,
   });
 
   return (
@@ -28,23 +28,23 @@ export default function OpenDatabaseModal({ trigger }: { trigger: ReactNode }) {
       content={({ close }) => (
         <Container>
           <Title>
-            <div>Choose database to open</div>
+            <div>Choose graph to open</div>
             <CloseButton onClick={close}>
               <X />
             </CloseButton>
           </Title>
           <ListItemsContainer>
-            {dbList.map((name) => (
+            {graphList.map((name) => (
               <ListItemContainer className="group" key={name}>
                 <Square size="6" p="2">
-                  <Ellipsis dbName={name} />
+                  <Ellipsis graphName={name} />
                 </Square>
                 <Square size="6" p="2">
                   <Bullet isDisabled={true} isCollapsed={true} />
                 </Square>
-                <OpenDbButton onClick={() => openDb(name)} key={name}>
+                <OpenGraphButton onClick={() => openGraph(name)} key={name}>
                   {name}
-                </OpenDbButton>
+                </OpenGraphButton>
               </ListItemContainer>
             ))}
           </ListItemsContainer>
@@ -105,30 +105,30 @@ const ListItemContainer = styled("div", {
   },
 });
 
-const Ellipsis = ({ dbName }: { dbName: string }) => {
+const Ellipsis = ({ graphName }: { graphName: string }) => {
   return (
     <EllipsisMenu
       popoverProps={{ style: { zIndex: 1000 } }}
       content={({ close }) => (
         <Flex flexDir="column" py="2" px="1.5">
-          <DeleteDatabaseModal
+          <DeleteGraphModal
             close={close}
-            dbName={dbName}
+            graphName={graphName}
             trigger={
               <EllipsisActionButton className={flex()}>
                 <TrashIcon />
-                Delete database
+                Delete graph
               </EllipsisActionButton>
             }
           />
-          <CreateOrRenameDatabaseModal
+          <CreateOrRenameGraphModal
             kind="rename"
             close={close}
-            prevDbName={dbName}
+            prevGraphName={graphName}
             trigger={
               <EllipsisActionButton className={flex({})}>
                 <PencilLineIcon />
-                Rename database
+                Rename graph
               </EllipsisActionButton>
             }
           />
@@ -159,7 +159,7 @@ const EllipsisActionButton = styled(Button, {
   }),
 });
 
-const OpenDbButton = styled(Button, {
+const OpenGraphButton = styled(Button, {
   base: {
     flex: "1",
     minW: "0",

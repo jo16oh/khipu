@@ -2,18 +2,18 @@ import { LazyStore } from "@tauri-apps/plugin-store";
 import { create } from "zustand";
 
 type AppState = {
-  dbName: string | null;
-  openDb: (dbName: string) => void;
-  closeDb: () => void;
+  graphName: string | null;
+  openGraph: (graphName: string) => void;
+  closeGraph: () => void;
 };
 
 export const useAppState = create<AppState>((set) => ({
-  dbName: null,
-  openDb: (dbName) => {
-    if (dbName.length > 0) set({ dbName });
+  graphName: null,
+  openGraph: (graphName) => {
+    if (graphName.length > 0) set({ graphName });
   },
-  closeDb: () => {
-    set({ dbName: null });
+  closeGraph: () => {
+    set({ graphName: null });
   },
 }));
 
@@ -23,10 +23,10 @@ export async function initAppStateStore(stateStorage: LazyStore) {
   if (
     typeof prev === "object" &&
     prev !== null &&
-    "dbName" in prev &&
-    typeof prev.dbName === "string"
+    "graphName" in prev &&
+    typeof prev.graphName === "string"
   ) {
-    useAppState.getState().openDb(prev.dbName);
+    useAppState.getState().openGraph(prev.graphName);
   }
 
   useAppState.subscribe((state) => {

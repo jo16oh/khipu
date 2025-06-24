@@ -64,14 +64,14 @@ pub async fn timeline<'a>(
 
     let day_start = {
         let (pos, ts) = position.into_query_params();
-        sqlx::query_file_scalar!("src/db/fetch_nearest_timestamp.sql", pos, ts, opt)
+        sqlx::query_file_scalar!("src/graph/fetch_nearest_timestamp.sql", pos, ts, opt)
             .fetch_one(conn)
             .await
             .map(day_start)?
     };
 
     let outlines =
-        sqlx::query_file_as_unchecked!(Outline, "src/db/fetch_timeline.sql", day_start, opt)
+        sqlx::query_file_as_unchecked!(Outline, "src/graph/fetch_timeline.sql", day_start, opt)
             .fetch_all(conn)
             .await?;
 
@@ -79,7 +79,7 @@ pub async fn timeline<'a>(
         let ids = serde_json::to_string(&outlines.iter().map(|o| &o.id).collect_vec())?;
         sqlx::query_file_as_unchecked!(
             Outline,
-            "src/db/fetch_linked_outlines_to_embed_text.sql",
+            "src/graph/fetch_linked_outlines_to_embed_text.sql",
             ids
         )
         .fetch_all(conn)
@@ -108,7 +108,7 @@ pub async fn search<'a>(
         let ids = serde_json::to_string(&results.iter().map(|o| &o.id).collect_vec())?;
         sqlx::query_file_as_unchecked!(
             Outline,
-            "src/db/fetch_linked_outlines_to_embed_text.sql",
+            "src/graph/fetch_linked_outlines_to_embed_text.sql",
             ids
         )
         .fetch_all(conn)
@@ -139,7 +139,7 @@ pub async fn suggest<'a>(
 
     let paths = {
         let ids = serde_json::to_string(&suggestions.iter().map(|o| &o.id).collect_vec())?;
-        sqlx::query_file_as_unchecked!(Outline, "src/db/fetch_paths.sql", ids)
+        sqlx::query_file_as_unchecked!(Outline, "src/graph/fetch_paths.sql", ids)
             .fetch_all(conn)
             .await?
     };
@@ -148,7 +148,7 @@ pub async fn suggest<'a>(
 }
 
 pub async fn outbound_links(pool: &SqlitePool, id: &str) -> eyre::Result<Vec<Outline>> {
-    sqlx::query_file_as_unchecked!(Outline, "src/db/fetch_outbound_links.sql", id)
+    sqlx::query_file_as_unchecked!(Outline, "src/graph/fetch_outbound_links.sql", id)
         .fetch_all(pool)
         .await
         .map_err(eyre::Error::from)
@@ -160,7 +160,7 @@ pub async fn inbound_links(
     offset: i64,
 ) -> eyre::Result<(Vec<Outline>, Vec<Outline>)> {
     let links =
-        sqlx::query_file_as_unchecked!(Outline, "src/db/fetch_inbound_links.sql", id, offset)
+        sqlx::query_file_as_unchecked!(Outline, "src/graph/fetch_inbound_links.sql", id, offset)
             .fetch_all(pool)
             .await?;
 
@@ -168,7 +168,7 @@ pub async fn inbound_links(
         let pool = pool.clone();
         let id = o.id.clone();
         async move {
-            sqlx::query_file_as_unchecked!(Outline, "src/db/fetch_excerpt.sql", id)
+            sqlx::query_file_as_unchecked!(Outline, "src/graph/fetch_excerpt.sql", id)
                 .fetch_all(&pool)
                 .await
         }
@@ -186,7 +186,7 @@ pub async fn inbound_links(
         let ids = serde_json::to_string(&contents.iter().map(|o| &o.id).collect_vec())?;
         sqlx::query_file_as_unchecked!(
             Outline,
-            "src/db/fetch_linked_outlines_to_embed_text.sql",
+            "src/graph/fetch_linked_outlines_to_embed_text.sql",
             ids
         )
         .fetch_all(pool)
@@ -204,7 +204,7 @@ pub async fn excerpt<'a>(
     id: &str,
 ) -> eyre::Result<Vec<Outline>> {
     let contents: Vec<Outline> =
-        sqlx::query_file_as_unchecked!(Outline, "src/db/fetch_excerpt.sql", id)
+        sqlx::query_file_as_unchecked!(Outline, "src/graph/fetch_excerpt.sql", id)
             .fetch_all(conn)
             .await?;
 
@@ -212,7 +212,7 @@ pub async fn excerpt<'a>(
         let ids = serde_json::to_string(&contents.iter().map(|o| &o.id).collect_vec())?;
         sqlx::query_file_as_unchecked!(
             Outline,
-            "src/db/fetch_linked_outlines_to_embed_text.sql",
+            "src/graph/fetch_linked_outlines_to_embed_text.sql",
             ids
         )
         .fetch_all(conn)
@@ -223,21 +223,21 @@ pub async fn excerpt<'a>(
 }
 
 pub async fn tree<'a>(conn: impl SqliteExecutor<'a>, id: &str) -> eyre::Result<Vec<Outline>> {
-    sqlx::query_file_as_unchecked!(Outline, "src/db/fetch_outline_tree.sql", id)
+    sqlx::query_file_as_unchecked!(Outline, "src/graph/fetch_outline_tree.sql", id)
         .fetch_all(conn)
         .await
         .map_err(eyre::Error::from)
 }
 
 pub async fn y_updates<'a>(conn: impl SqliteExecutor<'a>, id: &str) -> eyre::Result<Vec<Vec<u8>>> {
-    sqlx::query_file_scalar!("src/db/fetch_y_updates.sql", id)
+    sqlx::query_file_scalar!("src/graph/fetch_y_updates.sql", id)
         .fetch_all(conn)
         .await
         .map_err(eyre::Error::from)
 }
 
 pub async fn asset<'a>(conn: impl SqliteExecutor<'a>, id: &str) -> eyre::Result<Vec<u8>> {
-    sqlx::query_file_scalar!("src/db/fetch_asset.sql", id)
+    sqlx::query_file_scalar!("src/graph/fetch_asset.sql", id)
         .fetch_one(conn)
         .await
         .map_err(eyre::Error::from)
@@ -253,7 +253,7 @@ pub async fn is_conflicting<'a>(
         extract_text_from_doc(doc)?.replace(r#"""#, r#""""#)
     );
 
-    sqlx::query_file_scalar!("src/db/is_conflicting.sql", id, text)
+    sqlx::query_file_scalar!("src/graph/is_conflicting.sql", id, text)
         .fetch_optional(conn)
         .await
         .map(|r| r.is_some())
@@ -261,7 +261,7 @@ pub async fn is_conflicting<'a>(
 }
 
 pub async fn outline_exists<'a>(conn: impl SqliteExecutor<'a>, id: &str) -> eyre::Result<bool> {
-    sqlx::query_file_scalar!("src/db/outline_exists.sql", id)
+    sqlx::query_file_scalar!("src/graph/outline_exists.sql", id)
         .fetch_optional(conn)
         .await
         .map(|r| r.is_some())
@@ -272,7 +272,7 @@ pub async fn upsert_outline(tx: &mut SqliteTransaction<'_>, outline: &Outline) -
     delete_fts_index(tx, &outline.id).await?;
 
     let rowid = sqlx::query_file_scalar!(
-        "src/db/upsert_outline.sql",
+        "src/graph/upsert_outline.sql",
         outline.id,
         outline.parent_id,
         outline.findex,
@@ -301,12 +301,12 @@ async fn delete_fts_index(tx: &mut SqliteTransaction<'_>, outline_id: &str) -> e
 
     // delete index of old document
     if let Some(res) =
-        sqlx::query_file_as!(Res, "src/db/fetch_outline_rowid_and_doc.sql", outline_id)
+        sqlx::query_file_as!(Res, "src/graph/fetch_outline_rowid_and_doc.sql", outline_id)
             .fetch_optional(&mut **tx)
             .await?
     {
         let text = extract_text_from_doc(&res.doc)?;
-        sqlx::query_file!("src/db/delete_fts_index.sql", res.rowid, text)
+        sqlx::query_file!("src/graph/delete_fts_index.sql", res.rowid, text)
             .execute(&mut **tx)
             .await?;
     }
@@ -322,7 +322,7 @@ async fn insert_fts_index(
     // add meaningless two chars to index the end of text correctly by trigram tokenizer
     let text = extract_text_from_doc(doc)? + &ZERO_WIDTH_SPACE.repeat(2);
 
-    sqlx::query_file_scalar!("src/db/insert_fts_index.sql", rowid, text)
+    sqlx::query_file_scalar!("src/graph/insert_fts_index.sql", rowid, text)
         .execute(&mut **tx)
         .await?;
 
@@ -335,14 +335,14 @@ pub async fn sync_links(
     link_list: HashSet<Link>,
 ) -> eyre::Result<()> {
     let old_link_list: HashSet<Link> =
-        sqlx::query_file_as_unchecked!(Link, "src/db/fetch_link_list.sql", outline_id)
+        sqlx::query_file_as_unchecked!(Link, "src/graph/fetch_link_list.sql", outline_id)
             .fetch_all(&mut **tx)
             .await?
             .into_iter()
             .collect();
 
     for l in old_link_list.difference(&link_list) {
-        sqlx::query_file!("src/db/delete_outline_link.sql", outline_id, l.id)
+        sqlx::query_file!("src/graph/delete_outline_link.sql", outline_id, l.id)
             .execute(&mut **tx)
             .await?;
     }
@@ -350,7 +350,7 @@ pub async fn sync_links(
     for l in link_list.difference(&old_link_list) {
         let link_type = l.r#type.to_string();
         sqlx::query_file!(
-            "src/db/insert_outline_link.sql",
+            "src/graph/insert_outline_link.sql",
             outline_id,
             l.id,
             link_type
@@ -372,7 +372,7 @@ pub async fn insert_y_updates<'a>(
     let update = yrs::merge_updates_v2(updates)?;
 
     sqlx::query_file!(
-        "src/db/insert_y_update.sql",
+        "src/graph/insert_y_update.sql",
         id,
         outline_id,
         update,
@@ -391,7 +391,7 @@ pub async fn sync_assets(
     new_asset_data: HashMap<String, Base64Bytes>,
 ) -> eyre::Result<()> {
     let old_assetlist: HashSet<Asset> =
-        sqlx::query_file_as!(Asset, "src/db/fetch_asset_rel.sql", outline_id)
+        sqlx::query_file_as!(Asset, "src/graph/fetch_asset_rel.sql", outline_id)
             .fetch_all(&mut **tx)
             .await?
             .into_iter()
@@ -400,7 +400,7 @@ pub async fn sync_assets(
     // Delete asset rels that no longer exist in the provided asset list
     for a in old_assetlist.difference(&asset_list) {
         sqlx::query_file!(
-            "src/db/delete_asset_rel.sql",
+            "src/graph/delete_asset_rel.sql",
             outline_id,
             a.hash,
             a.filename,
@@ -419,12 +419,12 @@ pub async fn sync_assets(
                 bail!("asset hash is incorrect");
             }
 
-            sqlx::query_file!("src/db/insert_asset.sql", hash, data)
+            sqlx::query_file!("src/graph/insert_asset.sql", hash, data)
                 .execute(&mut **tx)
                 .await?;
 
             sqlx::query_file!(
-                "src/db/insert_asset_rel.sql",
+                "src/graph/insert_asset_rel.sql",
                 outline_id,
                 a.hash,
                 a.filename,
@@ -433,13 +433,13 @@ pub async fn sync_assets(
             .execute(&mut **tx)
             .await?;
         // Check if the same file already exists
-        } else if sqlx::query_file_scalar!("src/db/is_asset_exists.sql", a.hash)
+        } else if sqlx::query_file_scalar!("src/graph/is_asset_exists.sql", a.hash)
             .fetch_optional(&mut **tx)
             .await?
             .is_some()
         {
             sqlx::query_file!(
-                "src/db/insert_asset_rel.sql",
+                "src/graph/insert_asset_rel.sql",
                 outline_id,
                 a.hash,
                 a.filename,
@@ -460,13 +460,13 @@ pub async fn fetch_deleted_outline_trees<'a>(
     offset: i64,
 ) -> eyre::Result<(Vec<Outline>, Vec<Outline>)> {
     let deleted_trees =
-        sqlx::query_file_as_unchecked!(Outline, "src/db/fetch_deleted_outline_trees.sql", offset)
+        sqlx::query_file_as_unchecked!(Outline, "src/graph/fetch_deleted_outline_trees.sql", offset)
             .fetch_all(conn)
             .await?;
 
     let paths = {
         let ids = serde_json::to_string(&deleted_trees.iter().map(|o| &o.id).collect_vec())?;
-        sqlx::query_file_as_unchecked!(Outline, "src/db/fetch_paths.sql", ids)
+        sqlx::query_file_as_unchecked!(Outline, "src/graph/fetch_paths.sql", ids)
             .fetch_all(conn)
             .await?
     };
@@ -475,21 +475,21 @@ pub async fn fetch_deleted_outline_trees<'a>(
 }
 
 pub async fn clear_unreferenced_deleted_assets(tx: &mut SqliteTransaction<'_>) -> eyre::Result<()> {
-    sqlx::query_file!("src/db/clear_unreferenced_deleted_assets.sql")
+    sqlx::query_file!("src/graph/clear_unreferenced_deleted_assets.sql")
         .execute(&mut **tx)
         .await?;
     eyre::Ok(())
 }
 
 pub async fn clear_deleted_outline(tx: &mut SqliteTransaction<'_>, id: &str) -> eyre::Result<()> {
-    sqlx::query_file!("src/db/clear_deleted_outline.sql", id)
+    sqlx::query_file!("src/graph/clear_deleted_outline.sql", id)
         .execute(&mut **tx)
         .await?;
     eyre::Ok(())
 }
 
 pub async fn clear_all_deleted_outlines(tx: &mut SqliteTransaction<'_>) -> eyre::Result<()> {
-    sqlx::query_file!("src/db/clear_all_deleted_outlines.sql")
+    sqlx::query_file!("src/graph/clear_all_deleted_outlines.sql")
         .execute(&mut **tx)
         .await?;
     eyre::Ok(())

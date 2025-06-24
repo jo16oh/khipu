@@ -1,5 +1,5 @@
 import { JSONContent, Node } from "@tiptap/react";
-import { DocUpdateNotifier } from "src/stores/outline-store";
+import { type DocUpdateNotifier } from "src/stores/doc-update-notifier";
 
 export function createUpdateNotifierExtension(outlineId: string, notifier: DocUpdateNotifier) {
   return Node.create({

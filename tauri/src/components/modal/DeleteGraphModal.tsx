@@ -6,25 +6,25 @@ import { ReactNode, useState } from "react";
 import { Button, Input } from "react-aria-components";
 import Dialog from "../common/Dialog";
 
-export default function DeleteDatabaseModal({
+export default function DeleteGraphModal({
   close,
-  dbName,
+  graphName,
   trigger,
 }: {
   close: () => void;
-  dbName: string;
+  graphName: string;
   trigger: ReactNode;
 }) {
   const [confirmInput, setConfirmInput] = useState("");
-  const canDelete = confirmInput === dbName;
+  const canDelete = confirmInput === graphName;
 
   const queryClient = useQueryClient();
 
-  const { mutate: deleteDb } = useMutation({
-    mutationFn: () => commands.deleteDb(dbName),
+  const { mutate: deleteGraph } = useMutation({
+    mutationFn: () => commands.deleteGraph(graphName),
     onSuccess: () => {
       close();
-      queryClient.invalidateQueries({ queryKey: ["dbList"] });
+      queryClient.invalidateQueries({ queryKey: ["graphList"] });
     },
   });
 
@@ -46,9 +46,9 @@ export default function DeleteDatabaseModal({
           <styled.div overflowWrap={"break-word"} wordWrap={"break-word"}>
             This will permanently delete{" "}
             <styled.span rounded="md" py="0.5" px="1" fontWeight={"bold"} bg="stone.200">
-              {dbName}
+              {graphName}
             </styled.span>
-            . This action cannot be undone. To confirm, please type {dbName}.
+            . This action cannot be undone. To confirm, please type {graphName}.
           </styled.div>
           <Input
             className={css({
@@ -58,11 +58,11 @@ export default function DeleteDatabaseModal({
               _focus: { borderBottomColor: "blue.500" },
             })}
             value={confirmInput}
-            placeholder={dbName}
+            placeholder={graphName}
             onChange={(e) => setConfirmInput(e.target.value)}
           />
           <Flex justifyContent="end">
-            <DeleteButton onClick={() => deleteDb()} isDisabled={!canDelete}>
+            <DeleteButton onClick={() => deleteGraph()} isDisabled={!canDelete}>
               Delete
             </DeleteButton>
           </Flex>

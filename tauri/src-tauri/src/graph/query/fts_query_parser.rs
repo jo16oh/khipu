@@ -3,7 +3,7 @@ use combine::stream::Stream;
 use combine::{Parser, attempt, between, choice, many, many1, parser, satisfy, sep_by};
 use strum::{Display, EnumString};
 
-use crate::db::query::ZERO_WIDTH_SPACE;
+use crate::graph::query::ZERO_WIDTH_SPACE;
 
 use super::OrderBy;
 
@@ -237,7 +237,7 @@ impl Query {
 #[cfg(test)]
 mod test {
     use super::*;
-    use crate::db::test::open_connection_in_memory;
+    use crate::graph::test::open_connection_in_memory;
     use chrono::Utc;
 
     #[tokio::test]

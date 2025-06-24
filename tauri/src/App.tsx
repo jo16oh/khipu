@@ -19,24 +19,24 @@ function App() {
   use(initAppStatePromise);
   use(initWorkspaceStatePromise);
 
-  const dbName = useAppState((state) => state.dbName);
-  const closeDb = useAppState((state) => state.closeDb);
+  const graphName = useAppState((state) => state.graphName);
+  const closeGraph = useAppState((state) => state.closeGraph);
   const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
-    if (dbName) {
+    if (graphName) {
       commands
-        .openDb(dbName)
-        .then(() => console.log("open db successfully"))
+        .openGraph(graphName)
+        .then(() => console.log("open graph successfully"))
         .catch((e) => {
           console.error(e);
-          closeDb();
+          closeGraph();
         })
         .finally(() => setIsLoading(false));
     } else {
       setIsLoading(false);
     }
-  }, [dbName, closeDb]);
+  }, [graphName, closeGraph]);
 
   useEffect(() => {
     getCurrentWebviewWindow().show();
@@ -47,10 +47,10 @@ function App() {
       <main>
         <TitlebarHandler />
         <Suspense>
-          {!isLoading && dbName ? (
+          {!isLoading && graphName ? (
             <Workspace>
-              workspace: {dbName}
-              <button onClick={() => closeDb()}>close {dbName}</button>
+              workspace: {graphName}
+              <button onClick={() => closeGraph()}>close {graphName}</button>
             </Workspace>
           ) : (
             <Entry />

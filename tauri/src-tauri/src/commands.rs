@@ -1,13 +1,13 @@
-pub use crate::db::commands::*;
+pub use crate::graph::commands::*;
 
 pub fn commands() -> tauri_specta::Commands<tauri::Wry> {
     tauri_specta::collect_commands![
-        list_db,
-        create_db,
-        open_db,
-        close_db,
-        rename_db,
-        delete_db,
+        list_graph,
+        create_graph,
+        open_graph,
+        close_graph,
+        rename_graph,
+        delete_graph,
         timeline,
         search,
         suggest,

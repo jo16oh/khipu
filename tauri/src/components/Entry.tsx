@@ -4,8 +4,8 @@ import { css } from "generated/styled-system/css";
 import { styled } from "generated/styled-system/jsx";
 import { Button } from "react-aria-components";
 import BulletButton from "./common/BulletButton";
-import CreateOrRenameDatabaseModal from "./modal/CreateOrRenameDatabaseModal";
-import OpenDatabaseModal from "./modal/OpenDatabaseModal";
+import CreateOrRenameGraphModal from "./modal/CreateOrRenameGraphModal";
+import OpenGraphModal from "./modal/OpenGraphModal";
 import SettingModal from "./modal/SettingModal";
 
 function Entry() {
@@ -24,11 +24,11 @@ function Entry() {
         <div className={versionStyle}>v{version}</div>
       </AppIconContainer>
       <Operations>
-        <CreateOrRenameDatabaseModal
+        <CreateOrRenameGraphModal
           kind="create"
-          trigger={<OperationTrigger text="Create New Database" />}
+          trigger={<OperationTrigger text="Create New Graph" />}
         />
-        <OpenDatabaseModal trigger={<OperationTrigger text="Open Database" />} />
+        <OpenGraphModal trigger={<OperationTrigger text="Open Graph" />} />
         <SettingModal trigger={<OperationTrigger text="Setting" />} />
       </Operations>
     </Container>

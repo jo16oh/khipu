@@ -22,45 +22,45 @@ type Props =
       kind: "rename";
       trigger: ReactNode;
       overlayProps?: ComponentProps<typeof Dialog>["overlayProps"];
-      prevDbName: string;
+      prevGraphName: string;
       close?: () => void;
     };
 
-export default function RenameDatabaseModal(props: Props) {
+export default function RenameGraphModal(props: Props) {
   const { kind, trigger, close = () => {} } = props;
 
-  const openDb = useAppState((state) => state.openDb);
+  const openGraph = useAppState((state) => state.openGraph);
 
   const queryClient = useQueryClient();
 
-  const { data: dbList } = useSuspenseQuery({
-    queryKey: ["dbList"],
-    queryFn: commands.listDb,
+  const { data: graphList } = useSuspenseQuery({
+    queryKey: ["graphList"],
+    queryFn: commands.listGraph,
   });
 
   const { mutateAsync } = useMutation({
     mutationFn: () =>
       kind === "create"
-        ? commands.createDb(newDbName)
-        : commands.renameDb(props.prevDbName, newDbName.trim()),
+        ? commands.createGraph(newGraphName)
+        : commands.renameGraph(props.prevGraphName, newGraphName.trim()),
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["dbList"] });
+      queryClient.invalidateQueries({ queryKey: ["graphList"] });
       close();
     },
   });
 
-  const [newDbName, setNewDbName] = useState("");
-  const isDuplicateName = newDbName.trim() !== "" && dbList.some((n) => n === newDbName.trim());
-  const isTooLong = newDbName.length > MAX_DB_NAME_LEN;
-  const isDbNameInvalid = newDbName.length ? !isValidFilename(newDbName) : false;
-  const isDisabled = !newDbName.trim() || isDuplicateName || isTooLong || isDbNameInvalid;
-  const isError = isDuplicateName || isTooLong || isDbNameInvalid;
+  const [newGraphName, setNewGraphName] = useState("");
+  const isDuplicateName = newGraphName.trim() !== "" && graphList.some((n) => n === newGraphName.trim());
+  const isTooLong = newGraphName.length > MAX_DB_NAME_LEN;
+  const isGraphNameInvalid = newGraphName.length ? !isValidFilename(newGraphName) : false;
+  const isDisabled = !newGraphName.trim() || isDuplicateName || isTooLong || isGraphNameInvalid;
+  const isError = isDuplicateName || isTooLong || isGraphNameInvalid;
 
   const handleSubmit = async (e: FormEvent, close: () => void) => {
     e.preventDefault();
-    if (newDbName.trim() && !isDuplicateName && !isTooLong) {
+    if (newGraphName.trim() && !isDuplicateName && !isTooLong) {
       await mutateAsync();
-      if (kind === "create") openDb(newDbName);
+      if (kind === "create") openGraph(newGraphName);
       close();
     }
   };
@@ -72,7 +72,7 @@ export default function RenameDatabaseModal(props: Props) {
         onOpenChange: (isOpen) => {
           if (!isOpen) {
             close();
-            setNewDbName("");
+            setNewGraphName("");
           }
         },
       }}
@@ -82,10 +82,10 @@ export default function RenameDatabaseModal(props: Props) {
         <Container>
           <Header>
             {kind === "create" ? (
-              <div>Create new database</div>
+              <div>Create new graph</div>
             ) : (
               <styled.div flex="1" minW="0" wordWrap={"break-word"}>
-                Rename {props.prevDbName}
+                Rename {props.prevGraphName}
               </styled.div>
             )}
             <CloseButton onClick={close}>
@@ -95,17 +95,17 @@ export default function RenameDatabaseModal(props: Props) {
           <Form onSubmit={(e) => handleSubmit(e, close)}>
             <FormGroup>
               <StyledInput
-                placeholder="Name your database..."
-                value={newDbName}
-                onChange={(e) => setNewDbName(e.target.value)}
+                placeholder="Name your graph..."
+                value={newGraphName}
+                onChange={(e) => setNewGraphName(e.target.value)}
                 // autoFocus
               />
               <ErrorMessageContainer>
                 {isError && (
                   <ErrorMessage>
-                    {isDuplicateName && "A database with this name already exists"}
-                    {isTooLong && `A database name must be within ${MAX_DB_NAME_LEN} characters`}
-                    {isDbNameInvalid && "The new database name is not a valid filename"}
+                    {isDuplicateName && "A graph with this name already exists"}
+                    {isTooLong && `A graph name must be within ${MAX_DB_NAME_LEN} characters`}
+                    {isGraphNameInvalid && "The new graph name is not a valid filename"}
                   </ErrorMessage>
                 )}
               </ErrorMessageContainer>

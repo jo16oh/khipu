@@ -3,7 +3,7 @@ use tauri::{
     http::{self, Request, Response},
 };
 
-use crate::db::{ConnectionState, query};
+use crate::graph::{ConnectionState, query};
 
 pub fn handle_request<R: Runtime>(
     ctx: UriSchemeContext<R>,

@@ -1,11 +1,11 @@
 mod commands;
 mod custom_protocol;
-mod db;
 mod error;
+mod graph;
 mod model;
 mod util;
 
-use db::ConnectionState;
+use graph::ConnectionState;
 use specta_typescript::Typescript;
 use tauri::{Manager, TitleBarStyle, WebviewUrl, WebviewWindowBuilder};
 use tauri_plugin_window_state::{AppHandleExt, StateFlags};
