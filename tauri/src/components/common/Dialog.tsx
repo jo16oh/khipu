@@ -1,5 +1,5 @@
 import { styled } from "generated/styled-system/jsx";
-import { ReactNode } from "react";
+import { ComponentProps, ReactNode } from "react";
 import {
   Dialog as DialogContent,
   DialogRenderProps,
@@ -21,9 +21,9 @@ const Dialog = ({
   trigger: ReactNode;
   triggerProps?: Omit<DialogTriggerProps, "children">;
   content: (props: DialogRenderProps) => ReactNode;
-  contentProps?: Parameters<typeof StyledDialogContent>[0];
+  contentProps?: ComponentProps<typeof StyledDialogContent>;
   buttons?: ReactNode;
-  overlayProps?: Parameters<typeof StyledModalOverlay>[0];
+  overlayProps?: ComponentProps<typeof StyledModalOverlay>;
 }) => (
   <DialogTrigger {...triggerProps}>
     {trigger}

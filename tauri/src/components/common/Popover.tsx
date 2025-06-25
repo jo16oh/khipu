@@ -1,5 +1,5 @@
 import { styled } from "generated/styled-system/jsx";
-import { ReactNode } from "react";
+import { ComponentProps, ReactNode } from "react";
 import {
   DialogRenderProps,
   DialogTrigger,
@@ -18,8 +18,8 @@ const Dialog = ({
   trigger: ReactNode;
   triggerProps?: DialogTriggerProps;
   content: (props: DialogRenderProps) => ReactNode;
-  contentProps?: Parameters<typeof StyledPopoverContent>[0];
-  popoverProps?: Parameters<typeof StyledPopover>[0];
+  contentProps?: ComponentProps<typeof StyledPopoverContent>;
+  popoverProps?: ComponentProps<typeof StyledPopover>;
 }) => (
   <DialogTrigger {...triggerProps}>
     {trigger}
