@@ -2,7 +2,7 @@ import { LazyStore } from "@tauri-apps/plugin-store";
 import { create } from "zustand";
 import { ViewStateStore, createViewStateStore } from "./view-state-store";
 
-export type TabKind = "find" | "main";
+export type TabKind = "timeline" | "search" | "stage";
 
 type WorkspaceState = {
   main: ViewStateStore;
@@ -18,7 +18,7 @@ const mainViewStateStore = createViewStateStore();
 export const useWorkspaceState = create<WorkspaceState>((set) => ({
   main: mainViewStateStore,
   hover: null,
-  focus: "main",
+  focus: "stage",
   switchTab: (to: TabKind) => {
     set(() => ({ focus: to }));
   },
