@@ -28,7 +28,7 @@ export default function OpenGraphModal({ trigger }: { trigger: ReactNode }) {
       content={({ close }) => (
         <Container>
           <Title>
-            <div>Choose graph to open</div>
+            <styled.div color="stone.900">Choose graph to open</styled.div>
             <CloseButton onClick={close}>
               <X />
             </CloseButton>
@@ -42,7 +42,7 @@ export default function OpenGraphModal({ trigger }: { trigger: ReactNode }) {
                 <Square size="6" p="2">
                   <Bullet isDisabled={true} isCollapsed={true} />
                 </Square>
-                <OpenGraphButton onClick={() => openGraph(name)} key={name}>
+                <OpenGraphButton onClick={() => openGraph(name)} key={name} color="stone.900">
                   {name}
                 </OpenGraphButton>
               </ListItemContainer>
@@ -110,14 +110,14 @@ const Ellipsis = ({ graphName }: { graphName: string }) => {
     <EllipsisMenu
       popoverProps={{ style: { zIndex: 1000 } }}
       content={({ close }) => (
-        <Flex flexDir="column" py="2" px="1.5">
+        <Flex gap="0.5" flexDir="column" py="1" px="1">
           <DeleteGraphModal
             close={close}
             graphName={graphName}
             trigger={
-              <EllipsisActionButton className={flex()}>
-                <TrashIcon />
-                Delete graph
+              <EllipsisActionButton className={flex({ gap: "2.5" })}>
+                <TrashIcon className={css({ color: "stone.900" })} />
+                <styled.div color="stone.900">Delete graph</styled.div>
               </EllipsisActionButton>
             }
           />
@@ -126,9 +126,9 @@ const Ellipsis = ({ graphName }: { graphName: string }) => {
             close={close}
             prevGraphName={graphName}
             trigger={
-              <EllipsisActionButton className={flex({})}>
-                <PencilLineIcon />
-                Rename graph
+              <EllipsisActionButton className={flex({ gap: "2.5" })}>
+                <PencilLineIcon className={css({ color: "stone.900" })} />
+                <styled.div color="stone.900">Rename graph</styled.div>
               </EllipsisActionButton>
             }
           />
