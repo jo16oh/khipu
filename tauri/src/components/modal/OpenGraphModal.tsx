@@ -36,13 +36,18 @@ export default function OpenGraphModal({ trigger }: { trigger: ReactNode }) {
           <ListItemsContainer>
             {graphList.map((name) => (
               <ListItemContainer className="group" key={name}>
-                <Square size="6" p="2">
+                <Square size="6">
                   <Ellipsis graphName={name} />
                 </Square>
-                <Square size="6" p="2">
+                <Square size="6">
                   <Bullet isDisabled={true} isCollapsed={true} />
                 </Square>
-                <OpenGraphButton onClick={() => openGraph(name)} key={name} color="stone.900">
+                <OpenGraphButton
+                  onClick={() => openGraph(name)}
+                  key={name}
+                  pl="2"
+                  color="stone.900"
+                >
                   {name}
                 </OpenGraphButton>
               </ListItemContainer>
@@ -98,12 +103,7 @@ const ListItemsContainer = styled("div", {
   },
 });
 
-const ListItemContainer = styled("div", {
-  base: {
-    display: "flex",
-    gap: "1",
-  },
-});
+const ListItemContainer = styled("div", { base: flex.raw() });
 
 const Ellipsis = ({ graphName }: { graphName: string }) => {
   return (
