@@ -1,4 +1,5 @@
 import { type StoreApi, createStore } from "zustand";
+import { FocusManager } from "./focus-manager";
 
 const MAX_HISTORY_LEN = 100;
 
@@ -9,6 +10,7 @@ export type ViewState = {
 
 export type ViewStateStoreState = {
   id: string | null;
+  focusManager: FocusManager;
   jump: (view: ViewState) => void;
   back: () => void;
   next: () => void;
@@ -30,6 +32,8 @@ export function createViewStateStore(): ViewStateStore {
     scrollPosition: 0,
     backHistory: [],
     nextHistory: [],
+
+    focusManager: new FocusManager(),
 
     jump: (view) =>
       set((state) => {

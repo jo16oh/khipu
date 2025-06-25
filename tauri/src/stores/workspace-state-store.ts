@@ -1,49 +1,32 @@
 import { LazyStore } from "@tauri-apps/plugin-store";
 import { create } from "zustand";
-import { FocusManager } from "./focus-manager";
-import { ViewState, ViewStateStore, createViewStateStore } from "./view-state-store";
+import { ViewStateStore, createViewStateStore } from "./view-state-store";
 
 export type TabKind = "find" | "main";
 
-type ViewContexts = {
-  viewStateStore: ViewStateStore;
-  focusManager: FocusManager;
-};
-
 type WorkspaceState = {
-  main: ViewContexts;
-  hover: ViewContexts | null;
+  main: ViewStateStore;
+  hover: ViewStateStore | null;
   focus: TabKind;
+  switchTab: (to: TabKind) => void;
+  openHover: (view: ViewStateStore) => void;
+  closeHover: () => void;
 };
 
 const mainViewStateStore = createViewStateStore();
 
 export const useWorkspaceState = create<WorkspaceState>((set) => ({
-  main: {
-    viewStateStore: mainViewStateStore,
-    focusManager: new FocusManager(),
-  },
+  main: mainViewStateStore,
   hover: null,
   focus: "main",
   switchTab: (to: TabKind) => {
     set(() => ({ focus: to }));
   },
-  openHover: (view: ViewState) => {
-    set((current) => {
-      if (current.hover) {
-        current.hover.viewStateStore.getState().jump(view);
-        return {};
-      } else {
-        const store = createViewStateStore();
-        store.getState().jump(view);
-        return {
-          hover: {
-            viewStateStore: store,
-            focusManager: new FocusManager(),
-          },
-        };
-      }
-    });
+  openHover: (view: ViewStateStore) => {
+    set(() => ({ hover: view }));
+  },
+  closeHover: () => {
+    set(() => ({ hover: null }));
   },
 }));
 
