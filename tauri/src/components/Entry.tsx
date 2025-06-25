@@ -66,6 +66,7 @@ const AppIconContainer = styled("div", {
     justifyContent: "center",
     alignItems: "center",
     w: "52",
+    h: "52",
   },
 });
 

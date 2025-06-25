@@ -29,7 +29,7 @@ pub fn run() {
                 .title("Khipu")
                 .hidden_title(true)
                 .inner_size(1025.0, 800.0)
-                .min_inner_size(470.0, 380.0)
+                .min_inner_size(470.0, 420.0)
                 .resizable(true)
                 .visible(false);
 
