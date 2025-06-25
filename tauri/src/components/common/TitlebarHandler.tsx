@@ -1,20 +1,21 @@
-import { css } from "generated/styled-system/css";
-import { PropsWithChildren } from "react";
+import { styled } from "generated/styled-system/jsx";
+import { ComponentProps } from "react";
 
-export default function TitlebarHandler({ children }: PropsWithChildren) {
+export default function TitlebarHandler({
+  children,
+  ...rest
+}: ComponentProps<typeof StyledTitlebar>) {
   return (
-    <div
-      data-tauri-drag-region
-      className={css({
-        zIndex: 9999,
-        pos: "fixed",
-        top: "0",
-        left: "0",
-        w: "full",
-        h: "[28px]",
-      })}
-    >
+    <StyledTitlebar data-tauri-drag-region {...rest}>
       {children}
-    </div>
+    </StyledTitlebar>
   );
 }
+
+const StyledTitlebar = styled("div", {
+  base: {
+    display: "flex",
+    w: "full",
+    h: "[28px]",
+  },
+});

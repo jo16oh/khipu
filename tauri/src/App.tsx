@@ -6,7 +6,7 @@ import { commands } from "generated/tauri-commands";
 import { Suspense, use, useEffect, useState } from "react";
 import { RootProviders } from "./Providers";
 import Entry from "./components/Entry";
-import TitlebarHandler from "./components/common/TitlebarHandler";
+import { styled } from "generated/styled-system/jsx";
 import { initAppStateStore, useAppState } from "./stores/app-state-store";
 import { initWorkspaceState } from "./stores/workspace-state-store";
 import Workspace from "./components/Workspace";
@@ -44,10 +44,9 @@ function App() {
 
   return (
     <RootProviders>
-      <main>
-        <TitlebarHandler />
+      <styled.main display="flex" flexDir="column" w="screen" h="screen">
         <Suspense>{!isLoading && (graphName ? <Workspace /> : <Entry />)}</Suspense>
-      </main>
+      </styled.main>
     </RootProviders>
   );
 }

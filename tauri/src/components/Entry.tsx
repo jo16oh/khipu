@@ -8,6 +8,7 @@ import CreateOrRenameGraphModal from "./modal/CreateOrRenameGraphModal";
 import OpenGraphModal from "./modal/OpenGraphModal";
 import SettingModal from "./modal/SettingModal";
 import { commands } from "generated/tauri-commands";
+import TitlebarHandler from "./common/TitlebarHandler";
 
 function Entry() {
   const { data: version } = useSuspenseQuery({
@@ -23,35 +24,38 @@ function Entry() {
   });
 
   return (
-    <Container>
-      <AppIconContainer>
-        <img src="assets/khipu-icon.svg" className={khipuIconStyle} />
-        <img src="assets/khipu-app-name.svg" className={khipuLogoStyle} />
-        <div className={versionStyle}>v{version}</div>
-      </AppIconContainer>
-      <Operations>
-        <CreateOrRenameGraphModal
-          kind="create"
-          trigger={<OperationTrigger text="Create New Graph" />}
-        />
-        <OpenGraphModal
-          trigger={<OperationTrigger text="Open Graph" isDisabled={graphList.length === 0} />}
-        />
-        <SettingModal trigger={<OperationTrigger text="Setting" />} />
-      </Operations>
-    </Container>
+    <>
+      <TitlebarHandler bg="stone.50" />
+      <Container>
+        <AppIconContainer>
+          <img src="assets/khipu-icon.svg" className={khipuIconStyle} />
+          <img src="assets/khipu-app-name.svg" className={khipuLogoStyle} />
+          <div className={versionStyle}>v{version}</div>
+        </AppIconContainer>
+        <Operations>
+          <CreateOrRenameGraphModal
+            kind="create"
+            trigger={<OperationTrigger text="Create New Graph" />}
+          />
+          <OpenGraphModal
+            trigger={<OperationTrigger text="Open Graph" isDisabled={graphList.length === 0} />}
+          />
+          <SettingModal trigger={<OperationTrigger text="Setting" />} />
+        </Operations>
+      </Container>
+    </>
   );
 }
 
 const Container = styled("div", {
   base: {
     display: "flex",
+    flex: "1",
     gap: "16",
     flexDir: "column",
     justifyContent: "center",
     alignItems: "center",
-    w: "screen",
-    h: "screen",
+    bg: "stone.50",
   },
 });
 

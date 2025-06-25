@@ -8,6 +8,7 @@ import {
   Modal,
   ModalOverlay,
 } from "react-aria-components";
+import TitlebarHandler from "./TitlebarHandler";
 
 const Dialog = ({
   trigger,
@@ -34,6 +35,7 @@ const Dialog = ({
       }
       {...overlayProps}
     >
+      <TitlebarHandler zIndex="[9999]" position="fixed" top="0" left="0" bg="transparent" />
       <StyledModal isDismissable>
         {({ state }) => (
           <StyledDialogContent {...contentProps}>
