@@ -7,6 +7,7 @@ import BulletButton from "./common/BulletButton";
 import CreateOrRenameGraphModal from "./modal/CreateOrRenameGraphModal";
 import OpenGraphModal from "./modal/OpenGraphModal";
 import SettingModal from "./modal/SettingModal";
+import { commands } from "generated/tauri-commands";
 
 function Entry() {
   const { data: version } = useSuspenseQuery({
@@ -14,6 +15,11 @@ function Entry() {
     queryFn: async () => {
       return await getVersion();
     },
+  });
+
+  const { data: graphList } = useSuspenseQuery({
+    queryKey: ["graphList"],
+    queryFn: commands.listGraph,
   });
 
   return (
@@ -28,7 +34,9 @@ function Entry() {
           kind="create"
           trigger={<OperationTrigger text="Create New Graph" />}
         />
-        <OpenGraphModal trigger={<OperationTrigger text="Open Graph" />} />
+        <OpenGraphModal
+          trigger={<OperationTrigger text="Open Graph" isDisabled={graphList.length === 0} />}
+        />
         <SettingModal trigger={<OperationTrigger text="Setting" />} />
       </Operations>
     </Container>
@@ -84,14 +92,20 @@ const Operations = styled("div", {
   },
 });
 
-const OperationTrigger = ({ text }: { text: string }) => (
+const OperationTrigger = ({ text, isDisabled = false }: { text: string; isDisabled?: boolean }) => (
   <div className={css({ display: "flex", gap: "2", alignItems: "center", p: "1" })}>
-    <BulletButton isCollapsed={true} isDisabled={false} />
+    <BulletButton isCollapsed={!isDisabled} isDisabled={isDisabled} />
     <Button
       className={css({
         color: "stone.900",
+        _disabled: {
+          color: "stone.400",
+          textDecoration: "line-through",
+          _hover: { cursor: "default", textDecoration: "line-through" },
+        },
         _hover: { cursor: "pointer", textDecoration: "underline" },
       })}
+      isDisabled={isDisabled}
     >
       {text}
     </Button>
