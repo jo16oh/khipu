@@ -7,6 +7,7 @@ import {
   DialogTriggerProps,
   Modal,
   ModalOverlay,
+  OverlayTriggerState,
 } from "react-aria-components";
 import TitlebarHandler from "./TitlebarHandler";
 
@@ -22,7 +23,7 @@ const Dialog = ({
   triggerProps?: Omit<DialogTriggerProps, "children">;
   content: (props: DialogRenderProps) => ReactNode;
   contentProps?: ComponentProps<typeof StyledDialogContent>;
-  buttons?: ReactNode;
+  buttons?: (state: OverlayTriggerState) => ReactNode;
   overlayProps?: ComponentProps<typeof StyledModalOverlay>;
 }) => (
   <DialogTrigger {...triggerProps}>
@@ -41,7 +42,7 @@ const Dialog = ({
           <StyledDialogContent {...contentProps}>
             {(props) => (
               <>
-                {buttons && <Buttons onClick={() => state.close()}>{buttons}</Buttons>}
+                {buttons && <Buttons onClick={() => state.close()}>{buttons(state)}</Buttons>}
                 {content(props)}
               </>
             )}
