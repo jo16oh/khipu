@@ -10,9 +10,8 @@
     "tauri": "tauri",
     "test": "pnpm vitest --watch",
     "lint": "eslint --ext .js,.ts,.jsx,.tsx ./src",
-    "fix": "pnpm biome check --write && pnpm format && pnpm lint:fix",
-    "format": "pnpm biome check --write && prettier --write ./src",
-    "lint:fix": "pnpm biome check --write && eslint --fix --ext .js,.ts,.jsx,.tsx ./src",
+    "format": "pnpm lint:fix && pnpm biome check --write && prettier --write ./src",
+    "lint:fix": "eslint --fix --ext .js,.ts,.jsx,.tsx ./src",
     "prepare": "panda codegen"
   },
   "dependencies": {
