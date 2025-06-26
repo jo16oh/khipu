@@ -31,7 +31,7 @@ export class UndoManager {
 
     const viewStateStore = (() => {
       const state = useWorkspaceState.getState();
-      return state.hover ? state.hover.viewStateStore : state.main.viewStateStore;
+      return state.hover ? state.hover : state.main;
     })();
 
     const viewState = (() => {
