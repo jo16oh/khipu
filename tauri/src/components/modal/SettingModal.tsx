@@ -14,12 +14,11 @@ export default function SettingModal({ trigger }: { trigger: ReactNode }) {
             className={css({
               cursor: "pointer",
               alignSelf: "flex-end",
-              borderRadius: "md",
-              marginTop: "4",
-              padding: "2",
+              rounded: "md",
+              p: "2",
               color: "white",
-              backgroundColor: "blue.500",
-              _hover: { backgroundColor: "blue.600" },
+              bg: "blue.500",
+              _hover: { bg: "blue.600" },
             })}
             onPress={close}
           >
