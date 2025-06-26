@@ -5,7 +5,7 @@ import { ViewStateStore, createViewStateStore } from "./view-state-store";
 export type TabKind = "timeline" | "search" | "stage";
 
 type WorkspaceState = {
-  main: ViewStateStore;
+  stage: ViewStateStore;
   hover: ViewStateStore | null;
   focus: TabKind;
   switchTab: (to: TabKind) => void;
@@ -16,7 +16,7 @@ type WorkspaceState = {
 const mainViewStateStore = createViewStateStore();
 
 export const useWorkspaceState = create<WorkspaceState>((set) => ({
-  main: mainViewStateStore,
+  stage: mainViewStateStore,
   hover: null,
   focus: "stage",
   switchTab: (to: TabKind) => {
