@@ -31,7 +31,7 @@ export class UndoManager {
 
     const viewStateStore = (() => {
       const state = useWorkspaceState.getState();
-      return state.hover ? state.hover : state.main;
+      return state.hover ? state.hover : state.stage;
     })();
 
     const viewState = (() => {
@@ -54,13 +54,13 @@ export class UndoManager {
       this.#redoStack.push(history);
       const undoManager = this.#outlineStore.getYUndoManager(history.id);
       if (undoManager) {
-        const { viewStateStore, focusManager } = (() => {
+        const viewStateStore = (() => {
           const state = useWorkspaceState.getState();
-          return state.hover ? state.hover : state.main;
-        })();
+          return state.hover ? state.hover : state.stage;
+        })().getState();
 
-        viewStateStore.getState().jump(history.viewState);
-        focusManager.focus({ id: history.id, position: "end" });
+        viewStateStore.jump(history.viewState);
+        viewStateStore.focusManager.focus({ id: history.id, position: "end" });
 
         undoManager.undo();
         const ydoc = this.#outlineStore.getYDoc(history.id);
