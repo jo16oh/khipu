@@ -7,6 +7,7 @@ import { useWorkspaceState } from "src/stores/workspace-state-store";
 import { useShallow } from "zustand/react/shallow";
 import TitlebarHandler from "./common/TitlebarHandler";
 import HoverViewModal from "./modal/HoverViewModal";
+import Stage from "./workspace/Stage";
 
 export default function Workspace() {
   const [graphName, closeGraph] = useAppState(
@@ -23,7 +24,7 @@ export default function Workspace() {
       <Container>
         {focus === "timeline" && <div>timeline</div>}
         {focus === "search" && <div>search</div>}
-        {focus === "stage" && <div>stage</div>}
+        {focus === "stage" && <Stage />}
         <button onClick={() => closeGraph()}>close {graphName}</button>
         <BottomNav>
           <Dock>
