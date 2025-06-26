@@ -39,6 +39,17 @@ export default defineConfig([
   },
   eslintConfigPrettier,
   pluginReact.configs.flat.recommended,
+  {
+    rules: {
+      "react/self-closing-comp": [
+        "warn",
+        {
+          component: true,
+          html: true,
+        },
+      ],
+    },
+  },
   reactHooks.configs["recommended-latest"],
   {
     files: ["**/*.{js,jsx,mjs,cjs,ts,tsx}"],

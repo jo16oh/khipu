@@ -7,7 +7,7 @@ const BulletButton = ({
   ...rest
 }: { isCollapsed: boolean | undefined } & ButtonProps) => (
   <Button isDisabled={isDisabled ? true : false} {...rest}>
-    <Bullet isCollapsed={isCollapsed} isDisabled={isDisabled}></Bullet>
+    <Bullet isCollapsed={isCollapsed} isDisabled={isDisabled} />
   </Button>
 );
 
