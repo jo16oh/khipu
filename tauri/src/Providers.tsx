@@ -12,7 +12,7 @@ const StateStorageContext = createContext(new LazyStore("state.json"));
 
 const OutlineStoreContext = createContext<OutlineStore | undefined>(undefined);
 
-const ViewStoreContext = createContext<ViewStateStore | undefined>(undefined);
+export const ViewStateStoreContext = createContext<ViewStateStore | undefined>(undefined);
 
 const FocusManagerContext = createContext<FocusManager | undefined>(undefined);
 
@@ -37,7 +37,7 @@ export function useFocusManager() {
 }
 
 export function useViewStore(selector: (state: ViewStateStoreState) => void) {
-  const viewStore = useContext(ViewStoreContext);
+  const viewStore = useContext(ViewStateStoreContext);
   if (!viewStore) throw new Error("ViewStoreContext is not set");
   return useStore(viewStore, selector);
 }
