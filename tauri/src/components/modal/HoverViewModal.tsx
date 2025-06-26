@@ -4,6 +4,7 @@ import { center, square } from "generated/styled-system/patterns";
 import { ChevronLeft, ChevronRight, X } from "lucide-react";
 import { ReactNode, useRef } from "react";
 import { Button } from "react-aria-components";
+import { useOutlineStore } from "src/Providers";
 import { createViewStateStore } from "src/stores/view-state-store";
 import { useWorkspaceState } from "src/stores/workspace-state-store";
 import { useStore } from "zustand";
@@ -14,6 +15,8 @@ import DialogSideActionButton, {
 } from "../common/DialogSideButton";
 
 export default function HoverViewModal({ trigger }: { trigger: ReactNode }) {
+  const outlineStore = useOutlineStore();
+
   const viewStateStore = useRef(createViewStateStore());
 
   const viewState = useStore(viewStateStore.current);
@@ -28,6 +31,8 @@ export default function HoverViewModal({ trigger }: { trigger: ReactNode }) {
       triggerProps={{
         onOpenChange(isOpen) {
           if (isOpen) {
+            const id = outlineStore.reducer.create("heading");
+            viewState.jump({ id, scrollPosition: 0 });
             openHover(viewStateStore.current);
           } else {
             closeHover();
@@ -43,13 +48,22 @@ export default function HoverViewModal({ trigger }: { trigger: ReactNode }) {
       content={() => (
         <ViewCotainer>
           <ViewHeader>
-            <HistoryButton className="group" isDisabled={!viewState.hasPrevious()}>
+            <HistoryButton
+              className="group"
+              isDisabled={!viewState.hasPrevious()}
+              onClick={viewState.back}
+            >
               <ChevronLeft className={headerIconStyle} />
             </HistoryButton>
-            <HistoryButton className="group" isDisabled={!viewState.hasNext()}>
+            <HistoryButton
+              className="group"
+              isDisabled={!viewState.hasNext()}
+              onClick={viewState.next}
+            >
               <ChevronRight className={headerIconStyle} />
             </HistoryButton>
           </ViewHeader>
+          {viewState.id}
         </ViewCotainer>
       )}
     />
