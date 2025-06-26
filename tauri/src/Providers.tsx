@@ -36,7 +36,7 @@ export function useFocusManager() {
   return context;
 }
 
-export function useViewStore(selector: (state: ViewStateStoreState) => void) {
+export function useViewState<U>(selector: (state: ViewStateStoreState) => U) {
   const viewStore = useContext(ViewStateStoreContext);
   if (!viewStore) throw new Error("ViewStoreContext is not set");
   return useStore(viewStore, selector);
