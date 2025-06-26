@@ -21,7 +21,9 @@ export default function Workspace() {
     <>
       <TitlebarHandler bg="stone.50" />
       <Container>
-        workspace: {graphName}
+        {focus === "timeline" && <div>timeline</div>}
+        {focus === "search" && <div>search</div>}
+        {focus === "stage" && <div>stage</div>}
         <button onClick={() => closeGraph()}>close {graphName}</button>
         <BottomNav>
           <Dock>
