@@ -27,7 +27,6 @@ function App() {
     if (graphName) {
       commands
         .openGraph(graphName)
-        .then(() => console.log("open graph successfully"))
         .catch((e) => {
           console.error(e);
           closeGraph();

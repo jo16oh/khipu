@@ -21,7 +21,7 @@ export default function HoverViewModal({ trigger }: { trigger: ReactNode }) {
 
   const viewState = useStore(viewStateStore.current);
 
-  const [hover, openHover, closeHover] = useWorkspaceState(
+  const [_hover, openHover, closeHover] = useWorkspaceState(
     useShallow(({ hover, openHover, closeHover }) => [hover, openHover, closeHover]),
   );
 
@@ -37,7 +37,6 @@ export default function HoverViewModal({ trigger }: { trigger: ReactNode }) {
           } else {
             closeHover();
           }
-          console.log(hover);
         },
       }}
       buttons={(state) => (
