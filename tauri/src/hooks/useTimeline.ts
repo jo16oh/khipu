@@ -1,7 +1,7 @@
 import { useSuspenseInfiniteQuery } from "@tanstack/react-query";
 import { OrderBy, TimelinePosition } from "generated/tauri-commands";
 import { useState } from "react";
-import { useOutlineStore } from "src/Providers";
+import { useOutlineStore } from "src/stores/outline-store"
 
 const MAX_TL_LEN = 10;
 

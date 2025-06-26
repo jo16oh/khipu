@@ -1,8 +1,13 @@
 import { styled } from "generated/styled-system/jsx";
 import { square } from "generated/styled-system/patterns";
+import { commands } from "generated/tauri-commands";
 import { ClockArrowDown, Search, SquarePen, StickyNote } from "lucide-react";
+import { PropsWithChildren } from "react";
 import { Button } from "react-aria-components";
 import { useAppState } from "src/stores/app-state-store";
+import { DocUpdateNotifier } from "src/stores/doc-update-notifier";
+import { FocusManager, FocusManagerContext } from "src/stores/focus-manager";
+import { OutlineStore, OutlineStoreContext } from "src/stores/outline-store";
 import { useWorkspaceState } from "src/stores/workspace-state-store";
 import { useShallow } from "zustand/react/shallow";
 import TitlebarHandler from "./common/TitlebarHandler";
@@ -19,7 +24,7 @@ export default function Workspace() {
   );
 
   return (
-    <>
+    <Providers>
       <TitlebarHandler bg="stone.50" />
       <Container>
         {focus === "timeline" && <div>timeline</div>}
@@ -65,7 +70,19 @@ export default function Workspace() {
           />
         </BottomNav>
       </Container>
-    </>
+    </Providers>
+  );
+}
+
+function Providers({ children }: PropsWithChildren) {
+  const notifier = new DocUpdateNotifier();
+  const focusManager = new FocusManager();
+  const outlineStore = new OutlineStore(notifier, commands);
+
+  return (
+    <OutlineStoreContext.Provider value={outlineStore}>
+      <FocusManagerContext.Provider value={focusManager}>{children}</FocusManagerContext.Provider>
+    </OutlineStoreContext.Provider>
   );
 }
 

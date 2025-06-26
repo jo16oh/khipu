@@ -1,5 +1,5 @@
 import { useSyncExternalStore } from "react";
-import { useOutlineStore } from "src/Providers";
+import { useOutlineStore } from "src/stores/outline-store"
 import { Outline } from "src/model";
 
 export function useOutline(id: string): Outline {

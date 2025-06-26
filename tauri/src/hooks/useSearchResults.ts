@@ -1,6 +1,6 @@
 import { useSuspenseInfiniteQuery } from "@tanstack/react-query";
 import { OrderBy } from "generated/tauri-commands";
-import { useOutlineStore } from "src/Providers";
+import { useOutlineStore } from "src/stores/outline-store"
 
 export function useSearchResults(query: string, orderBy: OrderBy) {
   const store = useOutlineStore();

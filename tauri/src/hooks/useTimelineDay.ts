@@ -1,6 +1,6 @@
 import { startOfDay } from "date-fns";
 import { useSyncExternalStore } from "react";
-import { useOutlineStore } from "src/Providers";
+import { useOutlineStore } from "src/stores/outline-store"
 import { Order } from "src/stores/timeline-index";
 
 export function useTimelineDay(timestamp: Date | number, order: Order) {

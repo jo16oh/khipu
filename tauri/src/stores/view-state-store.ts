@@ -1,4 +1,5 @@
-import { type StoreApi, createStore } from "zustand";
+import { createContext, useContext } from "react";
+import { type StoreApi, createStore, useStore } from "zustand";
 import { FocusManager } from "./focus-manager";
 
 const MAX_HISTORY_LEN = 100;
@@ -27,6 +28,14 @@ type InternalViewStateStoreState = ViewStateStoreState & {
 };
 
 export type ViewStateStore = StoreApi<ViewStateStoreState>;
+
+export const ViewStateStoreContext = createContext<ViewStateStore | null>(null);
+
+export function useViewState<U>(selector: (state: ViewStateStoreState) => U) {
+  const store = useContext(ViewStateStoreContext);
+  if (!store) throw new Error("ViewStateStoreContext is not set");
+  return useStore(store, selector);
+}
 
 export function createViewStateStore(): ViewStateStore {
   return createStore<InternalViewStateStoreState>((set, get) => ({

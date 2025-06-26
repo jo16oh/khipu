@@ -4,7 +4,7 @@ import { center, square } from "generated/styled-system/patterns";
 import { ChevronLeft, ChevronRight, X } from "lucide-react";
 import { ReactNode, useRef } from "react";
 import { Button } from "react-aria-components";
-import { useOutlineStore } from "src/Providers";
+import { useOutlineStore } from "src/stores/outline-store"
 import { createViewStateStore } from "src/stores/view-state-store";
 import { useWorkspaceState } from "src/stores/workspace-state-store";
 import { useStore } from "zustand";

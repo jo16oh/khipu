@@ -1,4 +1,13 @@
 import type { FocusPosition } from "@tiptap/react";
+import { createContext, useContext } from "react";
+
+export const FocusManagerContext = createContext<FocusManager | undefined>(undefined);
+
+export function useFocusManager() {
+  const context = useContext(FocusManagerContext);
+  if (!context) throw new Error("FocusManagerContext is not set");
+  return context;
+}
 
 export type FocusState = {
   id: string;
