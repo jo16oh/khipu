@@ -2,13 +2,13 @@ import { useSuspenseQuery } from "@tanstack/react-query";
 import { getVersion } from "@tauri-apps/api/app";
 import { css } from "generated/styled-system/css";
 import { styled } from "generated/styled-system/jsx";
+import { commands } from "generated/tauri-commands";
 import { Button } from "react-aria-components";
 import BulletButton from "./common/BulletButton";
+import TitlebarHandler from "./common/TitlebarHandler";
 import CreateOrRenameGraphModal from "./modal/CreateOrRenameGraphModal";
 import OpenGraphModal from "./modal/OpenGraphModal";
 import SettingModal from "./modal/SettingModal";
-import { commands } from "generated/tauri-commands";
-import TitlebarHandler from "./common/TitlebarHandler";
 
 function Entry() {
   const { data: version } = useSuspenseQuery({
@@ -99,7 +99,7 @@ const Operations = styled("div", {
 
 const OperationTrigger = ({ text, isDisabled = false }: { text: string; isDisabled?: boolean }) => (
   <div className={css({ display: "flex", gap: "2", alignItems: "center", p: "1" })}>
-    <BulletButton isCollapsed={!isDisabled} isDisabled={isDisabled} />
+    <BulletButton isCollapsed={!isDisabled} isDisabled={true} />
     <Button
       className={css({
         color: "stone.900",
