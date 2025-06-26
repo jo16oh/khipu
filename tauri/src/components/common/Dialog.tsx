@@ -1,5 +1,6 @@
 import { styled } from "generated/styled-system/jsx";
 import { ComponentProps, ReactNode } from "react";
+import { useRef } from "react";
 import {
   Dialog as DialogContent,
   DialogRenderProps,
@@ -25,33 +26,71 @@ const Dialog = ({
   contentProps?: ComponentProps<typeof StyledDialogContent>;
   buttons?: (state: OverlayTriggerState) => ReactNode;
   overlayProps?: ComponentProps<typeof StyledModalOverlay>;
-}) => (
-  <DialogTrigger {...triggerProps}>
-    {trigger}
+}) => {
+  const stateRef = useRef<OverlayTriggerState | null>(null);
 
-    <StyledModalOverlay
-      isDismissable
-      shouldCloseOnInteractOutside={(e) =>
-        e.attributes.getNamedItem("data-tauri-drag-region") ? false : true
-      }
-      {...overlayProps}
-    >
-      <TitlebarHandler zIndex="[9999]" position="fixed" top="0" left="0" bg="transparent" />
-      <StyledModal isDismissable>
-        {({ state }) => (
-          <StyledDialogContent {...contentProps}>
-            {(props) => (
-              <>
-                {buttons && <Buttons onClick={() => state.close()}>{buttons(state)}</Buttons>}
-                {content(props)}
-              </>
-            )}
-          </StyledDialogContent>
-        )}
-      </StyledModal>
-    </StyledModalOverlay>
-  </DialogTrigger>
-);
+  const draggingWindow = useRef(false);
+
+  return (
+    <DialogTrigger {...triggerProps}>
+      {trigger}
+
+      <StyledModalOverlay
+        isDismissable
+        shouldCloseOnInteractOutside={(e) =>
+          draggingWindow.current || e.attributes.getNamedItem("data-tauri-drag-region")
+            ? false
+            : true
+        }
+        {...overlayProps}
+      >
+        <TitlebarHandler
+          onMouseDown={(e) => {
+            draggingWindow.current = true;
+            const startTime = Date.now();
+            const startX = e.screenX;
+            const startY = e.screenY;
+
+            const cb = (e: MouseEvent) => {
+              const endTime = Date.now();
+              const endX = e.screenX;
+              const endY = e.screenY;
+              if (endTime - startTime < 200 && startX === endX && startY === endY) {
+                stateRef.current?.close();
+              }
+              window.removeEventListener("mouseup", cb);
+
+              // set draggingWindow to be false after shouldCloseOnInteractOutside called
+              setTimeout(() => (draggingWindow.current = false));
+            };
+
+            window.addEventListener("mouseup", cb);
+          }}
+          zIndex="[9999]"
+          position="fixed"
+          top="0"
+          left="0"
+          bg="transparent"
+        />
+        <StyledModal isDismissable>
+          {({ state }) => {
+            stateRef.current = state;
+            return (
+              <StyledDialogContent {...contentProps}>
+                {(props) => (
+                  <>
+                    {buttons && <Buttons onClick={() => state.close()}>{buttons(state)}</Buttons>}
+                    {content(props)}
+                  </>
+                )}
+              </StyledDialogContent>
+            );
+          }}
+        </StyledModal>
+      </StyledModalOverlay>
+    </DialogTrigger>
+  );
+};
 
 const StyledModalOverlay = styled(ModalOverlay, {
   base: {
