@@ -8,11 +8,13 @@ import { useAppState } from "src/stores/app-state-store";
 import { DocUpdateNotifier } from "src/stores/doc-update-notifier";
 import { FocusManager, FocusManagerContext } from "src/stores/focus-manager";
 import { OutlineStore, OutlineStoreContext } from "src/stores/outline-store";
+import { ViewStateStoreContext } from "src/stores/view-state-store";
 import {
   WorkspaceStateStoreContext,
   useWorkspaceState,
   useWorkspaceStateStore,
 } from "src/stores/workspace-state-store";
+import { useStore } from "zustand";
 import { useShallow } from "zustand/react/shallow";
 import TitlebarHandler from "./common/TitlebarHandler";
 import HoverViewModal from "./modal/HoverViewModal";
@@ -36,11 +38,18 @@ function Providers({ graphName, children }: { graphName: string } & PropsWithChi
   const workspaceStateStore = useWorkspaceStateStore(graphName);
   const outlineStore = new OutlineStore(notifier, workspaceStateStore, commands);
 
+  const stage = useStore(
+    workspaceStateStore,
+    useShallow(({ stage }) => stage),
+  );
+
   return (
     <WorkspaceStateStoreContext value={workspaceStateStore}>
-      <OutlineStoreContext value={outlineStore}>
-        <FocusManagerContext value={focusManager}>{children}</FocusManagerContext>
-      </OutlineStoreContext>
+      <ViewStateStoreContext value={stage}>
+        <OutlineStoreContext value={outlineStore}>
+          <FocusManagerContext value={focusManager}>{children}</FocusManagerContext>
+        </OutlineStoreContext>
+      </ViewStateStoreContext>
     </WorkspaceStateStoreContext>
   );
 }
