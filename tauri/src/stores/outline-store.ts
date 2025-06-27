@@ -1,6 +1,6 @@
 import { commands } from "generated/tauri-commands";
 import { WritableDraft, produce } from "immer";
-import { createContext, useContext } from "react";
+import { createContext, use } from "react";
 import { Outline, RawOutline } from "src/model";
 import { uint8ArrayToBase64Async as uint8ArrayToBase64Async } from "src/utils";
 import * as Y from "yjs";
@@ -30,7 +30,7 @@ type Commands = Pick<
 export const OutlineStoreContext = createContext<OutlineStore | null>(null);
 
 export function useOutlineStore() {
-  const context = useContext(OutlineStoreContext);
+  const context = use(OutlineStoreContext);
   if (!context) throw new Error("OutlineStoreContext is not set");
   return context;
 }

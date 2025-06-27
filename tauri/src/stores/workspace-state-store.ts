@@ -1,5 +1,5 @@
 import { useSuspenseQuery } from "@tanstack/react-query";
-import { createContext, useContext } from "react";
+import { createContext, use } from "react";
 import { StoreApi, createStore, useStore } from "zustand";
 import { StateStorage } from "./state-storage";
 import { ViewStateStore, createViewStateStore } from "./view-state-store";
@@ -20,7 +20,7 @@ export type WorkspaceStateStore = StoreApi<WorkspaceState>;
 export const WorkspaceStateStoreContext = createContext<WorkspaceStateStore | null>(null);
 
 export function useWorkspaceState<U>(selector: (state: WorkspaceState) => U) {
-  const store = useContext(WorkspaceStateStoreContext);
+  const store = use(WorkspaceStateStoreContext);
   if (!store) throw new Error("WorkspaceStateStoreContext is not set");
   return useStore(store, selector);
 }

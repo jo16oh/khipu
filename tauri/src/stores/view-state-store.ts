@@ -1,4 +1,4 @@
-import { createContext, useContext } from "react";
+import { createContext, use } from "react";
 import { type StoreApi, createStore, useStore } from "zustand";
 import { FocusManager } from "./focus-manager";
 
@@ -32,7 +32,7 @@ export type ViewStateStore = StoreApi<ViewState>;
 export const ViewStateStoreContext = createContext<ViewStateStore | null>(null);
 
 export function useViewState<U>(selector: (state: ViewState) => U) {
-  const store = useContext(ViewStateStoreContext);
+  const store = use(ViewStateStoreContext);
   if (!store) throw new Error("ViewStateStoreContext is not set");
   return useStore(store, selector);
 }

@@ -37,11 +37,11 @@ function Providers({ graphName, children }: { graphName: string } & PropsWithChi
   const outlineStore = new OutlineStore(notifier, workspaceStateStore, commands);
 
   return (
-    <WorkspaceStateStoreContext.Provider value={workspaceStateStore}>
-      <OutlineStoreContext.Provider value={outlineStore}>
-        <FocusManagerContext.Provider value={focusManager}>{children}</FocusManagerContext.Provider>
-      </OutlineStoreContext.Provider>
-    </WorkspaceStateStoreContext.Provider>
+    <WorkspaceStateStoreContext value={workspaceStateStore}>
+      <OutlineStoreContext value={outlineStore}>
+        <FocusManagerContext value={focusManager}>{children}</FocusManagerContext>
+      </OutlineStoreContext>
+    </WorkspaceStateStoreContext>
   );
 }
 
