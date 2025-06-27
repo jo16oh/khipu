@@ -50,7 +50,8 @@ export default function RenameGraphModal(props: Props) {
   });
 
   const [newGraphName, setNewGraphName] = useState("");
-  const isDuplicateName = newGraphName.trim() !== "" && graphList.some((n) => n === newGraphName.trim());
+  const isDuplicateName =
+    newGraphName.trim() !== "" && graphList.some((n) => n === newGraphName.trim());
   const isTooLong = newGraphName.length > MAX_DB_NAME_LEN;
   const isGraphNameInvalid = newGraphName.length ? !isValidFilename(newGraphName) : false;
   const isDisabled = !newGraphName.trim() || isDuplicateName || isTooLong || isGraphNameInvalid;
