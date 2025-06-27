@@ -6,6 +6,7 @@ import { X } from "lucide-react";
 import { ComponentProps, FormEvent, ReactNode, useState } from "react";
 import { Button, Input } from "react-aria-components";
 import { useAppState } from "src/stores/app-state-store";
+import { renameSavedWorkspaceState } from "src/stores/workspace-state-store";
 import isValidFilename from "valid-filename";
 import Dialog from "../common/Dialog";
 
@@ -42,7 +43,9 @@ export default function RenameGraphModal(props: Props) {
     mutationFn: () =>
       kind === "create"
         ? commands.createGraph(newGraphName)
-        : commands.renameGraph(props.prevGraphName, newGraphName.trim()),
+        : commands
+            .renameGraph(props.prevGraphName, newGraphName.trim())
+            .then(() => renameSavedWorkspaceState(props.prevGraphName, newGraphName)),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["graphList"] });
       close();
