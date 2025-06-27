@@ -1,5 +1,5 @@
-import { LazyStore } from "@tauri-apps/plugin-store";
 import { create } from "zustand";
+import { StateStorage } from "./state-storage";
 
 type AppState = {
   graphName: string | null;
@@ -17,8 +17,8 @@ export const useAppState = create<AppState>((set) => ({
   },
 }));
 
-export async function initAppStateStore(stateStorage: LazyStore) {
-  const prev = await stateStorage.get("appState");
+export async function initAppStateStore() {
+  const prev = await StateStorage.get("appState");
 
   if (
     typeof prev === "object" &&
@@ -30,6 +30,6 @@ export async function initAppStateStore(stateStorage: LazyStore) {
   }
 
   useAppState.subscribe((state) => {
-    stateStorage.set("appState", state);
+    StateStorage.set("appState", state);
   });
 }

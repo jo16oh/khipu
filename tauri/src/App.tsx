@@ -2,7 +2,6 @@ import "../index.css";
 
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { getCurrentWebviewWindow } from "@tauri-apps/api/webviewWindow";
-import { LazyStore } from "@tauri-apps/plugin-store";
 import { styled } from "generated/styled-system/jsx";
 import { commands } from "generated/tauri-commands";
 import { Suspense, use, useEffect, useState } from "react";
@@ -10,8 +9,7 @@ import Entry from "./components/Entry";
 import Workspace from "./components/Workspace";
 import { initAppStateStore, useAppState } from "./stores/app-state-store";
 
-const stateStorage = new LazyStore("state.json", { autoSave: true });
-const initAppStatePromise = initAppStateStore(stateStorage);
+const initAppStatePromise = initAppStateStore();
 const queryClient = new QueryClient();
 
 function App() {
