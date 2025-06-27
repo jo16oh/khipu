@@ -1,5 +1,7 @@
-import { LazyStore } from "@tauri-apps/plugin-store";
-import { create } from "zustand";
+import { useSuspenseQuery } from "@tanstack/react-query";
+import { createContext, useContext } from "react";
+import { StoreApi, createStore, useStore } from "zustand";
+import { StateStorage } from "./state-storage";
 import { ViewStateStore, createViewStateStore } from "./view-state-store";
 
 export type TabKind = "timeline" | "search" | "stage";
@@ -13,32 +15,62 @@ type WorkspaceState = {
   closeHover: () => void;
 };
 
-const mainViewStateStore = createViewStateStore();
+export type WorkspaceStateStore = StoreApi<WorkspaceState>;
 
-export const useWorkspaceState = create<WorkspaceState>((set) => ({
-  stage: mainViewStateStore,
-  hover: null,
-  focus: "stage",
-  switchTab: (to: TabKind) => {
-    set(() => ({ focus: to }));
-  },
-  openHover: (view: ViewStateStore) => {
-    set(() => ({ hover: view }));
-  },
-  closeHover: () => {
-    set(() => ({ hover: null }));
-  },
-}));
+export const WorkspaceStateStoreContext = createContext<WorkspaceStateStore | null>(null);
 
-export async function initWorkspaceState(stateStorage: LazyStore) {
-  const prev = stateStorage.get("mainView");
+export function useWorkspaceState<U>(selector: (state: WorkspaceState) => U) {
+  const store = useContext(WorkspaceStateStoreContext);
+  if (!store) throw new Error("WorkspaceStateStoreContext is not set");
+  return useStore(store, selector);
+}
 
-  if (prev !== null && typeof prev === "object" && "id" in prev && typeof prev?.id === "string") {
-    mainViewStateStore.setState({ id: prev.id });
+export function useWorkspaceStateStore(graphName: string) {
+  const { data: store } = useSuspenseQuery({
+    queryKey: ["workspaceState", graphName],
+    queryFn: () => createWorkspaceStateStore(graphName),
+    staleTime: Infinity,
+  });
+
+  return store;
+}
+
+export async function renameSavedWorkspaceState(prevGraphName: string, currentGraphName: string) {
+  const prev = await StateStorage.get("stageView" + prevGraphName);
+  StateStorage.set("stageView" + currentGraphName, prev);
+}
+
+async function createWorkspaceStateStore(graphName: string): Promise<WorkspaceStateStore> {
+  const initialState = await StateStorage.get("stageView" + graphName);
+
+  const mainViewStateStore = createViewStateStore();
+
+  if (
+    initialState !== null &&
+    typeof initialState === "object" &&
+    "id" in initialState &&
+    typeof initialState?.id === "string"
+  ) {
+    mainViewStateStore.setState({ id: initialState.id });
   }
 
   mainViewStateStore.subscribe((current) => {
     const state = { id: current.id };
-    stateStorage.set("mainView", state);
+    StateStorage.set("stageView" + graphName, state);
   });
+
+  return createStore<WorkspaceState>((set) => ({
+    stage: mainViewStateStore,
+    hover: null,
+    focus: "stage",
+    switchTab: (to: TabKind) => {
+      set(() => ({ focus: to }));
+    },
+    openHover: (view: ViewStateStore) => {
+      set(() => ({ hover: view }));
+    },
+    closeHover: () => {
+      set(() => ({ hover: null }));
+    },
+  }));
 }

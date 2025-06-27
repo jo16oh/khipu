@@ -8,13 +8,44 @@ import { useAppState } from "src/stores/app-state-store";
 import { DocUpdateNotifier } from "src/stores/doc-update-notifier";
 import { FocusManager, FocusManagerContext } from "src/stores/focus-manager";
 import { OutlineStore, OutlineStoreContext } from "src/stores/outline-store";
-import { useWorkspaceState } from "src/stores/workspace-state-store";
+import {
+  WorkspaceStateStoreContext,
+  useWorkspaceState,
+  useWorkspaceStateStore,
+} from "src/stores/workspace-state-store";
 import { useShallow } from "zustand/react/shallow";
 import TitlebarHandler from "./common/TitlebarHandler";
 import HoverViewModal from "./modal/HoverViewModal";
 import Stage from "./workspace/Stage";
 
 export default function Workspace() {
+  const [graphName] = useAppState(useShallow(({ graphName }) => [graphName]));
+
+  return graphName ? (
+    <Providers graphName={graphName}>
+      <WorkspaceImpl />
+    </Providers>
+  ) : (
+    <div>no graph is opened</div>
+  );
+}
+
+function Providers({ graphName, children }: { graphName: string } & PropsWithChildren) {
+  const notifier = new DocUpdateNotifier();
+  const focusManager = new FocusManager();
+  const workspaceStateStore = useWorkspaceStateStore(graphName);
+  const outlineStore = new OutlineStore(notifier, workspaceStateStore, commands);
+
+  return (
+    <WorkspaceStateStoreContext.Provider value={workspaceStateStore}>
+      <OutlineStoreContext.Provider value={outlineStore}>
+        <FocusManagerContext.Provider value={focusManager}>{children}</FocusManagerContext.Provider>
+      </OutlineStoreContext.Provider>
+    </WorkspaceStateStoreContext.Provider>
+  );
+}
+
+function WorkspaceImpl() {
   const [graphName, closeGraph] = useAppState(
     useShallow(({ graphName, closeGraph }) => [graphName, closeGraph]),
   );
@@ -23,8 +54,8 @@ export default function Workspace() {
     useShallow(({ focus, switchTab }) => [focus, switchTab]),
   );
 
-  return (
-    <Providers>
+  return graphName ? (
+    <>
       <TitlebarHandler bg="stone.50" />
       <Container>
         {focus === "timeline" && <div>timeline</div>}
@@ -70,19 +101,9 @@ export default function Workspace() {
           />
         </BottomNav>
       </Container>
-    </Providers>
-  );
-}
-
-function Providers({ children }: PropsWithChildren) {
-  const notifier = new DocUpdateNotifier();
-  const focusManager = new FocusManager();
-  const outlineStore = new OutlineStore(notifier, commands);
-
-  return (
-    <OutlineStoreContext.Provider value={outlineStore}>
-      <FocusManagerContext.Provider value={focusManager}>{children}</FocusManagerContext.Provider>
-    </OutlineStoreContext.Provider>
+    </>
+  ) : (
+    <></>
   );
 }
 

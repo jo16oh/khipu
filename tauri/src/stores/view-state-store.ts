@@ -4,15 +4,15 @@ import { FocusManager } from "./focus-manager";
 
 const MAX_HISTORY_LEN = 100;
 
-export type ViewState = {
+export type View = {
   id: string | null;
   scrollPosition: number;
 };
 
-export type ViewStateStoreState = {
+export type ViewState = {
   id: string | null;
   focusManager: FocusManager;
-  jump: (view: ViewState) => void;
+  jump: (view: View) => void;
   back: () => void;
   next: () => void;
   hasPrevious: () => boolean;
@@ -21,24 +21,24 @@ export type ViewStateStoreState = {
   recordScrollPosition: (scrollPosition: number) => void;
 };
 
-type InternalViewStateStoreState = ViewStateStoreState & {
+type InternalViewState = ViewState & {
   scrollPosition: number;
-  backHistory: ViewState[];
-  nextHistory: ViewState[];
+  backHistory: View[];
+  nextHistory: View[];
 };
 
-export type ViewStateStore = StoreApi<ViewStateStoreState>;
+export type ViewStateStore = StoreApi<ViewState>;
 
 export const ViewStateStoreContext = createContext<ViewStateStore | null>(null);
 
-export function useViewState<U>(selector: (state: ViewStateStoreState) => U) {
+export function useViewState<U>(selector: (state: ViewState) => U) {
   const store = useContext(ViewStateStoreContext);
   if (!store) throw new Error("ViewStateStoreContext is not set");
   return useStore(store, selector);
 }
 
 export function createViewStateStore(): ViewStateStore {
-  return createStore<InternalViewStateStoreState>((set, get) => ({
+  return createStore<InternalViewState>((set, get) => ({
     id: null,
     scrollPosition: 0,
     backHistory: [],

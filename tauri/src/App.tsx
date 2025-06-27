@@ -9,16 +9,13 @@ import { Suspense, use, useEffect, useState } from "react";
 import Entry from "./components/Entry";
 import Workspace from "./components/Workspace";
 import { initAppStateStore, useAppState } from "./stores/app-state-store";
-import { initWorkspaceState } from "./stores/workspace-state-store";
 
 const stateStorage = new LazyStore("state.json", { autoSave: true });
 const initAppStatePromise = initAppStateStore(stateStorage);
-const initWorkspaceStatePromise = initWorkspaceState(stateStorage);
 const queryClient = new QueryClient();
 
 function App() {
   use(initAppStatePromise);
-  use(initWorkspaceStatePromise);
 
   const graphName = useAppState((state) => state.graphName);
   const closeGraph = useAppState((state) => state.closeGraph);

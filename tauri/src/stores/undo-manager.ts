@@ -3,24 +3,30 @@ import { getSchemaOf } from "src/editor/schema";
 import { yXmlFragmentToProseMirrorRootNode } from "y-prosemirror";
 import { DocUpdateNotifier } from "./doc-update-notifier";
 import { OutlineStore } from "./outline-store";
-import { ViewState } from "./view-state-store";
-import { useWorkspaceState } from "./workspace-state-store";
+import { View } from "./view-state-store";
+import { WorkspaceStateStore } from "./workspace-state-store";
 
 type HistoryItem = {
   id: string;
   type: OutlineType;
-  viewState: ViewState;
+  viewState: View;
   unsubscribers: Array<() => void>;
 };
 
 export class UndoManager {
   #outlineStore: OutlineStore;
+  #workspaceStateStore: WorkspaceStateStore;
   #notifier: DocUpdateNotifier;
   #undoStack: HistoryItem[] = [];
   #redoStack: HistoryItem[] = [];
 
-  constructor(store: OutlineStore, notifier: DocUpdateNotifier) {
+  constructor(
+    store: OutlineStore,
+    workspaceStateStore: WorkspaceStateStore,
+    notifier: DocUpdateNotifier,
+  ) {
     this.#outlineStore = store;
+    this.#workspaceStateStore = workspaceStateStore;
     this.#notifier = notifier;
   }
 
@@ -30,7 +36,7 @@ export class UndoManager {
     const unsubscribers = [this.#outlineStore.subscribeToOutline(id, () => {})];
 
     const viewStateStore = (() => {
-      const state = useWorkspaceState.getState();
+      const state = this.#workspaceStateStore.getState();
       return state.hover ? state.hover : state.stage;
     })();
 
@@ -55,7 +61,7 @@ export class UndoManager {
       const undoManager = this.#outlineStore.getYUndoManager(history.id);
       if (undoManager) {
         const viewStateStore = (() => {
-          const state = useWorkspaceState.getState();
+          const state = this.#workspaceStateStore.getState();
           return state.hover ? state.hover : state.stage;
         })().getState();
 

@@ -13,6 +13,7 @@ import { OutlineStoreReducer } from "./outline-store-reducer";
 import { SubscribersMap } from "./subscribers-map";
 import { Order, TimelineIndex } from "./timeline-index";
 import { UndoManager } from "./undo-manager";
+import { WorkspaceStateStore } from "./workspace-state-store";
 
 export type OutlineStoreUpdater = (
   id: string,
@@ -52,9 +53,9 @@ export class OutlineStore {
   readonly reducer: OutlineStoreReducer;
   readonly loader: OutlineStoreLoader;
 
-  constructor(docUpdateNotifier: DocUpdateNotifier, commands: Commands) {
+  constructor(docUpdateNotifier: DocUpdateNotifier, workspaceStateStore: WorkspaceStateStore,  commands: Commands) {
     this.#docUpdateNotifier = docUpdateNotifier;
-    this.#undoManager = new UndoManager(this, docUpdateNotifier);
+    this.#undoManager = new UndoManager(this, workspaceStateStore, docUpdateNotifier);
     this.#commands = commands;
     this.reducer = new OutlineStoreReducer(
       this,
