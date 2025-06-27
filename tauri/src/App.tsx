@@ -5,6 +5,7 @@ import { getCurrentWebviewWindow } from "@tauri-apps/api/webviewWindow";
 import { styled } from "generated/styled-system/jsx";
 import { commands } from "generated/tauri-commands";
 import { Suspense, use, useEffect, useState } from "react";
+import { useShallow } from "zustand/react/shallow";
 import Entry from "./components/Entry";
 import Workspace from "./components/Workspace";
 import { initAppStateStore, useAppState } from "./stores/app-state-store";
@@ -15,8 +16,9 @@ const queryClient = new QueryClient();
 function App() {
   use(initAppStatePromise);
 
-  const graphName = useAppState((state) => state.graphName);
-  const closeGraph = useAppState((state) => state.closeGraph);
+  const [graphName, closeGraph] = useAppState(
+    useShallow(({ graphName, closeGraph }) => [graphName, closeGraph]),
+  );
   const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
