@@ -49,11 +49,20 @@ function App() {
 
   return (
     <QueryClientProvider client={queryClient}>
-      <styled.main display="flex" flexDir="column" w="screen" h="screen">
-        <Suspense>{!isLoading && (graphName ? <Workspace /> : <Entry />)}</Suspense>
-      </styled.main>
+      <Suspense>
+        <Main>{!isLoading && (graphName ? <Workspace /> : <Entry />)}</Main>
+      </Suspense>
     </QueryClientProvider>
   );
 }
+
+const Main = styled("main", {
+  base: {
+    display: "flex",
+    flexDir: "column",
+    w: "screen",
+    h: "screen",
+  },
+});
 
 export default App;
