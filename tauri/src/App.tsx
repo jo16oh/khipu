@@ -36,6 +36,14 @@ function App() {
   }, [graphName, closeGraph]);
 
   useEffect(() => {
+    useAppState.subscribe((state, prevState) => {
+      if (prevState.graphName && state.graphName === null) {
+        queryClient.clear();
+      }
+    });
+  }, []);
+
+  useEffect(() => {
     getCurrentWebviewWindow().show();
   }, []);
 
