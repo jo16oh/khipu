@@ -37,7 +37,8 @@ export function useWorkspaceStateStore(graphName: string) {
 
 export async function renameSavedWorkspaceState(prevGraphName: string, currentGraphName: string) {
   const prev = await StateStorage.get("stageView" + prevGraphName);
-  StateStorage.set("stageView" + currentGraphName, prev);
+  await StateStorage.set("stageView" + currentGraphName, prev);
+  await StateStorage.delete("stageView" + prevGraphName);
 }
 
 async function createWorkspaceStateStore(graphName: string): Promise<WorkspaceStateStore> {
