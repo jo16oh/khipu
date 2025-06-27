@@ -1,4 +1,4 @@
-import { useSuspenseQuery } from "@tanstack/react-query";
+import { useSuspenseQueries } from "@tanstack/react-query";
 import { getVersion } from "@tauri-apps/api/app";
 import { css } from "generated/styled-system/css";
 import { styled } from "generated/styled-system/jsx";
@@ -11,16 +11,19 @@ import OpenGraphModal from "./modal/OpenGraphModal";
 import SettingModal from "./modal/SettingModal";
 
 function Entry() {
-  const { data: version } = useSuspenseQuery({
-    queryKey: ["version"],
-    queryFn: async () => {
-      return await getVersion();
-    },
-  });
-
-  const { data: graphList } = useSuspenseQuery({
-    queryKey: ["graphList"],
-    queryFn: commands.listGraph,
+  const [{ data: version }, { data: graphList }] = useSuspenseQueries({
+    queries: [
+      {
+        queryKey: ["version"],
+        queryFn: async () => {
+          return await getVersion();
+        },
+      },
+      {
+        queryKey: ["graphList"],
+        queryFn: commands.listGraph,
+      },
+    ],
   });
 
   return (
