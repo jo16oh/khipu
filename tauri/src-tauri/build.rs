@@ -9,9 +9,9 @@ fn main() {
 }
 
 fn prepare_sqlx() {
-    println!("cargo:rustc-env=DATABASE_URL=sqlite:.sqlx.graph");
+    println!("cargo:rustc-env=DATABASE_URL=sqlite:.sqlx.db");
 
-    let url = ".sqlx.graph";
+    let url = ".sqlx.db";
 
     if PathBuf::from(url).exists() {
         std::fs::remove_file(url).unwrap();
