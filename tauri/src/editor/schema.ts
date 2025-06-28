@@ -1,3 +1,4 @@
+import Collabolation from "@tiptap/extension-collaboration";
 import Document from "@tiptap/extension-document";
 import Paragraph from "@tiptap/extension-paragraph";
 import Text from "@tiptap/extension-text";
@@ -5,6 +6,7 @@ import { Node } from "@tiptap/react";
 import { Extensions, getSchema } from "@tiptap/react";
 import { OutlineType } from "generated/tauri-commands";
 import { DocUpdateNotifier } from "src/stores/doc-update-notifier";
+import * as Y from "yjs";
 import { createUpdateNotifierExtension } from "./update-notifier";
 
 const SingleBlockDocument = Node.create({
@@ -15,15 +17,19 @@ const SingleBlockDocument = Node.create({
 
 export function createExtensions(
   outlineId: string,
+  ydoc: Y.Doc,
   type: OutlineType,
   notifier: DocUpdateNotifier,
 ): Extensions {
+  const fragment = ydoc.getXmlFragment("doc");
+
   switch (type) {
     case "heading":
       return [
         SingleBlockDocument,
         Paragraph,
         Text,
+        Collabolation.extend().configure({ fragment }),
         createUpdateNotifierExtension(outlineId, notifier),
       ];
     case "bullet":
@@ -31,12 +37,25 @@ export function createExtensions(
         SingleBlockDocument,
         Paragraph,
         Text,
+        Collabolation.extend().configure({ fragment }),
         createUpdateNotifierExtension(outlineId, notifier),
       ];
     case "card":
-      return [Document, Paragraph, Text, createUpdateNotifierExtension(outlineId, notifier)];
+      return [
+        Document,
+        Paragraph,
+        Text,
+        Collabolation.extend().configure({ fragment }),
+        createUpdateNotifierExtension(outlineId, notifier),
+      ];
     case "code":
-      return [Document, Paragraph, Text, createUpdateNotifierExtension(outlineId, notifier)];
+      return [
+        Document,
+        Paragraph,
+        Text,
+        Collabolation.extend().configure({ fragment }),
+        createUpdateNotifierExtension(outlineId, notifier),
+      ];
   }
 }
 
