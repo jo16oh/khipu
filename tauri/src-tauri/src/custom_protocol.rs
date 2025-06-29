@@ -10,20 +10,41 @@ pub fn handle_request<R: Runtime>(
     request: Request<Vec<u8>>,
     responder: UriSchemeResponder,
 ) {
-    let path = &request.uri().path()[1..];
-    let app_handle = ctx.app_handle().clone();
-
-    if let Some(id) = path.strip_prefix("y_updates/") {
-        tokio::spawn(y_updates(responder, app_handle, id.to_string()));
-    } else if let Some(id) = path.strip_prefix("assets/") {
-        tokio::spawn(asset(responder, app_handle, id.to_string()));
-    } else {
+    // Handle CORS preflight requests
+    if request.method() == "OPTIONS" {
         responder.respond(
             Response::builder()
-                .status(http::StatusCode::NOT_FOUND)
-                .body("404 Not Found".as_bytes().to_vec())
+                .status(200)
+                .header("Access-Control-Allow-Origin", "*")
+                .header("Access-Control-Allow-Methods", "GET, POST, OPTIONS")
+                .header("Access-Control-Allow-Headers", "Content-Type")
+                .body(Vec::new())
                 .unwrap(),
         );
+        return;
+    }
+
+    let uri = request.uri();
+    let app_handle = ctx.app_handle().clone();
+
+    match uri.host() {
+        Some("y_updates") => {
+            let id = &uri.path()[1..];
+            tauri::async_runtime::spawn(y_updates(responder, app_handle, id.to_string()));
+        }
+        Some("assets") => {
+            let id = &uri.path()[1..];
+            tauri::async_runtime::spawn(asset(responder, app_handle, id.to_string()));
+        }
+        _ => {
+            responder.respond(
+                Response::builder()
+                    .status(http::StatusCode::NOT_FOUND)
+                    .header("Access-Control-Allow-Origin", "*")
+                    .body("404 Not Found".as_bytes().to_vec())
+                    .unwrap(),
+            );
+        }
     }
 }
 
