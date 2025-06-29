@@ -53,7 +53,11 @@ export class OutlineStore {
   readonly reducer: OutlineStoreReducer;
   readonly loader: OutlineStoreLoader;
 
-  constructor(docUpdateNotifier: DocUpdateNotifier, workspaceStateStore: WorkspaceStateStore,  commands: Commands) {
+  constructor(
+    docUpdateNotifier: DocUpdateNotifier,
+    workspaceStateStore: WorkspaceStateStore,
+    commands: Commands,
+  ) {
     this.#docUpdateNotifier = docUpdateNotifier;
     this.#undoManager = new UndoManager(this, workspaceStateStore, docUpdateNotifier);
     this.#commands = commands;
