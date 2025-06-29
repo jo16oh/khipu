@@ -459,10 +459,13 @@ pub async fn fetch_deleted_outline_trees<'a>(
     conn: impl SqliteExecutor<'a> + Copy + Send,
     offset: i64,
 ) -> eyre::Result<(Vec<Outline>, Vec<Outline>)> {
-    let deleted_trees =
-        sqlx::query_file_as_unchecked!(Outline, "src/graph/fetch_deleted_outline_trees.sql", offset)
-            .fetch_all(conn)
-            .await?;
+    let deleted_trees = sqlx::query_file_as_unchecked!(
+        Outline,
+        "src/graph/fetch_deleted_outline_trees.sql",
+        offset
+    )
+    .fetch_all(conn)
+    .await?;
 
     let paths = {
         let ids = serde_json::to_string(&deleted_trees.iter().map(|o| &o.id).collect_vec())?;
