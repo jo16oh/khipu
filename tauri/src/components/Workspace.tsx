@@ -5,7 +5,7 @@ import { ClockArrowDown, Search, SquarePen, StickyNote } from "lucide-react";
 import { PropsWithChildren } from "react";
 import { Button } from "react-aria-components";
 import { useAppState } from "src/stores/app-state-store";
-import { DocUpdateNotifier } from "src/stores/doc-update-notifier";
+import { DocUpdateNotifier, DocUpdateNotifierContext } from "src/stores/doc-update-notifier";
 import { FocusManager, FocusManagerContext } from "src/stores/focus-manager";
 import { OutlineStore, OutlineStoreContext } from "src/stores/outline-store";
 import { ViewStateStoreContext } from "src/stores/view-state-store";
@@ -46,9 +46,11 @@ function Providers({ graphName, children }: { graphName: string } & PropsWithChi
   return (
     <WorkspaceStateStoreContext value={workspaceStateStore}>
       <ViewStateStoreContext value={stage}>
-        <OutlineStoreContext value={outlineStore}>
-          <FocusManagerContext value={focusManager}>{children}</FocusManagerContext>
-        </OutlineStoreContext>
+        <DocUpdateNotifierContext value={notifier}>
+          <OutlineStoreContext value={outlineStore}>
+            <FocusManagerContext value={focusManager}>{children}</FocusManagerContext>
+          </OutlineStoreContext>
+        </DocUpdateNotifierContext>
       </ViewStateStoreContext>
     </WorkspaceStateStoreContext>
   );
