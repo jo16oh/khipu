@@ -7,7 +7,7 @@ import { Extensions, getSchema } from "@tiptap/react";
 import { OutlineType } from "generated/tauri-commands";
 import { DocUpdateNotifier } from "src/stores/doc-update-notifier";
 import * as Y from "yjs";
-import { createUpdateNotifierExtension } from "./update-notifier";
+import { createUpdateNotifierExtension } from "./extensions/update-notifier";
 
 const SingleBlockDocument = Node.create({
   name: "doc",
