@@ -8,7 +8,6 @@ import { OutlineType } from "generated/tauri-commands";
 import { DocUpdateNotifier } from "src/stores/doc-update-notifier";
 import { OutlineStore } from "src/stores/outline-store";
 import * as Y from "yjs";
-import { createOnBlurDestroyEditorExtension } from "./extensions/on-blur-destroy-editor";
 import { createSaveExtension } from "./extensions/save";
 import { createUpdateNotifierExtension } from "./extensions/update-notifier";
 
@@ -31,7 +30,6 @@ export function createExtensions(
     Collabolation.extend().configure({ fragment }),
     createUpdateNotifierExtension(outlineId, notifier),
     createSaveExtension(outlineId, store),
-    createOnBlurDestroyEditorExtension(),
   ];
 
   switch (type) {
