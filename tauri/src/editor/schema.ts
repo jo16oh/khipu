@@ -6,7 +6,10 @@ import { Node } from "@tiptap/react";
 import { Extensions, getSchema } from "@tiptap/react";
 import { OutlineType } from "generated/tauri-commands";
 import { DocUpdateNotifier } from "src/stores/doc-update-notifier";
+import { OutlineStore } from "src/stores/outline-store";
 import * as Y from "yjs";
+import { createOnBlurDestroyEditorExtension } from "./extensions/on-blur-destroy-editor";
+import { createSaveExtension } from "./extensions/save";
 import { createUpdateNotifierExtension } from "./extensions/update-notifier";
 
 const SingleBlockDocument = Node.create({
@@ -19,43 +22,27 @@ export function createExtensions(
   outlineId: string,
   ydoc: Y.Doc,
   type: OutlineType,
+  store: OutlineStore,
   notifier: DocUpdateNotifier,
 ): Extensions {
   const fragment = ydoc.getXmlFragment("doc");
 
+  const common: Extensions = [
+    Collabolation.extend().configure({ fragment }),
+    createUpdateNotifierExtension(outlineId, notifier),
+    createSaveExtension(outlineId, store),
+    createOnBlurDestroyEditorExtension(),
+  ];
+
   switch (type) {
     case "heading":
-      return [
-        SingleBlockDocument,
-        Paragraph,
-        Text,
-        Collabolation.extend().configure({ fragment }),
-        createUpdateNotifierExtension(outlineId, notifier),
-      ];
+      return [SingleBlockDocument, Paragraph, Text, ...common];
     case "bullet":
-      return [
-        SingleBlockDocument,
-        Paragraph,
-        Text,
-        Collabolation.extend().configure({ fragment }),
-        createUpdateNotifierExtension(outlineId, notifier),
-      ];
+      return [SingleBlockDocument, Paragraph, Text, ...common];
     case "card":
-      return [
-        Document,
-        Paragraph,
-        Text,
-        Collabolation.extend().configure({ fragment }),
-        createUpdateNotifierExtension(outlineId, notifier),
-      ];
+      return [Document, Paragraph, Text, ...common];
     case "code":
-      return [
-        Document,
-        Paragraph,
-        Text,
-        Collabolation.extend().configure({ fragment }),
-        createUpdateNotifierExtension(outlineId, notifier),
-      ];
+      return [Document, Paragraph, Text, ...common];
   }
 }
 
