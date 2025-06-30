@@ -19,6 +19,7 @@
     "@tauri-apps/api": "^2.6.0",
     "@tauri-apps/plugin-opener": "^2.4.0",
     "@tauri-apps/plugin-store": "~2.2.1",
+    "@tiptap/core": "3.0.0-beta.14",
     "@tiptap/extension-collaboration": "3.0.0-beta.17",
     "@tiptap/extension-document": "3.0.0-beta.17",
     "@tiptap/extension-paragraph": "3.0.0-beta.17",
