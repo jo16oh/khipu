@@ -17,7 +17,20 @@ const SingleBlockDocument = Node.create({
   content: "block",
 });
 
-export function createExtensions(
+export function createRendererExtensions(type: OutlineType): Extensions {
+  switch (type) {
+    case "heading":
+      return [SingleBlockDocument, Paragraph, Text];
+    case "bullet":
+      return [SingleBlockDocument, Paragraph, Text];
+    case "card":
+      return [Document, Paragraph, Text];
+    case "code":
+      return [Document, Paragraph, Text];
+  }
+}
+
+export function createEditorExtensions(
   outlineId: string,
   ydoc: Y.Doc,
   type: OutlineType,
@@ -26,22 +39,12 @@ export function createExtensions(
 ): Extensions {
   const fragment = ydoc.getXmlFragment("doc");
 
-  const common: Extensions = [
+  return [
+    ...createRendererExtensions(type),
     Collabolation.extend().configure({ fragment }),
     createUpdateNotifierExtension(outlineId, notifier),
     createSaveExtension(outlineId, store),
   ];
-
-  switch (type) {
-    case "heading":
-      return [SingleBlockDocument, Paragraph, Text, ...common];
-    case "bullet":
-      return [SingleBlockDocument, Paragraph, Text, ...common];
-    case "card":
-      return [Document, Paragraph, Text, ...common];
-    case "code":
-      return [Document, Paragraph, Text, ...common];
-  }
 }
 
 export function getSchemaOf(type: OutlineType) {
