@@ -16,18 +16,18 @@ export type FocusState = {
 
 export class FocusManager {
   #state: FocusState | undefined;
-  #focusFnMap = new Map<string, () => void>();
+  #focusFnMap = new Map<string, (pos: FocusPosition) => void>();
 
-  /**
-   * Focus to the outline specified by FocusState.
-   * @param state - If ommited, focus to the last focused outline.
-   */
-  focus(state?: FocusState) {
-    if (state === undefined) {
-      if (this.#state) this.#focusFnMap.get(this.#state.id)?.();
+  syncFocusPosition(state: FocusState) {
+    this.#state = state;
+  }
+
+  focus(state: "prev" | FocusState) {
+    if (state === "prev") {
+      if (this.#state) this.#focusFnMap.get(this.#state.id)?.(this.#state.position);
     } else {
       this.#state = state;
-      if (state) this.#focusFnMap.get(state.id)?.();
+      this.#focusFnMap.get(state.id)?.(state.position);
     }
   }
 
@@ -35,20 +35,10 @@ export class FocusManager {
     return this.#state;
   }
 
-  /**
-   * Call this method in Editor component to synchronize FocusState.
-   * @param outlineId
-   * @param focus - A function to focus to the editor.
-   * @returns A function to sync cursor position to FocusManager (Don't use `focus` method for this purpose as it causes infinite loop).
-   */
-  manage(outlineId: string, focus: () => void) {
+  manage(outlineId: string, focus: (pos: FocusPosition) => void) {
     this.#focusFnMap.set(outlineId, focus);
-    return (state: FocusState) => {
-      this.#state = state;
+    return () => {
+      this.#focusFnMap.delete(outlineId);
     };
-  }
-
-  unmanage(outlineId: string) {
-    this.#focusFnMap.delete(outlineId);
   }
 }

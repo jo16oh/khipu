@@ -1,9 +1,11 @@
 import { Extension } from "@tiptap/react";
-import { FocusState } from "src/stores/focus-manager";
+import { FocusManager } from "src/stores/focus-manager";
 
-export function createSyncFocusPositionExtension(id: string, sync: (state: FocusState) => void) {
+export function createSyncFocusPositionExtension(id: string, focusManager: FocusManager) {
   return Extension.create({
     name: "sync-focus-position",
-    onSelectionUpdate: (e) => sync?.({ id, position: e.editor.state.selection.from }),
+    onSelectionUpdate: ({ editor }) => {
+      focusManager.syncFocusPosition({ id, position: editor.state.selection.from });
+    },
   });
 }
