@@ -6,9 +6,7 @@ import { Node } from "@tiptap/react";
 import { Extensions, getSchema } from "@tiptap/react";
 import { OutlineType } from "generated/tauri-commands";
 import { DocUpdateNotifier } from "src/stores/doc-update-notifier";
-import { OutlineStore } from "src/stores/outline-store";
 import * as Y from "yjs";
-import { createSaveExtension } from "./extensions/save";
 import { createUpdateNotifierExtension } from "./extensions/update-notifier";
 
 const SingleBlockDocument = Node.create({
@@ -34,7 +32,6 @@ export function createEditorExtensions(
   outlineId: string,
   ydoc: Y.Doc,
   type: OutlineType,
-  store: OutlineStore,
   notifier: DocUpdateNotifier,
 ): Extensions {
   const fragment = ydoc.getXmlFragment("doc");
@@ -43,7 +40,6 @@ export function createEditorExtensions(
     ...createRendererExtensions(type),
     Collabolation.extend().configure({ fragment }),
     createUpdateNotifierExtension(outlineId, notifier),
-    createSaveExtension(outlineId, store),
   ];
 }
 

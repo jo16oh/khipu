@@ -9,6 +9,7 @@ import { ViewStateStoreContext, createViewStateStore } from "src/stores/view-sta
 import { useWorkspaceState } from "src/stores/workspace-state-store";
 import { useStore } from "zustand";
 import { useShallow } from "zustand/react/shallow";
+import Editor, { EditorHandle } from "../Editor";
 import Dialog from "../common/Dialog";
 import DialogSideActionButton, {
   dialogSideActionButtonIconStyle,
@@ -24,6 +25,8 @@ export default function HoverViewModal({ trigger }: { trigger: ReactNode }) {
   const [_hover, openHover, closeHover] = useWorkspaceState(
     useShallow(({ hover, openHover, closeHover }) => [hover, openHover, closeHover]),
   );
+
+  const editorRef = useRef<EditorHandle | null>(null);
 
   return (
     <ViewStateStoreContext value={viewStateStore.current}>
@@ -64,6 +67,8 @@ export default function HoverViewModal({ trigger }: { trigger: ReactNode }) {
               </HistoryButton>
             </ViewHeader>
             {viewState.id}
+            {viewState.id && <Editor ref={editorRef} id={viewState.id} />}
+            <button onClick={() => editorRef.current?.focus("end")}>focus</button>
           </ViewCotainer>
         )}
       />

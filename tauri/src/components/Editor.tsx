@@ -1,0 +1,159 @@
+import { EditorContent, FocusPosition, JSONContent, Editor as Tiptap } from "@tiptap/react";
+import { renderToReactElement } from "@tiptap/static-renderer";
+import { css } from "generated/styled-system/css";
+import { styled } from "generated/styled-system/jsx";
+import { OutlineType } from "generated/tauri-commands";
+import {
+  memo,
+  Ref,
+  Suspense,
+  use,
+  useCallback,
+  useEffect,
+  useImperativeHandle,
+  useMemo,
+  useRef,
+  useState,
+  useTransition,
+} from "react";
+import { createEditorExtensions, createRendererExtensions } from "src/editor/schema";
+import { useObservableRef } from "src/hooks/useObservableRef";
+import { useOutline } from "src/hooks/useOutline";
+import { useDocUpdateNotifier } from "src/stores/doc-update-notifier";
+import { useOutlineStore } from "src/stores/outline-store";
+
+export type EditorHandle = {
+  focus: (pos: FocusPosition) => void;
+};
+
+export default function Editor({ ref, id }: { ref?: Ref<EditorHandle>; id: string }) {
+  const outline = useOutline(id);
+  const [focused, setFocused] = useState(false);
+  const [isPending, startTransition] = useTransition();
+
+  const onMouseEnter = useCallback(() => startTransition(() => setFocused(true)), []);
+
+  const editorRef = useObservableRef<EditorHandle | null>(null);
+
+  useImperativeHandle(ref, () => ({
+    focus(pos) {
+      startTransition(() => setFocused(true));
+
+      const unsubscribe = editorRef.listen((handle) => {
+        setTimeout(() => {
+          if (handle) {
+            handle?.focus(pos);
+            unsubscribe();
+          }
+        });
+      });
+    },
+  }));
+
+  return focused && !isPending ? (
+    <Suspense>
+      <ActiveEditor ref={editorRef} setFocused={setFocused} id={id} type={outline.type} />
+    </Suspense>
+  ) : (
+    <MockEditor onMouseEnter={onMouseEnter} type={outline.type} doc={outline.doc as JSONContent} />
+  );
+}
+
+function MockEditor({
+  type,
+  doc,
+  onMouseEnter,
+}: {
+  type: OutlineType;
+  doc: JSONContent;
+  onMouseEnter: () => void;
+}) {
+  const extensions = useMemo(() => createRendererExtensions(type), [type]);
+
+  return (
+    <EditorContainer type="mock" onMouseEnter={onMouseEnter}>
+      {renderToReactElement({ extensions, content: doc })}
+    </EditorContainer>
+  );
+}
+
+const ActiveEditor = memo(function ActiveEditor({
+  id,
+  type,
+  setFocused,
+  ref,
+}: {
+  id: string;
+  type: OutlineType;
+  setFocused: (value: boolean) => void;
+  ref?: Ref<EditorHandle>;
+}) {
+  const store = useOutlineStore();
+  const ydoc = use(store.getYDoc(id));
+  const notifier = useDocUpdateNotifier();
+
+  const editor = useRef(
+    new Tiptap({
+      extensions: createEditorExtensions(id, ydoc, type, notifier),
+      editorProps: {
+        attributes: {
+          class: editorStyle,
+        },
+      },
+      onBlur: () => setFocused(false),
+    }),
+  );
+
+  useEffect(() => {
+    return () => {
+      store.save(id);
+    };
+  }, [store, id]);
+
+  const onMouseLeave = useCallback(() => {
+    if (editor.current && !editor.current.isFocused) {
+      setFocused(false);
+    }
+  }, [editor, setFocused]);
+
+  useImperativeHandle(
+    ref,
+    () => ({
+      focus: (pos) => editor.current.commands.focus(pos),
+    }),
+    [editor],
+  );
+
+  return (
+    <>
+      <EditorContainer type="active" onMouseLeave={onMouseLeave}>
+        <EditorContent editor={editor.current} />
+      </EditorContainer>
+    </>
+  );
+});
+
+const rawEditorStyle = css.raw({
+  cursor: "text",
+  ring: "none",
+  wordBreak: "break-word",
+  userSelect: "text",
+  whiteSpace: "pre-wrap",
+});
+
+const editorStyle = css(rawEditorStyle);
+
+const EditorContainer = styled("div", {
+  variants: {
+    type: {
+      active: {},
+      mock: {
+        ...rawEditorStyle,
+      },
+    },
+  },
+  base: {
+    w: "full",
+    minH: "6",
+  },
+});
