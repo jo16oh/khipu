@@ -28,7 +28,7 @@ export type EditorHandle = {
 };
 
 export default function Editor({ ref, id }: { ref?: Ref<EditorHandle>; id: string }) {
-  const outline = useOutline(id);
+  const type = useOutline(id, ({ type }) => type);
   const focusManager = useFocusManager();
   const [focused, setFocused] = useState(false);
   const [isPending, startTransition] = useTransition();
@@ -52,9 +52,7 @@ export default function Editor({ ref, id }: { ref?: Ref<EditorHandle>; id: strin
     [editorRef],
   );
 
-  useImperativeHandle(ref, () => ({
-    focus,
-  }));
+  useImperativeHandle(ref, () => ({ focus }));
 
   useEffect(() => {
     const unmanage = focusManager.manage(id, focus);
@@ -66,30 +64,23 @@ export default function Editor({ ref, id }: { ref?: Ref<EditorHandle>; id: strin
       <ActiveEditor
         ref={editorRef}
         id={id}
-        type={outline.type}
+        type={type}
         setFocused={setFocused}
         focusManager={focusManager}
       />
     </Suspense>
   ) : (
-    <MockEditor onMouseEnter={onMouseEnter} type={outline.type} doc={outline.doc as JSONContent} />
+    <MockEditor onMouseEnter={onMouseEnter} id={id} />
   );
 }
 
-function MockEditor({
-  type,
-  doc,
-  onMouseEnter,
-}: {
-  type: OutlineType;
-  doc: JSONContent;
-  onMouseEnter: () => void;
-}) {
+function MockEditor({ id, onMouseEnter }: { id: string; onMouseEnter: () => void }) {
+  const { type, doc } = useOutline(id, ({ type, doc }) => ({ type, doc }));
   const extensions = useMemo(() => createRendererExtensions(type), [type]);
 
   return (
     <EditorContainer type="mock" onMouseEnter={onMouseEnter}>
-      {renderToReactElement({ extensions, content: doc })}
+      {renderToReactElement({ extensions, content: doc as JSONContent })}
     </EditorContainer>
   );
 }
