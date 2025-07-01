@@ -14,6 +14,7 @@ import { SubscribersMap } from "./subscribers-map";
 import { Order, TimelineIndex } from "./timeline-index";
 import { UndoManager } from "./undo-manager";
 import { WorkspaceStateStore } from "./workspace-state-store";
+import { isEqual } from "es-toolkit";
 
 export type OutlineStoreUpdater = (
   id: string,
@@ -117,7 +118,9 @@ export class OutlineStore {
       if (!old) {
         const unsubscribe = this.#docUpdateNotifier.subscribe(o.id, (doc) => {
           const outline = this.#outlines.get(o.id);
-          if (outline) this.#update(outline.id, (draft) => (draft.doc = doc));
+          if (outline && !isEqual(outline.doc, doc)) {
+            this.#update(outline.id, (draft) => (draft.doc = doc));
+          }
         });
 
         this.#outlineSubscribers.onUnsubscribedAll(o.id, () => {
