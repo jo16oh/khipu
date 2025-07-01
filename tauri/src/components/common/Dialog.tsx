@@ -1,6 +1,5 @@
 import { styled } from "generated/styled-system/jsx";
-import { ComponentProps, ReactNode } from "react";
-import { useRef } from "react";
+import { ComponentProps, ReactNode, useRef } from "react";
 import {
   Dialog as DialogContent,
   DialogRenderProps,

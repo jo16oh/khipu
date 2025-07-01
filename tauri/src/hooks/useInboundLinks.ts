@@ -1,5 +1,5 @@
 import { useSuspenseInfiniteQuery } from "@tanstack/react-query";
-import { useOutlineStore } from "src/stores/outline-store"
+import { useOutlineStore } from "src/stores/outline-store";
 
 export function useInboundLinks(id: string) {
   const store = useOutlineStore();

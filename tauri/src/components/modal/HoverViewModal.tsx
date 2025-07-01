@@ -4,17 +4,17 @@ import { center, square } from "generated/styled-system/patterns";
 import { ChevronLeft, ChevronRight, X } from "lucide-react";
 import { ReactNode, useRef } from "react";
 import { Button } from "react-aria-components";
+import { useFocusManager } from "src/stores/focus-manager";
 import { useOutlineStore } from "src/stores/outline-store";
-import { ViewStateStoreContext, createViewStateStore } from "src/stores/view-state-store";
+import { createViewStateStore, ViewStateStoreContext } from "src/stores/view-state-store";
 import { useWorkspaceState } from "src/stores/workspace-state-store";
 import { useStore } from "zustand";
 import { useShallow } from "zustand/react/shallow";
-import Editor, { EditorHandle } from "../Editor";
 import Dialog from "../common/Dialog";
 import DialogSideActionButton, {
   dialogSideActionButtonIconStyle,
 } from "../common/DialogSideButton";
-import { useFocusManager } from "src/stores/focus-manager";
+import Editor, { EditorHandle } from "../Editor";
 
 export default function HoverViewModal({ trigger }: { trigger: ReactNode }) {
   const outlineStore = useOutlineStore();

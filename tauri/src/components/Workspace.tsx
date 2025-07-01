@@ -10,9 +10,9 @@ import { FocusManager, FocusManagerContext } from "src/stores/focus-manager";
 import { OutlineStore, OutlineStoreContext } from "src/stores/outline-store";
 import { ViewStateStoreContext } from "src/stores/view-state-store";
 import {
-  WorkspaceStateStoreContext,
   useWorkspaceState,
   useWorkspaceStateStore,
+  WorkspaceStateStoreContext,
 } from "src/stores/workspace-state-store";
 import { useStore } from "zustand";
 import { useShallow } from "zustand/react/shallow";

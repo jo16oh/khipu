@@ -5,10 +5,10 @@ import { getSchemaOf } from "src/editor/schema";
 import { Outline } from "src/model";
 import { uuidv7bs58 } from "src/utils";
 import { prosemirrorJSONToYXmlFragment } from "y-prosemirror";
+import * as Y from "yjs";
 import { OutlineChildrenStore } from "./outline-children-store";
 import { OutlineStoreUpdater, RegisterToStore } from "./outline-store";
 import { UndoManager } from "./undo-manager";
-import * as Y from "yjs";
 
 type Id = string;
 

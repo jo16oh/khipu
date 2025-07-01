@@ -1,4 +1,4 @@
-import { OrderBy, TimelinePosition, commands } from "generated/tauri-commands";
+import { commands, OrderBy, TimelinePosition } from "generated/tauri-commands";
 import { Outline } from "src/model";
 import { RegisterToStore } from "./outline-store";
 

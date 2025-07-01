@@ -1,4 +1,4 @@
-import { useRef, useMemo } from "react";
+import { useMemo, useRef } from "react";
 
 export function useObservableRef<T>(value: T) {
   const ref = useRef<T>(value);

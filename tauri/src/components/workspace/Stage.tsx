@@ -3,7 +3,7 @@ import { Flex, styled } from "generated/styled-system/jsx";
 import { useCallback } from "react";
 import { Button } from "react-aria-components";
 import { useOutlineStore } from "src/stores/outline-store";
-import { ViewStateStoreContext, useViewState } from "src/stores/view-state-store";
+import { useViewState, ViewStateStoreContext } from "src/stores/view-state-store";
 import { useWorkspaceState } from "src/stores/workspace-state-store";
 import { useStore } from "zustand";
 import { useShallow } from "zustand/react/shallow";

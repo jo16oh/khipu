@@ -2,14 +2,13 @@ import Collabolation from "@tiptap/extension-collaboration";
 import Document from "@tiptap/extension-document";
 import Paragraph from "@tiptap/extension-paragraph";
 import Text from "@tiptap/extension-text";
-import { Node } from "@tiptap/react";
-import { Extensions, getSchema } from "@tiptap/react";
+import { Extensions, getSchema, Node } from "@tiptap/react";
 import { OutlineType } from "generated/tauri-commands";
 import { DocUpdateNotifier } from "src/stores/doc-update-notifier";
-import * as Y from "yjs";
-import { createUpdateNotifierExtension } from "./extensions/update-notifier";
 import { FocusManager } from "src/stores/focus-manager";
+import * as Y from "yjs";
 import { createSyncFocusPositionExtension } from "./extensions/sync-focus-position";
+import { createUpdateNotifierExtension } from "./extensions/update-notifier";
 
 const SingleBlockDocument = Node.create({
   name: "doc",

@@ -1,6 +1,8 @@
+import { isEqual } from "es-toolkit";
 import { commands } from "generated/tauri-commands";
-import { WritableDraft, produce } from "immer";
+import { produce, WritableDraft } from "immer";
 import { createContext, use } from "react";
+import { fetchYUpdates } from "src/custom-protocol";
 import { Outline, RawOutline } from "src/model";
 import { uint8ArrayToBase64Async as uint8ArrayToBase64Async } from "src/utils";
 import * as Y from "yjs";
@@ -14,8 +16,6 @@ import { SubscribersMap } from "./subscribers-map";
 import { Order, TimelineIndex } from "./timeline-index";
 import { UndoManager } from "./undo-manager";
 import { WorkspaceStateStore } from "./workspace-state-store";
-import { fetchYUpdates } from "src/custom-protocol";
-import { isEqual } from "es-toolkit";
 
 export type OutlineStoreUpdater = (
   id: string,

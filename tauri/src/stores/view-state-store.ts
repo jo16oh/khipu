@@ -1,5 +1,5 @@
 import { createContext, use } from "react";
-import { type StoreApi, createStore, useStore } from "zustand";
+import { createStore, type StoreApi, useStore } from "zustand";
 import { FocusManager } from "./focus-manager";
 
 const MAX_HISTORY_LEN = 100;

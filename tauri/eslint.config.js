@@ -2,10 +2,10 @@ import js from "@eslint/js";
 import json from "@eslint/json";
 import panda from "@pandacss/eslint-plugin";
 import pluginQuery from "@tanstack/eslint-plugin-query";
+import { defineConfig, globalIgnores } from "eslint/config";
 import eslintConfigPrettier from "eslint-config-prettier/flat";
 import pluginReact from "eslint-plugin-react";
 import reactHooks from "eslint-plugin-react-hooks";
-import { defineConfig, globalIgnores } from "eslint/config";
 import globals from "globals";
 import tseslint from "typescript-eslint";
 
