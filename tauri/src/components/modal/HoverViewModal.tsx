@@ -14,6 +14,7 @@ import Dialog from "../common/Dialog";
 import DialogSideActionButton, {
   dialogSideActionButtonIconStyle,
 } from "../common/DialogSideButton";
+import { useFocusManager } from "src/stores/focus-manager";
 
 export default function HoverViewModal({ trigger }: { trigger: ReactNode }) {
   const outlineStore = useOutlineStore();
@@ -27,6 +28,8 @@ export default function HoverViewModal({ trigger }: { trigger: ReactNode }) {
   );
 
   const editorRef = useRef<EditorHandle | null>(null);
+
+  const focusManager = useFocusManager();
 
   return (
     <ViewStateStoreContext value={viewStateStore.current}>
@@ -68,7 +71,13 @@ export default function HoverViewModal({ trigger }: { trigger: ReactNode }) {
             </ViewHeader>
             {viewState.id}
             {viewState.id && <Editor ref={editorRef} id={viewState.id} />}
-            <button onClick={() => editorRef.current?.focus("end")}>focus</button>
+            <button
+              onClick={() => {
+                if (viewState.id) focusManager.focus({ id: viewState.id, position: "end" });
+              }}
+            >
+              focus
+            </button>
           </ViewCotainer>
         )}
       />

@@ -20,6 +20,7 @@ import { createEditorExtensions, createRendererExtensions } from "src/editor/sch
 import { useObservableRef } from "src/hooks/useObservableRef";
 import { useOutline } from "src/hooks/useOutline";
 import { useDocUpdateNotifier } from "src/stores/doc-update-notifier";
+import { FocusManager, useFocusManager } from "src/stores/focus-manager";
 import { useOutlineStore } from "src/stores/outline-store";
 
 export type EditorHandle = {
@@ -28,6 +29,7 @@ export type EditorHandle = {
 
 export default function Editor({ ref, id }: { ref?: Ref<EditorHandle>; id: string }) {
   const outline = useOutline(id);
+  const focusManager = useFocusManager();
   const [focused, setFocused] = useState(false);
   const [isPending, startTransition] = useTransition();
 
@@ -35,10 +37,9 @@ export default function Editor({ ref, id }: { ref?: Ref<EditorHandle>; id: strin
 
   const editorRef = useObservableRef<EditorHandle | null>(null);
 
-  useImperativeHandle(ref, () => ({
-    focus(pos) {
+  const focus = useCallback(
+    (pos: FocusPosition) => {
       startTransition(() => setFocused(true));
-
       const unsubscribe = editorRef.listen((handle) => {
         setTimeout(() => {
           if (handle) {
@@ -48,11 +49,27 @@ export default function Editor({ ref, id }: { ref?: Ref<EditorHandle>; id: strin
         });
       });
     },
+    [editorRef],
+  );
+
+  useImperativeHandle(ref, () => ({
+    focus,
   }));
+
+  useEffect(() => {
+    const unmanage = focusManager.manage(id, focus);
+    return unmanage;
+  }, [focusManager, id, focus]);
 
   return focused && !isPending ? (
     <Suspense>
-      <ActiveEditor ref={editorRef} setFocused={setFocused} id={id} type={outline.type} />
+      <ActiveEditor
+        ref={editorRef}
+        id={id}
+        type={outline.type}
+        setFocused={setFocused}
+        focusManager={focusManager}
+      />
     </Suspense>
   ) : (
     <MockEditor onMouseEnter={onMouseEnter} type={outline.type} doc={outline.doc as JSONContent} />
@@ -78,15 +95,17 @@ function MockEditor({
 }
 
 const ActiveEditor = memo(function ActiveEditor({
+  ref,
   id,
   type,
   setFocused,
-  ref,
+  focusManager,
 }: {
+  ref?: Ref<EditorHandle>;
   id: string;
   type: OutlineType;
   setFocused: (value: boolean) => void;
-  ref?: Ref<EditorHandle>;
+  focusManager: FocusManager;
 }) {
   const store = useOutlineStore();
   const ydoc = use(store.getYDoc(id));
@@ -94,7 +113,7 @@ const ActiveEditor = memo(function ActiveEditor({
 
   const editor = useRef(
     new Tiptap({
-      extensions: createEditorExtensions(id, ydoc, type, notifier),
+      extensions: createEditorExtensions(id, ydoc, type, notifier, focusManager),
       editorProps: {
         attributes: {
           class: editorStyle,

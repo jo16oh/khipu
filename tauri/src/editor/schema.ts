@@ -8,6 +8,8 @@ import { OutlineType } from "generated/tauri-commands";
 import { DocUpdateNotifier } from "src/stores/doc-update-notifier";
 import * as Y from "yjs";
 import { createUpdateNotifierExtension } from "./extensions/update-notifier";
+import { FocusManager } from "src/stores/focus-manager";
+import { createSyncFocusPositionExtension } from "./extensions/sync-focus-position";
 
 const SingleBlockDocument = Node.create({
   name: "doc",
@@ -33,6 +35,7 @@ export function createEditorExtensions(
   ydoc: Y.Doc,
   type: OutlineType,
   notifier: DocUpdateNotifier,
+  focusManager: FocusManager,
 ): Extensions {
   const fragment = ydoc.getXmlFragment("doc");
 
@@ -40,6 +43,7 @@ export function createEditorExtensions(
     ...createRendererExtensions(type),
     Collabolation.extend().configure({ fragment }),
     createUpdateNotifierExtension(outlineId, notifier),
+    createSyncFocusPositionExtension(outlineId, focusManager),
   ];
 }
 
