@@ -54,7 +54,7 @@ export class UndoManager {
     }
   }
 
-  undo() {
+  async undo() {
     const history = this.#undoStack.pop();
     if (history) {
       this.#redoStack.push(history);
@@ -69,7 +69,7 @@ export class UndoManager {
         viewStateStore.focusManager.focus({ id: history.id, position: "end" });
 
         undoManager.undo();
-        const ydoc = this.#outlineStore.getYDoc(history.id);
+        const ydoc = await this.#outlineStore.getYDoc(history.id);
         const yxml = ydoc.getXmlFragment("doc");
         const doc = yXmlFragmentToProseMirrorRootNode(yxml, getSchemaOf(history.type)).toJSON();
         this.#notifier.notify(history.id, doc);

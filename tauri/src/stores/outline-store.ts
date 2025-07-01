@@ -14,6 +14,7 @@ import { SubscribersMap } from "./subscribers-map";
 import { Order, TimelineIndex } from "./timeline-index";
 import { UndoManager } from "./undo-manager";
 import { WorkspaceStateStore } from "./workspace-state-store";
+import { fetchYUpdates } from "src/custom-protocol";
 import { isEqual } from "es-toolkit";
 
 export type OutlineStoreUpdater = (
@@ -41,7 +42,7 @@ export class OutlineStore {
   readonly #children = new OutlineChildrenStore();
   readonly #paths = new OutlinePathStore(this);
   readonly #timeline = new TimelineIndex(this);
-  readonly #ydocs = new Map<string, Y.Doc>();
+  readonly #ydocs = new Map<string, Promise<Y.Doc>>();
   readonly #yUndoManagers = new Map<string, Y.UndoManager>();
   readonly #pendingYUpdates = new Map<string, Uint8Array[]>();
   readonly #outlineSubscribers = new SubscribersMap<string, []>();
@@ -63,8 +64,9 @@ export class OutlineStore {
     this.#undoManager = new UndoManager(this, workspaceStateStore, docUpdateNotifier);
     this.#commands = commands;
     this.reducer = new OutlineStoreReducer(
-      this,
       this.#register,
+      this.#ydocs,
+      this.#createNewYDoc,
       this.#undoManager,
       this.#children,
       this.#update,
@@ -91,8 +93,8 @@ export class OutlineStore {
     this.#outlineSubscribers.notify(id);
   };
 
-  #updateYDoc(before: Outline, after: Outline) {
-    const ydoc = this.getYDoc(before.id);
+  async #updateYDoc(before: Outline, after: Outline) {
+    const ydoc = await this.getYDoc(before.id);
     const ymap = ydoc.getMap("props");
 
     ydoc.transact(() => {
@@ -150,31 +152,46 @@ export class OutlineStore {
     return this.#paths.getPath(id);
   }
 
+  #createNewYDoc = (id: string) => {
+    const ydoc = new Y.Doc();
+
+    ydoc.on("updateV2", (update) => {
+      const arr = this.#pendingYUpdates.get(id);
+      if (arr) {
+        arr.push(update);
+      } else {
+        this.#pendingYUpdates.set(id, [update]);
+      }
+    });
+
+    const undoManager = new Y.UndoManager([ydoc.getMap("props"), ydoc.getXmlFragment("doc")]);
+    this.#yUndoManagers.set(id, undoManager);
+    undoManager.on("stack-item-added", (e) => {
+      if (e.type === "undo") {
+        this.#undoManager.addHistory(id);
+      }
+    });
+
+    return ydoc;
+  };
+
   getYDoc(id: string) {
-    const ydoc = this.#ydocs.get(id);
-    if (ydoc) {
-      return ydoc;
+    const ydocPromise = this.#ydocs.get(id);
+    if (ydocPromise) {
+      return ydocPromise;
     } else {
-      const ydoc = new Y.Doc();
-      this.#ydocs.set(id, ydoc);
-      ydoc.on("updateV2", (update) => {
-        const arr = this.#pendingYUpdates.get(id);
-        if (arr) {
-          arr.push(update);
-        } else {
-          this.#pendingYUpdates.set(id, [update]);
-        }
-      });
+      const ydoc = this.#createNewYDoc(id);
 
-      const undoManager = new Y.UndoManager([ydoc.getMap("props"), ydoc.getXmlFragment("doc")]);
-      this.#yUndoManagers.set(id, undoManager);
-      undoManager.on("stack-item-added", (e) => {
-        if (e.type === "undo") {
-          this.#undoManager.addHistory(id);
-        }
-      });
+      const ydocPromise = fetchYUpdates(id)
+        .then((updates) => {
+          Y.applyUpdateV2(ydoc, updates);
+          return ydoc;
+        })
+        .catch(() => ydoc);
 
-      return ydoc;
+      this.#ydocs.set(id, ydocPromise);
+
+      return ydocPromise;
     }
   }
 

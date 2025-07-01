@@ -6,27 +6,31 @@ import { Outline } from "src/model";
 import { uuidv7bs58 } from "src/utils";
 import { prosemirrorJSONToYXmlFragment } from "y-prosemirror";
 import { OutlineChildrenStore } from "./outline-children-store";
-import { OutlineStore, OutlineStoreUpdater, RegisterToStore } from "./outline-store";
+import { OutlineStoreUpdater, RegisterToStore } from "./outline-store";
 import { UndoManager } from "./undo-manager";
+import * as Y from "yjs";
 
 type Id = string;
 
 export class OutlineStoreReducer {
-  #store: OutlineStore;
   #registerToStore: RegisterToStore;
+  #createNewYdoc: (id: string) => Y.Doc;
+  #ydocs: Map<string, Promise<Y.Doc>>;
   #undoManager: UndoManager;
   #childrenStore: OutlineChildrenStore;
   #updateOutline: OutlineStoreUpdater;
 
   constructor(
-    store: OutlineStore,
     registerToStore: RegisterToStore,
+    ydocs: Map<string, Promise<Y.Doc>>,
+    createNewYdoc: (id: string) => Y.Doc,
     undoManager: UndoManager,
     childrenStore: OutlineChildrenStore,
     updateOutline: OutlineStoreUpdater,
   ) {
-    this.#store = store;
     this.#registerToStore = registerToStore;
+    this.#ydocs = ydocs;
+    this.#createNewYdoc = createNewYdoc;
     this.#undoManager = undoManager;
     this.#childrenStore = childrenStore;
     this.#updateOutline = updateOutline;
@@ -62,7 +66,8 @@ export class OutlineStoreReducer {
 
     this.#registerToStore(o);
 
-    const ydoc = this.#store.getYDoc(o.id);
+    const ydoc = this.#createNewYdoc(o.id);
+
     ydoc.transact(() => {
       const ymap = ydoc.getMap("props");
       const yxml = ydoc.getXmlFragment("doc");
@@ -74,6 +79,8 @@ export class OutlineStoreReducer {
       ymap.set("collapsed", o.collapsed);
       ymap.set("deleted", o.deleted);
     });
+
+    this.#ydocs.set(o.id, Promise.resolve(ydoc));
 
     return o.id;
   }
