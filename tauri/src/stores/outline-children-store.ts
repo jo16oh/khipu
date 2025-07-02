@@ -10,41 +10,57 @@ export class OutlineChildrenStore {
   set(...outlines: Outline[]) {
     const changedParentIds = new Set<string>();
 
-    for (const o of outlines) {
-      const prevParentId = this.#childToParentMap.get(o.id) ?? null;
+    for (const outline of outlines) {
+      const prevParentId = this.#childToParentMap.get(outline.id) ?? null;
 
-      // if parentId is changed or newly set
-      if (prevParentId !== o.parentId) {
-        // add to changed parentIds set
-        if (o.parentId) {
-          changedParentIds.add(o.parentId);
-        } else if (prevParentId) {
-          changedParentIds.add(prevParentId);
-        }
-
-        // reconcile childToParentMap
-        if (o.parentId) {
-          this.#childToParentMap.set(o.id, o.parentId);
-        } else {
-          this.#childToParentMap.delete(o.id);
-        }
-
-        // reconcile parentToChildrenMap
-        if (o.parentId) {
-          const children = this.#parentToChildrenMap.get(o.parentId);
-          if (children) {
-            children.insert(o);
-          } else {
-            this.#parentToChildrenMap.set(o.parentId, FractionallyIndexedList.from([o]));
-          }
-        } else if (prevParentId) {
-          this.#parentToChildrenMap.get(prevParentId)?.delete(o.id);
-        }
+      if (prevParentId !== outline.parentId) {
+        this.#updateParentTrackingMaps(outline, prevParentId, changedParentIds);
+        this.#updateChildrenMaps(outline, prevParentId);
       }
+    }
 
-      // notify changes to listeners
-      for (const id of changedParentIds) {
-        this.#subscribers.notify(id);
+    // notify changes to listeners
+    for (const id of changedParentIds) {
+      this.#subscribers.notify(id);
+    }
+  }
+
+  #updateParentTrackingMaps(outline: Outline, prevParentId: string | null, changedParentIds: Set<string>) {
+    // track changed parent IDs for notifications
+    if (outline.parentId) {
+      changedParentIds.add(outline.parentId);
+    }
+    if (prevParentId) {
+      changedParentIds.add(prevParentId);
+    }
+
+    // update child-to-parent mapping
+    if (outline.parentId) {
+      this.#childToParentMap.set(outline.id, outline.parentId);
+    } else {
+      this.#childToParentMap.delete(outline.id);
+    }
+  }
+
+  #updateChildrenMaps(outline: Outline, prevParentId: string | null) {
+    // add to new parent's children list
+    if (outline.parentId) {
+      const children = this.#parentToChildrenMap.get(outline.parentId);
+      this.#parentToChildrenMap.set(
+        outline.parentId,
+        children?.toInserted(outline) || FractionallyIndexedList.from([outline]),
+      );
+    }
+
+    // remove from previous parent's children list
+    if (prevParentId) {
+      const updatedChildren = this.#parentToChildrenMap.get(prevParentId)?.toDeleted(outline.id);
+      if (updatedChildren) {
+        if (updatedChildren.size > 0) {
+          this.#parentToChildrenMap.set(prevParentId, updatedChildren);
+        } else {
+          this.#parentToChildrenMap.delete(prevParentId);
+        }
       }
     }
   }
@@ -52,7 +68,8 @@ export class OutlineChildrenStore {
   delete(outlineId: string) {
     const parentId = this.#childToParentMap.get(outlineId);
     if (parentId) {
-      this.#parentToChildrenMap.get(parentId)?.delete(outlineId);
+      const updatedChildren = this.#parentToChildrenMap.get(parentId)?.toDeleted(outlineId);
+      if (updatedChildren) this.#parentToChildrenMap.set(parentId, updatedChildren);
       this.#childToParentMap.delete(outlineId);
     }
     this.#parentToChildrenMap.delete(outlineId);
