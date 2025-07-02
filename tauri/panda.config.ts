@@ -33,6 +33,7 @@ export default defineConfig({
       fontSmoothing: "subpixel-antialiased",
       userSelect: "none",
       overscrollBehavior: "none",
+      color: "stone.900",
     },
   },
 });
