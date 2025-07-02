@@ -1,3 +1,4 @@
+import { commands } from "generated/tauri-commands";
 import { create } from "zustand";
 import { StateStorage } from "./state-storage";
 
@@ -27,6 +28,7 @@ export async function initAppStateStore() {
     typeof prev.graphName === "string"
   ) {
     useAppState.getState().openGraph(prev.graphName);
+    await commands.openGraph(prev.graphName);
   }
 
   useAppState.subscribe((state) => {
