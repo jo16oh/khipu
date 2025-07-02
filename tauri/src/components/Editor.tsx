@@ -52,7 +52,7 @@ export default function Editor({ ref, id }: { ref?: Ref<EditorHandle>; id: strin
     [editorRef],
   );
 
-  useImperativeHandle(ref, () => ({ focus }));
+  useImperativeHandle(ref, () => ({ focus }), [focus]);
 
   useEffect(() => {
     const unmanage = focusManager.manage(id, focus);
