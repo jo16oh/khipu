@@ -21,15 +21,13 @@ import HoverViewModal from "./modal/HoverViewModal";
 import Stage from "./workspace/Stage";
 
 export default function Workspace() {
-  const [graphName] = useAppState(useShallow(({ graphName }) => [graphName]));
+  const graphName = useAppState(useShallow(({ graphName }) => graphName));
 
   return graphName ? (
     <Providers graphName={graphName}>
       <WorkspaceImpl />
     </Providers>
-  ) : (
-    <div>no graph is opened</div>
-  );
+  ) : null;
 }
 
 function Providers({ graphName, children }: { graphName: string } & PropsWithChildren) {
@@ -72,7 +70,7 @@ function WorkspaceImpl() {
         {focus === "timeline" && <div>timeline</div>}
         {focus === "search" && <div>search</div>}
         {focus === "stage" && <Stage />}
-        <button onClick={() => closeGraph()}>close {graphName}</button>
+        <button onClick={closeGraph}>close {graphName}</button>
         <BottomNav>
           <Dock>
             <DockButton
