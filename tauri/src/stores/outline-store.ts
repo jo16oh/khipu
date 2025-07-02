@@ -145,7 +145,7 @@ export class OutlineStore {
   }
 
   getOutlineChildren(id: string) {
-    return this.#children.get(id)?.map((c) => c.id) ?? [];
+    return this.#children.get(id);
   }
 
   getOutlinePath(id: string) {
