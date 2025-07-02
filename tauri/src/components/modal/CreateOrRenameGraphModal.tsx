@@ -40,12 +40,18 @@ export default function RenameGraphModal(props: Props) {
   });
 
   const { mutateAsync } = useMutation({
-    mutationFn: () =>
-      kind === "create"
-        ? commands.createGraph(newGraphName)
-        : commands
-            .renameGraph(props.prevGraphName, newGraphName.trim())
-            .then(() => renameSavedWorkspaceState(props.prevGraphName, newGraphName)),
+    mutationFn: async () => {
+      switch (kind) {
+        case "create":
+          await commands.createGraph(newGraphName);
+          openGraph(newGraphName);
+          return;
+        case "rename":
+          await commands.renameGraph(props.prevGraphName, newGraphName.trim());
+          await renameSavedWorkspaceState(props.prevGraphName, newGraphName);
+          return;
+      }
+    },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["graphList"] });
       close();
@@ -64,7 +70,6 @@ export default function RenameGraphModal(props: Props) {
     e.preventDefault();
     if (newGraphName.trim() && !isDuplicateName && !isTooLong) {
       await mutateAsync();
-      if (kind === "create") openGraph(newGraphName);
       close();
     }
   };
