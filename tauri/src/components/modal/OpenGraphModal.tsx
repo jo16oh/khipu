@@ -27,12 +27,12 @@ export default function OpenGraphModal({ trigger }: { trigger: ReactNode }) {
       contentProps={{ css: css.raw({ maxW: "[30rem]" }) }}
       content={({ close }) => (
         <Container>
-          <Title>
+          <Header>
             <styled.div color="stone.900">Choose graph to open</styled.div>
             <CloseButton onClick={close}>
               <X />
             </CloseButton>
-          </Title>
+          </Header>
           <ListItemsContainer>
             {graphList.map((name) => (
               <ListItemContainer className="group" key={name}>
@@ -61,21 +61,21 @@ export default function OpenGraphModal({ trigger }: { trigger: ReactNode }) {
 
 const Container = styled("div", {
   base: {
-    cursor: "default",
     display: "flex",
     gap: "2",
     flexDir: "column",
     w: "full",
     maxH: "[calc(100vh - 4rem)]",
-    p: "4",
+    py: "3",
+    px: "4",
   },
 });
 
-const Title = styled("div", {
+const Header = styled("div", {
   base: {
     display: "flex",
     justifyContent: "space-between",
-    alignItems: "center",
+    alignItems: "start",
     w: "full",
   },
 });

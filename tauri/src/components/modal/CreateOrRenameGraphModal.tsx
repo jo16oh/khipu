@@ -149,7 +149,6 @@ const Header = styled("div", {
     justifyContent: "space-between",
     alignItems: "start",
     w: "full",
-    h: "fit",
   },
 });
 
