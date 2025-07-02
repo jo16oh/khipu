@@ -4,7 +4,7 @@ import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { getCurrentWebviewWindow } from "@tauri-apps/api/webviewWindow";
 import { styled } from "generated/styled-system/jsx";
 import { commands } from "generated/tauri-commands";
-import { Suspense, use, useEffect, useState } from "react";
+import { Suspense, use, useDeferredValue, useEffect } from "react";
 import { useShallow } from "zustand/react/shallow";
 import Entry from "./components/Entry";
 import Workspace from "./components/Workspace";
@@ -19,21 +19,17 @@ function App() {
   const [graphName, closeGraph] = useAppState(
     useShallow(({ graphName, closeGraph }) => [graphName, closeGraph]),
   );
-  const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
     if (graphName) {
-      commands
-        .openGraph(graphName)
-        .catch((e) => {
-          console.error(e);
-          closeGraph();
-        })
-        .finally(() => setIsLoading(false));
-    } else {
-      setIsLoading(false);
+      commands.openGraph(graphName).catch((e) => {
+        console.error(e);
+        closeGraph();
+      });
     }
   }, [graphName, closeGraph]);
+
+  const defferedGraphName = useDeferredValue(graphName);
 
   useEffect(() => {
     useAppState.subscribe((state, prevState) => {
@@ -49,9 +45,9 @@ function App() {
 
   return (
     <QueryClientProvider client={queryClient}>
-      <Suspense>
-        <Main>{!isLoading && (graphName ? <Workspace /> : <Entry />)}</Main>
-      </Suspense>
+      <Main>
+        <Suspense fallback="loading">{defferedGraphName ? <Workspace /> : <Entry />}</Suspense>
+      </Main>
     </QueryClientProvider>
   );
 }
@@ -62,6 +58,7 @@ const Main = styled("main", {
     flexDir: "column",
     w: "screen",
     h: "screen",
+    bg: "stone.50",
   },
 });
 
