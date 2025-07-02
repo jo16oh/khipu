@@ -1,5 +1,7 @@
 import { useSuspenseQuery } from "@tanstack/react-query";
+import { LazyStore } from "@tauri-apps/plugin-store";
 import { createContext, use } from "react";
+import { depend } from "velona";
 import { createStore, StoreApi, useStore } from "zustand";
 import { StateStorage } from "./state-storage";
 import { createViewStateStore, ViewStateStore } from "./view-state-store";
@@ -28,7 +30,7 @@ export function useWorkspaceState<U>(selector: (state: WorkspaceState) => U) {
 export function useWorkspaceStateStore(graphName: string) {
   const { data: store } = useSuspenseQuery({
     queryKey: ["workspaceState", graphName],
-    queryFn: () => createWorkspaceStateStore(graphName),
+    queryFn: () => createWorkspaceStateStore.inject({ stateStorage: StateStorage })(graphName),
     staleTime: Infinity,
   });
 
@@ -41,37 +43,42 @@ export async function renameSavedWorkspaceState(prevGraphName: string, currentGr
   await StateStorage.delete("stageView" + prevGraphName);
 }
 
-async function createWorkspaceStateStore(graphName: string): Promise<WorkspaceStateStore> {
-  const initialState = await StateStorage.get("stageView" + graphName);
+export const createWorkspaceStateStore = depend(
+  { stateStorage: null as LazyStore | null },
+  async ({ stateStorage }, graphName: string) => {
+    const mainViewStateStore = createViewStateStore();
 
-  const mainViewStateStore = createViewStateStore();
+    if (stateStorage) {
+      const initialState = await stateStorage.get("stageView" + graphName);
 
-  if (
-    initialState !== null &&
-    typeof initialState === "object" &&
-    "id" in initialState &&
-    typeof initialState?.id === "string"
-  ) {
-    mainViewStateStore.setState({ id: initialState.id });
-  }
+      if (
+        initialState !== null &&
+        typeof initialState === "object" &&
+        "id" in initialState &&
+        typeof initialState?.id === "string"
+      ) {
+        mainViewStateStore.setState({ id: initialState.id });
+      }
 
-  mainViewStateStore.subscribe((current) => {
-    const state = { id: current.id };
-    StateStorage.set("stageView" + graphName, state);
-  });
+      mainViewStateStore.subscribe((current) => {
+        const state = { id: current.id };
+        stateStorage.set("stageView" + graphName, state);
+      });
+    }
 
-  return createStore<WorkspaceState>((set) => ({
-    stage: mainViewStateStore,
-    hover: null,
-    focus: "stage",
-    switchTab: (to: TabKind) => {
-      set(() => ({ focus: to }));
-    },
-    openHover: (view: ViewStateStore) => {
-      set(() => ({ hover: view }));
-    },
-    closeHover: () => {
-      set(() => ({ hover: null }));
-    },
-  }));
-}
+    return createStore<WorkspaceState>((set) => ({
+      stage: mainViewStateStore,
+      hover: null,
+      focus: "stage",
+      switchTab: (to: TabKind) => {
+        set(() => ({ focus: to }));
+      },
+      openHover: (view: ViewStateStore) => {
+        set(() => ({ hover: view }));
+      },
+      closeHover: () => {
+        set(() => ({ hover: null }));
+      },
+    }));
+  },
+);
