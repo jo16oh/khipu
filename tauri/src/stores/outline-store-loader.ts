@@ -20,6 +20,7 @@ export class OutlineStoreLoader {
     const tree = await this.#commands.tree(id);
     const outlines = tree.map(Outline.from);
     this.#registerToStore(...outlines);
+    return null;
   }
 
   async fetchTimeline(position: TimelinePosition, order: OrderBy) {
