@@ -44,11 +44,11 @@ export default function DeleteGraphModal({
       content={() => (
         <Flex gap="4" flexDir="column" rounded="md" p="4" bg="stone.50">
           <styled.div overflowWrap={"break-word"} wordWrap={"break-word"}>
-            This will permanently delete{" "}
+            {"This will permanently delete "}
             <styled.span rounded="md" py="0.5" px="1" fontWeight={"bold"} bg="stone.200">
               {graphName}
             </styled.span>
-            . This action cannot be undone. To confirm, please type {graphName}.
+            {". This action cannot be undone. To confirm, please type the name of the graph."}
           </styled.div>
           <Input
             className={css({
