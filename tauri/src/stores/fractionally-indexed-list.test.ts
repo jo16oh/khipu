@@ -66,114 +66,128 @@ describe("FractionallyIndexedList", () => {
     });
   });
 
-  // --- delete ---
-  describe("delete()", () => {
-    it("should delete an existing item", () => {
-      const list = FractionallyIndexedList.from([item1, item2, item3]);
-      list.delete("b");
-      expect(list.size).toBe(2);
-      expect(toArray(list).map((i) => i.id)).toEqual(["a", "c"]);
+  // --- toDeleted ---
+  describe("toDeleted()", () => {
+    it("should return a new list with deleted item", () => {
+      const originalList = FractionallyIndexedList.from([item1, item2, item3]);
+      const newList = originalList.toDeleted("b");
+      expect(originalList.size).toBe(3); // Original unchanged
+      expect(newList.size).toBe(2);
+      expect(toArray(newList).map((i) => i.id)).toEqual(["a", "c"]);
     });
 
-    it("should do nothing if item to delete does not exist", () => {
-      const list = FractionallyIndexedList.from([item1, item2]);
-      list.delete("z");
-      expect(list.size).toBe(2);
-      expect(toArray(list).map((i) => i.id)).toEqual(["a", "b"]);
+    it("should return the same list if item to delete does not exist", () => {
+      const originalList = FractionallyIndexedList.from([item1, item2]);
+      const newList = originalList.toDeleted("z");
+      expect(originalList.size).toBe(2); // Original unchanged
+      expect(newList.size).toBe(2);
+      expect(toArray(newList).map((i) => i.id)).toEqual(["a", "b"]);
+      expect(newList).toBe(originalList); // Should return the same instance
     });
 
-    it("should do nothing when deleting from an empty list", () => {
-      const list = FractionallyIndexedList.from<TestItem>([]);
-      list.delete("a");
-      expect(list.size).toBe(0);
+    it("should return the same list when deleting from an empty list", () => {
+      const originalList = FractionallyIndexedList.from<TestItem>([]);
+      const newList = originalList.toDeleted("a");
+      expect(originalList.size).toBe(0); // Original unchanged
+      expect(newList.size).toBe(0);
+      expect(newList).toBe(originalList); // Should return the same instance
     });
   });
 
-  // --- insert ---
-  describe("insert()", () => {
-    it("should insert into an empty list", () => {
-      const list = new FractionallyIndexedList<TestItem>();
-      list.insert(item1);
-      expect(list.size).toBe(1);
-      expect(toArray(list)[0]).toEqual(item1);
+  // --- toInserted ---
+  describe("toInserted()", () => {
+    it("should return a new list with inserted item into an empty list", () => {
+      const originalList = FractionallyIndexedList.from<TestItem>([]);
+      const newList = originalList.toInserted(item1);
+      expect(originalList.size).toBe(0); // Original unchanged
+      expect(newList.size).toBe(1);
+      expect(toArray(newList)[0]).toEqual(item1);
     });
 
-    it("should insert at the beginning", () => {
-      const list = FractionallyIndexedList.from([item2, item3]);
-      list.insert(item1); // findex 'a0'
-      expect(list.size).toBe(3);
-      expect(toArray(list).map((i) => i.id)).toEqual(["a", "b", "c"]);
+    it("should return a new list with item inserted at the beginning", () => {
+      const originalList = FractionallyIndexedList.from([item2, item3]);
+      const newList = originalList.toInserted(item1); // findex 'a0'
+      expect(originalList.size).toBe(2); // Original unchanged
+      expect(newList.size).toBe(3);
+      expect(toArray(newList).map((i) => i.id)).toEqual(["a", "b", "c"]);
     });
 
-    it("should insert at the end", () => {
-      const list = FractionallyIndexedList.from([item1, item2]);
-      list.insert(item3); // findex 'c0'
-      expect(list.size).toBe(3);
-      expect(toArray(list).map((i) => i.id)).toEqual(["a", "b", "c"]);
+    it("should return a new list with item inserted at the end", () => {
+      const originalList = FractionallyIndexedList.from([item1, item2]);
+      const newList = originalList.toInserted(item3); // findex 'c0'
+      expect(originalList.size).toBe(2); // Original unchanged
+      expect(newList.size).toBe(3);
+      expect(toArray(newList).map((i) => i.id)).toEqual(["a", "b", "c"]);
     });
 
-    it("should insert in the middle", () => {
-      const list = FractionallyIndexedList.from([item1, item3]);
-      list.insert(item2); // findex 'b0'
-      expect(list.size).toBe(3);
-      expect(toArray(list).map((i) => i.id)).toEqual(["a", "b", "c"]);
+    it("should return a new list with item inserted in the middle", () => {
+      const originalList = FractionallyIndexedList.from([item1, item3]);
+      const newList = originalList.toInserted(item2); // findex 'b0'
+      expect(originalList.size).toBe(2); // Original unchanged
+      expect(newList.size).toBe(3);
+      expect(toArray(newList).map((i) => i.id)).toEqual(["a", "b", "c"]);
     });
 
-    it("should insert item with same findex but smaller id before existing", () => {
-      const list = FractionallyIndexedList.from([item2]); // id 'b', findex 'b0'
+    it("should return a new list with item with same findex but smaller id inserted before existing", () => {
+      const originalList = FractionallyIndexedList.from([item2]); // id 'b', findex 'b0'
       const newItem: TestItem = {
         id: "a1",
         findex: "b0",
         name: "Another Banana",
       }; // id 'a1' < 'b'
-      list.insert(newItem);
-      expect(list.size).toBe(2);
-      expect(toArray(list).map((i) => i.id)).toEqual(["a1", "b"]);
+      const newList = originalList.toInserted(newItem);
+      expect(originalList.size).toBe(1); // Original unchanged
+      expect(newList.size).toBe(2);
+      expect(toArray(newList).map((i) => i.id)).toEqual(["a1", "b"]);
     });
 
-    it("should insert item with same findex but larger id after existing", () => {
-      const list = FractionallyIndexedList.from([item2]); // id 'b', findex 'b0'
-      list.insert(item5); // id 'e', findex 'b0' -> 'e' > 'b'
-      expect(list.size).toBe(2);
-      expect(toArray(list).map((i) => i.id)).toEqual(["b", "e"]);
+    it("should return a new list with item with same findex but larger id inserted after existing", () => {
+      const originalList = FractionallyIndexedList.from([item2]); // id 'b', findex 'b0'
+      const newList = originalList.toInserted(item5); // id 'e', findex 'b0' -> 'e' > 'b'
+      expect(originalList.size).toBe(1); // Original unchanged
+      expect(newList.size).toBe(2);
+      expect(toArray(newList).map((i) => i.id)).toEqual(["b", "e"]);
     });
 
-    it("should insert correctly when findexes are lexicographically tricky", () => {
-      const list = FractionallyIndexedList.from([
+    it("should return new lists with correct insertion when findexes are lexicographically tricky", () => {
+      const originalList = FractionallyIndexedList.from([
         { id: "1", findex: "a", name: "A" },
         { id: "3", findex: "ac", name: "AC" },
       ]);
       const newItem: TestItem = { id: "2", findex: "ab", name: "AB" };
-      list.insert(newItem);
-      expect(toArray(list).map((i) => i.id)).toEqual(["1", "2", "3"]);
+      const list1 = originalList.toInserted(newItem);
+      expect(originalList.size).toBe(2); // Original unchanged
+      expect(toArray(list1).map((i) => i.id)).toEqual(["1", "2", "3"]);
 
       const newItem2: TestItem = { id: "0", findex: "0", name: "Zero" };
-      list.insert(newItem2);
-      expect(toArray(list).map((i) => i.id)).toEqual(["0", "1", "2", "3"]);
+      const list2 = list1.toInserted(newItem2);
+      expect(toArray(list2).map((i) => i.id)).toEqual(["0", "1", "2", "3"]);
 
       const newItem3: TestItem = { id: "4", findex: "z", name: "Zed" };
-      list.insert(newItem3);
-      expect(toArray(list).map((i) => i.id)).toEqual(["0", "1", "2", "3", "4"]);
+      const list3 = list2.toInserted(newItem3);
+      expect(toArray(list3).map((i) => i.id)).toEqual(["0", "1", "2", "3", "4"]);
     });
 
-    it("should not insert an item if an item with the same id and findex already exists", () => {
-      const list = FractionallyIndexedList.from([item1, item2]);
-      list.insert({ ...item1, name: "Updated Apple?" }); // Same id and findex
-      expect(list.size).toBe(2);
-      expect(toArray(list).map((i) => i.name)).toEqual(["Apple", "Banana"]); // Original item1 name
+    it("should return the same list if an item with the same id and findex already exists", () => {
+      const originalList = FractionallyIndexedList.from([item1, item2]);
+      const newList = originalList.toInserted({ ...item1, name: "Updated Apple?" }); // Same id and findex
+      expect(originalList.size).toBe(2); // Original unchanged
+      expect(newList.size).toBe(2);
+      expect(toArray(newList).map((i) => i.name)).toEqual(["Apple", "Banana"]); // Original item1 name
+      expect(newList).toBe(originalList); // Should return the same instance
     });
 
-    it("should correctly insert multiple items with the same findex but different ids", () => {
-      const list = new FractionallyIndexedList<TestItem>();
+    it("should return new lists with correct insertion of multiple items with the same findex but different ids", () => {
+      const emptyList = FractionallyIndexedList.from<TestItem>([]);
       const item_b0_id_c: TestItem = { id: "c", findex: "b0", name: "C" };
       const item_b0_id_a: TestItem = { id: "a", findex: "b0", name: "A" };
       const item_b0_id_b: TestItem = { id: "b", findex: "b0", name: "B" };
 
-      list.insert(item_b0_id_c);
-      list.insert(item_b0_id_a);
-      list.insert(item_b0_id_b);
+      const list1 = emptyList.toInserted(item_b0_id_c);
+      const list2 = list1.toInserted(item_b0_id_a);
+      const list3 = list2.toInserted(item_b0_id_b);
 
-      expect(toArray(list).map((i) => i.id)).toEqual(["a", "b", "c"]);
+      expect(toArray(list3).map((i) => i.id)).toEqual(["a", "b", "c"]);
     });
   });
 
@@ -207,49 +221,49 @@ describe("FractionallyIndexedList", () => {
     });
 
     it("should return the correct number of items", () => {
-      const list = FractionallyIndexedList.from([item1, item2, item3]);
-      expect(list.size).toBe(3);
-      list.delete(item1.id);
-      expect(list.size).toBe(2);
-      list.insert(item4);
-      expect(list.size).toBe(3);
+      const originalList = FractionallyIndexedList.from([item1, item2, item3]);
+      expect(originalList.size).toBe(3);
+      const listAfterDelete = originalList.toDeleted(item1.id);
+      expect(listAfterDelete.size).toBe(2);
+      const listAfterInsert = listAfterDelete.toInserted(item4);
+      expect(listAfterInsert.size).toBe(3);
     });
   });
 
   // --- Mixed Operations ---
   describe("Mixed Operations", () => {
-    it("should maintain correct order after multiple insertions and deletions", () => {
-      const list = new FractionallyIndexedList<TestItem>();
+    it("should maintain correct order after multiple insertions and deletions using non-destructive methods", () => {
+      const emptyList = FractionallyIndexedList.from<TestItem>([]);
       const i1: TestItem = { id: "id1", findex: "a", name: "1" };
       const i2: TestItem = { id: "id2", findex: "c", name: "2" };
       const i3: TestItem = { id: "id3", findex: "b", name: "3" };
       const i4: TestItem = { id: "id4", findex: "aa", name: "4" };
       const i5: TestItem = { id: "id5", findex: "ab", name: "5" };
 
-      list.insert(i1); // [1(a)]
-      list.insert(i2); // [1(a), 2(c)]
-      list.insert(i3); // [1(a), 3(b), 2(c)]
-      expect(toArray(list).map((i) => i.findex)).toEqual(["a", "b", "c"]);
+      const list1 = emptyList.toInserted(i1); // [1(a)]
+      const list2 = list1.toInserted(i2); // [1(a), 2(c)]
+      const list3 = list2.toInserted(i3); // [1(a), 3(b), 2(c)]
+      expect(toArray(list3).map((i) => i.findex)).toEqual(["a", "b", "c"]);
 
-      list.delete("id3"); // [1(a), 2(c)]
-      expect(toArray(list).map((i) => i.findex)).toEqual(["a", "c"]);
+      const list4 = list3.toDeleted("id3"); // [1(a), 2(c)]
+      expect(toArray(list4).map((i) => i.findex)).toEqual(["a", "c"]);
 
-      list.insert(i4); // [1(a), 4(aa), 2(c)]
-      list.insert(i5); // [1(a), 4(aa), 5(ab), 2(c)]
-      expect(toArray(list).map((i) => i.findex)).toEqual(["a", "aa", "ab", "c"]);
-      expect(toArray(list).map((i) => i.id)).toEqual(["id1", "id4", "id5", "id2"]);
+      const list5 = list4.toInserted(i4); // [1(a), 4(aa), 2(c)]
+      const list6 = list5.toInserted(i5); // [1(a), 4(aa), 5(ab), 2(c)]
+      expect(toArray(list6).map((i) => i.findex)).toEqual(["a", "aa", "ab", "c"]);
+      expect(toArray(list6).map((i) => i.id)).toEqual(["id1", "id4", "id5", "id2"]);
 
       const i6: TestItem = { id: "id6", findex: "aa", name: "6" }; // Same findex as i4, id6 > id4
-      list.insert(i6);
-      expect(toArray(list).map((i) => i.id)).toEqual(["id1", "id4", "id6", "id5", "id2"]);
-      expect(toArray(list).map((i) => i.findex)).toEqual(["a", "aa", "aa", "ab", "c"]);
+      const list7 = list6.toInserted(i6);
+      expect(toArray(list7).map((i) => i.id)).toEqual(["id1", "id4", "id6", "id5", "id2"]);
+      expect(toArray(list7).map((i) => i.findex)).toEqual(["a", "aa", "aa", "ab", "c"]);
 
-      list.delete("id1");
-      list.delete("id4");
-      list.delete("id5");
-      list.delete("id2");
-      list.delete("id6");
-      expect(list.size).toBe(0);
+      const list8 = list7.toDeleted("id1");
+      const list9 = list8.toDeleted("id4");
+      const list10 = list9.toDeleted("id5");
+      const list11 = list10.toDeleted("id2");
+      const finalList = list11.toDeleted("id6");
+      expect(finalList.size).toBe(0);
     });
   });
 });

@@ -51,6 +51,10 @@ export class FractionallyIndexedList<T extends FractionallyIndexedItem> {
     return { index: low, found };
   }
 
+  private constructor(array: T[] = []) {
+    this.#array = array;
+  }
+
   static from<T extends FractionallyIndexedItem>(
     iterable: Iterable<T>,
   ): FractionallyIndexedList<T> {
@@ -68,11 +72,22 @@ export class FractionallyIndexedList<T extends FractionallyIndexedItem> {
     if (idx !== -1) this.#array.splice(idx, 1);
   }
 
-  insert(item: T) {
+  toDeleted(id: string) {
+    const idx = this.#array.findIndex((i) => i.id === id);
+    if (idx !== -1) {
+      return new FractionallyIndexedList(this.#array.toSpliced(idx, 1));
+    } else {
+      return this;
+    }
+  }
+
+  toInserted(item: T) {
     const { index, found } = this.#findIndex(item);
 
     if (!found) {
-      this.#array.splice(index, 0, item);
+      return new FractionallyIndexedList(this.#array.toSpliced(index, 0, item));
+    } else {
+      return this;
     }
   }
 
