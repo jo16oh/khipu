@@ -1,6 +1,6 @@
 import { css } from "generated/styled-system/css";
 import { Flex, styled } from "generated/styled-system/jsx";
-import { useCallback } from "react";
+import { useCallback, useDeferredValue } from "react";
 import { Button } from "react-aria-components";
 import { useOutlineStore } from "src/stores/outline-store";
 import { useViewState, ViewStateStoreContext } from "src/stores/view-state-store";
@@ -8,14 +8,40 @@ import { useWorkspaceState } from "src/stores/workspace-state-store";
 import { useStore } from "zustand";
 import { useShallow } from "zustand/react/shallow";
 import Bullet from "../common/Bullet";
+import LazySuspense from "../common/LazySuspense";
+import OutlineTreeEditor from "../OutlineTreeEditor";
 
 export default function Stage() {
-  const [viewStateStore] = useWorkspaceState(useShallow((state) => [state.stage]));
+  const viewStateStore = useWorkspaceState(useShallow((state) => state.stage));
+  const store = useOutlineStore();
 
-  const { id } = useStore(viewStateStore);
+  const { id, jump } = useStore(
+    viewStateStore,
+    useShallow(({ id, jump }) => ({ id, jump })),
+  );
+
+  const defferedId = useDeferredValue(id);
 
   return (
-    <ViewStateStoreContext value={viewStateStore}>{id ? id : <Title />}</ViewStateStoreContext>
+    <ViewStateStoreContext value={viewStateStore}>
+      {defferedId ? (
+        <>
+          <button
+            onClick={() => {
+              const newId = store.reducer.create("heading");
+              jump({ id: newId, scrollPosition: 0 });
+            }}
+          >
+            new outline
+          </button>
+          <LazySuspense>
+            <OutlineTreeEditor id={defferedId} />
+          </LazySuspense>
+        </>
+      ) : (
+        <Title />
+      )}
+    </ViewStateStoreContext>
   );
 }
 
@@ -26,7 +52,8 @@ const Title = () => {
   const onClick = useCallback(() => {
     const id = store.reducer.create("heading");
     jump({ id, scrollPosition: 0 });
-  }, [store.reducer, jump]);
+    store.save(id);
+  }, [store, jump]);
 
   return (
     <Container>
