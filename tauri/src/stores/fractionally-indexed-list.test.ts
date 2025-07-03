@@ -194,7 +194,7 @@ describe("FractionallyIndexedList", () => {
   // --- [Symbol.iterator] ---
   describe("[Symbol.iterator]()", () => {
     it("should iterate over an empty list", () => {
-      const list = new FractionallyIndexedList<TestItem>();
+      const list = FractionallyIndexedList.from<TestItem>([]);
       const iteratedItems: TestItem[] = [];
       for (const item of list) {
         iteratedItems.push(item);
@@ -216,7 +216,7 @@ describe("FractionallyIndexedList", () => {
   // --- size ---
   describe("size", () => {
     it("should return 0 for an empty list", () => {
-      const list = new FractionallyIndexedList<TestItem>();
+      const list = FractionallyIndexedList.from<TestItem>([]);
       expect(list.size).toBe(0);
     });
 
