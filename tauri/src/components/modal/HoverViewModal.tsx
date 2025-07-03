@@ -2,9 +2,8 @@ import { css } from "generated/styled-system/css";
 import { styled } from "generated/styled-system/jsx";
 import { center, square } from "generated/styled-system/patterns";
 import { ChevronLeft, ChevronRight, X } from "lucide-react";
-import { ReactNode, useRef } from "react";
+import { ReactNode, Suspense, startTransition, useCallback, useDeferredValue, useRef } from "react";
 import { Button } from "react-aria-components";
-import { useFocusManager } from "src/stores/focus-manager";
 import { useOutlineStore } from "src/stores/outline-store";
 import { createViewStateStore, ViewStateStoreContext } from "src/stores/view-state-store";
 import { useWorkspaceState } from "src/stores/workspace-state-store";
@@ -14,71 +13,67 @@ import Dialog from "../common/Dialog";
 import DialogSideActionButton, {
   dialogSideActionButtonIconStyle,
 } from "../common/DialogSideButton";
-import Editor, { EditorHandle } from "../Editor";
+import OutlineTreeEditor from "../OutlineTreeEditor";
 
 export default function HoverViewModal({ trigger }: { trigger: ReactNode }) {
   const outlineStore = useOutlineStore();
-
   const viewStateStore = useRef(createViewStateStore());
-
   const viewState = useStore(viewStateStore.current);
-
-  const [_hover, openHover, closeHover] = useWorkspaceState(
-    useShallow(({ hover, openHover, closeHover }) => [hover, openHover, closeHover]),
+  const { openHover, closeHover } = useWorkspaceState(
+    useShallow(({ openHover, closeHover }) => ({ openHover, closeHover })),
   );
 
-  const editorRef = useRef<EditorHandle | null>(null);
+  const defferedId = useDeferredValue(viewState.id);
 
-  const focusManager = useFocusManager();
+  const onOpenChange = useCallback(
+    (isOpen: boolean) => {
+      if (isOpen) {
+        startTransition(() => {
+          const id = outlineStore.reducer.create("heading");
+          viewState.jump({ id, scrollPosition: 0 });
+          openHover(viewStateStore.current);
+        });
+      } else {
+        closeHover();
+      }
+    },
+    [outlineStore.reducer, viewState, openHover, closeHover],
+  );
+
+  const back = useCallback(() => {
+    startTransition(() => viewState.back());
+  }, [viewState]);
+
+  const next = useCallback(() => {
+    startTransition(() => viewState.next());
+  }, [viewState]);
 
   return (
     <ViewStateStoreContext value={viewStateStore.current}>
       <Dialog
         trigger={trigger}
-        triggerProps={{
-          onOpenChange(isOpen) {
-            if (isOpen) {
-              const id = outlineStore.reducer.create("heading");
-              viewState.jump({ id, scrollPosition: 0 });
-              openHover(viewStateStore.current);
-            } else {
-              closeHover();
-            }
-          },
-        }}
+        triggerProps={{ onOpenChange }}
         buttons={(state) => (
           <DialogSideActionButton onClick={state.close}>
             <X className={css(dialogSideActionButtonIconStyle)} />
           </DialogSideActionButton>
         )}
         content={() => (
-          <ViewCotainer>
-            <ViewHeader>
-              <HistoryButton
-                className="group"
-                isDisabled={!viewState.hasPrevious()}
-                onClick={viewState.back}
-              >
-                <ChevronLeft className={headerIconStyle} />
-              </HistoryButton>
-              <HistoryButton
-                className="group"
-                isDisabled={!viewState.hasNext()}
-                onClick={viewState.next}
-              >
-                <ChevronRight className={headerIconStyle} />
-              </HistoryButton>
-            </ViewHeader>
-            {viewState.id}
-            {viewState.id && <Editor ref={editorRef} id={viewState.id} />}
-            <button
-              onClick={() => {
-                if (viewState.id) focusManager.focus({ id: viewState.id, position: "end" });
-              }}
-            >
-              focus
-            </button>
-          </ViewCotainer>
+          <Suspense>
+            {defferedId ? (
+              <ViewCotainer>
+                <ViewHeader>
+                  <HistoryButton className="group" isDisabled={!viewState.hasPrev()} onClick={back}>
+                    <ChevronLeft className={headerIconStyle} />
+                  </HistoryButton>
+                  <HistoryButton className="group" isDisabled={!viewState.hasNext()} onClick={next}>
+                    <ChevronRight className={headerIconStyle} />
+                  </HistoryButton>
+                </ViewHeader>
+                <OutlineTreeEditor id={defferedId} />
+              </ViewCotainer>
+            ) : null}
+          </Suspense>
         )}
       />
     </ViewStateStoreContext>
