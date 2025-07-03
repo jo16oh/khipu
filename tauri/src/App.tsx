@@ -5,18 +5,20 @@ import { getCurrentWebviewWindow } from "@tauri-apps/api/webviewWindow";
 import { styled } from "generated/styled-system/jsx";
 import { commands } from "generated/tauri-commands";
 import { Suspense, use, useDeferredValue, useEffect } from "react";
+import { useStore } from "zustand";
 import { useShallow } from "zustand/react/shallow";
 import Entry from "./components/Entry";
 import Workspace from "./components/Workspace";
-import { initAppStateStore, useAppState } from "./stores/app-state-store";
+import { AppStateStoreContext, createAppStateStore } from "./stores/app-state-store";
+import { StateStorage } from "./stores/state-storage";
 
-const initAppStatePromise = initAppStateStore();
 const queryClient = new QueryClient();
 
 function App() {
-  use(initAppStatePromise);
+  const appStateStore = use(createAppStateStore(StateStorage));
 
-  const [graphName, closeGraph] = useAppState(
+  const [graphName, closeGraph] = useStore(
+    appStateStore,
     useShallow(({ graphName, closeGraph }) => [graphName, closeGraph]),
   );
 
@@ -32,23 +34,25 @@ function App() {
   const defferedGraphName = useDeferredValue(graphName);
 
   useEffect(() => {
-    useAppState.subscribe((state, prevState) => {
+    appStateStore.subscribe((state, prevState) => {
       if (prevState.graphName && state.graphName === null) {
         queryClient.clear();
       }
     });
-  }, []);
+  }, [appStateStore]);
 
   useEffect(() => {
     getCurrentWebviewWindow().show();
   }, []);
 
   return (
-    <QueryClientProvider client={queryClient}>
-      <Main>
-        <Suspense fallback="loading">{defferedGraphName ? <Workspace /> : <Entry />}</Suspense>
-      </Main>
-    </QueryClientProvider>
+    <Main>
+      <AppStateStoreContext value={appStateStore}>
+        <QueryClientProvider client={queryClient}>
+          <Suspense fallback="loading">{defferedGraphName ? <Workspace /> : <Entry />}</Suspense>
+        </QueryClientProvider>
+      </AppStateStoreContext>
+    </Main>
   );
 }
 

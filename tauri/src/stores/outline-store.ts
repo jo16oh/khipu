@@ -1,4 +1,4 @@
-import { isEqual } from "es-toolkit";
+import { isEqual, memoize } from "es-toolkit";
 import { commands } from "generated/tauri-commands";
 import { produce, WritableDraft } from "immer";
 import { createContext, use } from "react";
@@ -38,6 +38,26 @@ export function useOutlineStore() {
 }
 
 export class OutlineStore {
+  static create = memoize(
+    ({
+      graphName,
+      docUpdateNotifier,
+      workspaceStateStore,
+      commands,
+    }: {
+      graphName: string;
+      docUpdateNotifier: DocUpdateNotifier;
+      workspaceStateStore: WorkspaceStateStore;
+      commands: Commands;
+    }) => {
+      if (!this.create.cache.has(graphName)) this.create.cache.clear();
+      return new OutlineStore(docUpdateNotifier, workspaceStateStore, commands);
+    },
+    {
+      getCacheKey: (args) => args.graphName,
+    },
+  );
+
   readonly #outlines = new Map<string, Outline>();
   readonly #children = new OutlineChildrenStore();
   readonly #paths = new OutlinePathStore(this);
@@ -55,7 +75,8 @@ export class OutlineStore {
   readonly reducer: OutlineStoreReducer;
   readonly loader: OutlineStoreLoader;
 
-  constructor(
+
+  private constructor(
     docUpdateNotifier: DocUpdateNotifier,
     workspaceStateStore: WorkspaceStateStore,
     commands: Commands,

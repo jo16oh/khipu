@@ -1,7 +1,6 @@
-import { useSuspenseQuery } from "@tanstack/react-query";
 import { LazyStore } from "@tauri-apps/plugin-store";
+import { memoize } from "es-toolkit";
 import { createContext, use } from "react";
-import { depend } from "velona";
 import { createStore, StoreApi, useStore } from "zustand";
 import { StateStorage } from "./state-storage";
 import { createViewStateStore, ViewStateStore } from "./view-state-store";
@@ -27,25 +26,16 @@ export function useWorkspaceState<U>(selector: (state: WorkspaceState) => U) {
   return useStore(store, selector);
 }
 
-export function useWorkspaceStateStore(graphName: string) {
-  const { data: store } = useSuspenseQuery({
-    queryKey: ["workspaceState", graphName],
-    queryFn: () => createWorkspaceStateStore.inject({ stateStorage: StateStorage })(graphName),
-    staleTime: Infinity,
-  });
-
-  return store;
-}
-
 export async function renameSavedWorkspaceState(prevGraphName: string, currentGraphName: string) {
   const prev = await StateStorage.get("stageView" + prevGraphName);
   await StateStorage.set("stageView" + currentGraphName, prev);
   await StateStorage.delete("stageView" + prevGraphName);
 }
 
-export const createWorkspaceStateStore = depend(
-  { stateStorage: null as LazyStore | null },
-  async ({ stateStorage }, graphName: string) => {
+export const createWorkspaceStateStore = memoize(
+  async ({ graphName, stateStorage }: { graphName: string; stateStorage?: LazyStore }) => {
+    if (!createWorkspaceStateStore.cache.has(graphName)) createWorkspaceStateStore.cache.clear();
+
     const mainViewStateStore = createViewStateStore();
 
     if (stateStorage) {
@@ -80,5 +70,8 @@ export const createWorkspaceStateStore = depend(
         set(() => ({ hover: null }));
       },
     }));
+  },
+  {
+    getCacheKey: ({ graphName }) => graphName,
   },
 );

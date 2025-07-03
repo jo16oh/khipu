@@ -4,8 +4,8 @@ import { OutlineStore } from "./outline-store";
 import { createWorkspaceStateStore } from "./workspace-state-store";
 
 test("timeline-index", async () => {
-  const notifier = new DocUpdateNotifier();
-  const workspaceStore = await createWorkspaceStateStore("test");
+  const notifier = DocUpdateNotifier.create("test");
+  const workspaceStore = await createWorkspaceStateStore({ graphName: "test" });
   // @ts-expect-error commands are not used in this test
   const store = new OutlineStore(notifier, workspaceStore, {});
 

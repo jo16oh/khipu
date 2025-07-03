@@ -2,16 +2,17 @@ import { styled } from "generated/styled-system/jsx";
 import { square } from "generated/styled-system/patterns";
 import { commands } from "generated/tauri-commands";
 import { ClockArrowDown, Search, SquarePen, StickyNote } from "lucide-react";
-import { PropsWithChildren } from "react";
+import { PropsWithChildren, use } from "react";
 import { Button } from "react-aria-components";
 import { useAppState } from "src/stores/app-state-store";
 import { DocUpdateNotifier, DocUpdateNotifierContext } from "src/stores/doc-update-notifier";
 import { FocusManager, FocusManagerContext } from "src/stores/focus-manager";
 import { OutlineStore, OutlineStoreContext } from "src/stores/outline-store";
+import { StateStorage } from "src/stores/state-storage";
 import { ViewStateStoreContext } from "src/stores/view-state-store";
 import {
+  createWorkspaceStateStore,
   useWorkspaceState,
-  useWorkspaceStateStore,
   WorkspaceStateStoreContext,
 } from "src/stores/workspace-state-store";
 import { useStore } from "zustand";
@@ -31,10 +32,17 @@ export default function Workspace() {
 }
 
 function Providers({ graphName, children }: { graphName: string } & PropsWithChildren) {
-  const notifier = new DocUpdateNotifier();
-  const focusManager = new FocusManager();
-  const workspaceStateStore = useWorkspaceStateStore(graphName);
-  const outlineStore = new OutlineStore(notifier, workspaceStateStore, commands);
+  const docUpdateNotifier = DocUpdateNotifier.create(graphName);
+  const focusManager = FocusManager.create(graphName);
+  const workspaceStateStore = use(
+    createWorkspaceStateStore({ graphName, stateStorage: StateStorage }),
+  );
+  const outlineStore = OutlineStore.create({
+    graphName,
+    docUpdateNotifier,
+    workspaceStateStore,
+    commands,
+  });
 
   const stage = useStore(
     workspaceStateStore,
@@ -44,7 +52,7 @@ function Providers({ graphName, children }: { graphName: string } & PropsWithChi
   return (
     <WorkspaceStateStoreContext value={workspaceStateStore}>
       <ViewStateStoreContext value={stage}>
-        <DocUpdateNotifierContext value={notifier}>
+        <DocUpdateNotifierContext value={docUpdateNotifier}>
           <OutlineStoreContext value={outlineStore}>
             <FocusManagerContext value={focusManager}>{children}</FocusManagerContext>
           </OutlineStoreContext>
