@@ -3,7 +3,7 @@ pub mod query;
 
 use eyre::OptionExt;
 use sqlx::{
-    Sqlite, SqlitePool,
+    Sqlite, SqlitePool, SqliteTransaction,
     migrate::{MigrateDatabase, Migrator},
 };
 use tokio::sync::RwLock;
@@ -39,6 +39,16 @@ impl ConnectionState {
     pub async fn close(&self) {
         let mut guard = self.0.write().await;
         *guard = None;
+    }
+}
+
+pub trait PoolExt {
+    async fn begin_immediate(&self) -> Result<SqliteTransaction, sqlx::Error>;
+}
+
+impl PoolExt for SqlitePool {
+    async fn begin_immediate(&self) -> Result<SqliteTransaction, sqlx::Error> {
+        self.begin_with("BEGIN IMMEDIATE").await
     }
 }
 
