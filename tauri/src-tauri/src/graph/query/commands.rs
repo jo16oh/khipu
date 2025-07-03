@@ -115,7 +115,7 @@ pub async fn upsert_outline(
     new_asset_data: HashMap<String, Base64Bytes>,
 ) -> eyre::Result<()> {
     let pool = conn.pool().await?;
-    let mut tx = pool.begin().await?;
+    let mut tx = pool.begin_with("BEGIN IMMEDIATE").await?;
 
     if outline.deleted == SqliteBool(false) || super::outline_exists(&mut *tx, &outline.id).await? {
         super::upsert_outline(&mut tx, &outline).await?;
@@ -147,7 +147,7 @@ pub async fn fetch_deleted_outline_trees(
 pub async fn clear_unreferenced_deleted_assets<'a>(app_handle: AppHandle) -> eyre::Result<()> {
     let conn = app_handle.state::<ConnectionState>();
     let pool = conn.pool().await?;
-    let mut tx = pool.begin().await?;
+    let mut tx = pool.begin_with("BEGIN IMMEDIATE").await?;
     super::clear_unreferenced_deleted_assets(&mut tx).await?;
     tx.commit().await?;
     eyre::Ok(())
@@ -162,7 +162,7 @@ pub async fn clear_deleted_outline(
     id: String,
 ) -> eyre::Result<()> {
     let pool = conn.pool().await?;
-    let mut tx = pool.begin().await?;
+    let mut tx = pool.begin_with("BEGIN IMMEDIATE").await?;
     super::clear_deleted_outline(&mut tx, &id).await?;
     tx.commit().await?;
     eyre::Ok(())
@@ -174,7 +174,7 @@ pub async fn clear_deleted_outline(
 #[macros::log_err]
 pub async fn clear_all_deleted_outlines(conn: State<'_, ConnectionState>) -> eyre::Result<()> {
     let pool = conn.pool().await?;
-    let mut tx = pool.begin().await?;
+    let mut tx = pool.begin_with("BEGIN IMMEDIATE").await?;
     super::clear_all_deleted_outlines(&mut tx).await?;
     tx.commit().await?;
     eyre::Ok(())
