@@ -53,7 +53,8 @@ export const createAppStateStore = memoize(async (stateStorage: LazyStore) => {
           store.getState().closeGraph();
         });
       } else {
-        commands.closeGraph();
+        // Commented out because if you exit the graph while editing an outline, it won't be saved as the database is already closed.
+        // commands.closeGraph();
       }
     }
   });
