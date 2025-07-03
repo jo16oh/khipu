@@ -15,7 +15,7 @@ export type ViewState = {
   jump: (view: View) => void;
   back: () => void;
   next: () => void;
-  hasPrevious: () => boolean;
+  hasPrev: () => boolean;
   hasNext: () => boolean;
   currentScrollPosition: () => number;
   recordScrollPosition: (scrollPosition: number) => void;
@@ -104,7 +104,7 @@ export function createViewStateStore(): ViewStateStore {
         };
       }),
 
-    hasPrevious: () => {
+    hasPrev: () => {
       return get().backHistory.length !== 0;
     },
 
