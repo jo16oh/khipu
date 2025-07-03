@@ -1,3 +1,5 @@
+import { LazyStore } from "@tauri-apps/plugin-store";
+import { memoize } from "es-toolkit";
 import { styled } from "generated/styled-system/jsx";
 import { square } from "generated/styled-system/patterns";
 import { commands } from "generated/tauri-commands";
@@ -13,6 +15,7 @@ import { ViewStateStoreContext } from "src/stores/view-state-store";
 import {
   createWorkspaceStateStore,
   useWorkspaceState,
+  WorkspaceStateStore,
   WorkspaceStateStoreContext,
 } from "src/stores/workspace-state-store";
 import { useStore } from "zustand";
@@ -20,6 +23,53 @@ import { useShallow } from "zustand/react/shallow";
 import TitlebarHandler from "./common/TitlebarHandler";
 import HoverViewModal from "./modal/HoverViewModal";
 import Stage from "./workspace/Stage";
+
+type Commands = typeof commands;
+
+const memoizedCreateDocUpdateNotifier = memoize((graphName: string) => {
+  if (!memoizedCreateDocUpdateNotifier.cache.has(graphName)) {
+    memoizedCreateDocUpdateNotifier.cache.clear();
+  }
+  return new DocUpdateNotifier();
+});
+
+const memoizedCreateFocusManager = memoize((graphName: string) => {
+  if (!memoizedCreateFocusManager.cache.has(graphName)) memoizedCreateFocusManager.cache.clear();
+  return new FocusManager();
+});
+
+const memoizedCreateWorkspaceStateStore = memoize(
+  (args: { graphName: string; stateStorage?: LazyStore }) => {
+    if (!memoizedCreateWorkspaceStateStore.cache.has(args.graphName)) {
+      memoizedCreateWorkspaceStateStore.cache.clear();
+    }
+
+    return createWorkspaceStateStore(args);
+  },
+  {
+    getCacheKey: ({ graphName }) => graphName,
+  },
+);
+
+const memoizedCreateOutlineStore = memoize(
+  ({
+    graphName,
+    docUpdateNotifier,
+    workspaceStateStore,
+    commands,
+  }: {
+    graphName: string;
+    docUpdateNotifier: DocUpdateNotifier;
+    workspaceStateStore: WorkspaceStateStore;
+    commands: Commands;
+  }) => {
+    if (!memoizedCreateOutlineStore.cache.has(graphName)) memoizedCreateOutlineStore.cache.clear();
+    return new OutlineStore(docUpdateNotifier, workspaceStateStore, commands);
+  },
+  {
+    getCacheKey: (args) => args.graphName,
+  },
+);
 
 export default function Workspace() {
   const graphName = useAppState(useShallow(({ graphName }) => graphName));
@@ -32,12 +82,12 @@ export default function Workspace() {
 }
 
 function Providers({ graphName, children }: { graphName: string } & PropsWithChildren) {
-  const docUpdateNotifier = DocUpdateNotifier.create(graphName);
-  const focusManager = FocusManager.create(graphName);
+  const docUpdateNotifier = memoizedCreateDocUpdateNotifier(graphName);
+  const focusManager = memoizedCreateFocusManager(graphName);
   const workspaceStateStore = use(
-    createWorkspaceStateStore({ graphName, stateStorage: StateStorage }),
+    memoizedCreateWorkspaceStateStore({ graphName, stateStorage: StateStorage }),
   );
-  const outlineStore = OutlineStore.create({
+  const outlineStore = memoizedCreateOutlineStore({
     graphName,
     docUpdateNotifier,
     workspaceStateStore,

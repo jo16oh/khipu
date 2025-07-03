@@ -5,7 +5,7 @@ import { OutlineStore } from "./outline-store";
 import { createWorkspaceStateStore } from "./workspace-state-store";
 
 describe("OutlineStoreReducer", async () => {
-  const notifier = DocUpdateNotifier.create("test");
+  const notifier = new DocUpdateNotifier();
   const workspaceStore = await createWorkspaceStateStore({ graphName: "test" });
   // @ts-expect-error commands aren't used in this test
   const store = new OutlineStore(notifier, workspaceStore, {});

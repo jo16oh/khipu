@@ -1,5 +1,4 @@
 import { LazyStore } from "@tauri-apps/plugin-store";
-import { memoize } from "es-toolkit";
 import { createContext, use } from "react";
 import { createStore, StoreApi, useStore } from "zustand";
 import { StateStorage } from "./state-storage";
@@ -32,46 +31,45 @@ export async function renameSavedWorkspaceState(prevGraphName: string, currentGr
   await StateStorage.delete("stageView" + prevGraphName);
 }
 
-export const createWorkspaceStateStore = memoize(
-  async ({ graphName, stateStorage }: { graphName: string; stateStorage?: LazyStore }) => {
-    if (!createWorkspaceStateStore.cache.has(graphName)) createWorkspaceStateStore.cache.clear();
+export async function createWorkspaceStateStore({
+  graphName,
+  stateStorage,
+}: {
+  graphName: string;
+  stateStorage?: LazyStore;
+}) {
+  const mainViewStateStore = createViewStateStore();
 
-    const mainViewStateStore = createViewStateStore();
+  if (stateStorage) {
+    const initialState = await stateStorage.get("stageView" + graphName);
 
-    if (stateStorage) {
-      const initialState = await stateStorage.get("stageView" + graphName);
-
-      if (
-        initialState !== null &&
-        typeof initialState === "object" &&
-        "id" in initialState &&
-        typeof initialState?.id === "string"
-      ) {
-        mainViewStateStore.setState({ id: initialState.id });
-      }
-
-      mainViewStateStore.subscribe((current) => {
-        const state = { id: current.id };
-        stateStorage.set("stageView" + graphName, state);
-      });
+    if (
+      initialState !== null &&
+      typeof initialState === "object" &&
+      "id" in initialState &&
+      typeof initialState?.id === "string"
+    ) {
+      mainViewStateStore.setState({ id: initialState.id });
     }
 
-    return createStore<WorkspaceState>((set) => ({
-      stage: mainViewStateStore,
-      hover: null,
-      focus: "stage",
-      switchTab: (to: TabKind) => {
-        set(() => ({ focus: to }));
-      },
-      openHover: (view: ViewStateStore) => {
-        set(() => ({ hover: view }));
-      },
-      closeHover: () => {
-        set(() => ({ hover: null }));
-      },
-    }));
-  },
-  {
-    getCacheKey: ({ graphName }) => graphName,
-  },
-);
+    mainViewStateStore.subscribe((current) => {
+      const state = { id: current.id };
+      stateStorage.set("stageView" + graphName, state);
+    });
+  }
+
+  return createStore<WorkspaceState>((set) => ({
+    stage: mainViewStateStore,
+    hover: null,
+    focus: "stage",
+    switchTab: (to: TabKind) => {
+      set(() => ({ focus: to }));
+    },
+    openHover: (view: ViewStateStore) => {
+      set(() => ({ hover: view }));
+    },
+    closeHover: () => {
+      set(() => ({ hover: null }));
+    },
+  }));
+}

@@ -1,5 +1,4 @@
 import type { FocusPosition } from "@tiptap/react";
-import { memoize } from "es-toolkit";
 import { createContext, use } from "react";
 
 export const FocusManagerContext = createContext<FocusManager | undefined>(undefined);
@@ -16,13 +15,6 @@ export type FocusState = {
 };
 
 export class FocusManager {
-  static create = memoize((graphName: string) => {
-    if (!this.create.cache.has(graphName)) this.create.cache.clear();
-    return new FocusManager();
-  });
-
-  private constructor() {}
-
   #state: FocusState | undefined;
   #focusFnMap = new Map<string, (pos: FocusPosition) => void>();
 

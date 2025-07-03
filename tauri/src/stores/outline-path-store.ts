@@ -38,7 +38,7 @@ export class OutlinePathStore {
   notify(changedOutlineId: Id) {
     this.#subscribers.notify(changedOutlineId);
     const children = this.#store.getOutlineChildren(changedOutlineId) ?? [];
-    for (const id of children) {
+    for (const { id } of children) {
       this.notify(id);
     }
   }

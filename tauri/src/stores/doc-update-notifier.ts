@@ -1,5 +1,4 @@
 import type { JSONContent } from "@tiptap/react";
-import { memoize } from "es-toolkit";
 import { createContext, use } from "react";
 import { SubscribersMap } from "./subscribers-map";
 
@@ -12,13 +11,6 @@ export function useDocUpdateNotifier() {
 }
 
 export class DocUpdateNotifier {
-  static create = memoize((graphName: string) => {
-    if (!this.create.cache.has(graphName)) this.create.cache.clear();
-    return new DocUpdateNotifier();
-  });
-
-  private constructor() {}
-
   #subscribers = new SubscribersMap<string, [doc: JSONContent]>();
 
   subscribe(id: string, cb: (doc: JSONContent) => void) {
