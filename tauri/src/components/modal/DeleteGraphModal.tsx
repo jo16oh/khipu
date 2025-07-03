@@ -2,7 +2,7 @@ import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { css } from "generated/styled-system/css";
 import { Flex, styled } from "generated/styled-system/jsx";
 import { commands } from "generated/tauri-commands";
-import { ReactNode, useState } from "react";
+import { ReactNode, useRef, useState } from "react";
 import { Button, Input } from "react-aria-components";
 import Dialog from "../common/Dialog";
 
@@ -28,12 +28,16 @@ export default function DeleteGraphModal({
     },
   });
 
+  const inputRef = useRef<HTMLInputElement>(null);
+
   return (
     <Dialog
       trigger={trigger}
       triggerProps={{
         onOpenChange: (isOpen) => {
-          if (!isOpen) {
+          if (isOpen) {
+            setTimeout(() => inputRef.current?.focus());
+          } else {
             setConfirmInput("");
             close();
           }
@@ -51,6 +55,7 @@ export default function DeleteGraphModal({
             {". This action cannot be undone. To confirm, please type the name of the graph."}
           </styled.div>
           <Input
+            ref={inputRef}
             className={css({
               ring: "none",
               borderBottomWidth: "thin",

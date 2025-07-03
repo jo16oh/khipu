@@ -3,7 +3,7 @@ import { styled } from "generated/styled-system/jsx";
 import { circle } from "generated/styled-system/patterns";
 import { commands } from "generated/tauri-commands";
 import { X } from "lucide-react";
-import { ComponentProps, FormEvent, ReactNode, useState } from "react";
+import { ComponentProps, FormEvent, ReactNode, useRef, useState } from "react";
 import { Button, Input } from "react-aria-components";
 import { useAppState } from "src/stores/app-state-store";
 import { renameSavedWorkspaceState } from "src/stores/workspace-state-store";
@@ -38,6 +38,8 @@ export default function RenameGraphModal(props: Props) {
     queryKey: ["graphList"],
     queryFn: commands.listGraph,
   });
+
+  const inputRef = useRef<HTMLInputElement>(null);
 
   const { mutateAsync } = useMutation({
     mutationFn: async () => {
@@ -79,7 +81,9 @@ export default function RenameGraphModal(props: Props) {
       trigger={trigger}
       triggerProps={{
         onOpenChange: (isOpen) => {
-          if (!isOpen) {
+          if (isOpen) {
+            setTimeout(() => inputRef.current?.focus());
+          } else {
             close();
             setNewGraphName("");
           }
@@ -104,10 +108,10 @@ export default function RenameGraphModal(props: Props) {
           <Form onSubmit={(e) => handleSubmit(e, close)}>
             <FormGroup>
               <StyledInput
+                ref={inputRef}
                 placeholder="Name your graph..."
                 value={newGraphName}
                 onChange={(e) => setNewGraphName(e.target.value)}
-                // autoFocus
               />
               <ErrorMessageContainer>
                 {isError && (
