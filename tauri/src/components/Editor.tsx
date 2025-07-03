@@ -59,18 +59,20 @@ export default function Editor({ ref, id }: { ref?: Ref<EditorHandle>; id: strin
     return unmanage;
   }, [focusManager, id, focus]);
 
-  return focused && !isPending ? (
+  return (
     <Suspense>
-      <ActiveEditor
-        ref={editorRef}
-        id={id}
-        type={type}
-        setFocused={setFocused}
-        focusManager={focusManager}
-      />
+      {focused && !isPending ? (
+        <ActiveEditor
+          ref={editorRef}
+          id={id}
+          type={type}
+          setFocused={setFocused}
+          focusManager={focusManager}
+        />
+      ) : (
+        <MockEditor onMouseEnter={onMouseEnter} id={id} />
+      )}
     </Suspense>
-  ) : (
-    <MockEditor onMouseEnter={onMouseEnter} id={id} />
   );
 }
 
