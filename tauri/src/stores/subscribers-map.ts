@@ -1,6 +1,11 @@
 export class SubscribersMap<Key, Args extends unknown[]> {
   #subscribers = new Map<Key, Set<(...args: Args) => void>>();
   #cleanupCallbacks = new Map<Key, Array<() => void>>();
+  #cleanupDefer: number = 60 * 1000;
+
+  constructor(cleanupDefer?: number) {
+    if (cleanupDefer) this.#cleanupDefer = cleanupDefer;
+  }
 
   subscribe(key: Key, listener: (...args: Args) => void) {
     const set = this.#subscribers.get(key);
@@ -15,11 +20,14 @@ export class SubscribersMap<Key, Args extends unknown[]> {
     const set = this.#subscribers.get(key);
     if (set) {
       set.delete(cb);
-      if (set.size === 0) {
-        this.#subscribers.delete(key);
-        this.#cleanupCallbacks.get(key)?.forEach((cleanup) => cleanup());
-        this.#cleanupCallbacks.delete(key);
-      }
+      setTimeout(() => {
+        const set = this.#subscribers.get(key);
+        if (set && set.size === 0) {
+          this.#subscribers.delete(key);
+          this.#cleanupCallbacks.get(key)?.forEach((cleanup) => cleanup());
+          this.#cleanupCallbacks.delete(key);
+        }
+      }, this.#cleanupDefer);
     }
   }
 
