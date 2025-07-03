@@ -43,7 +43,10 @@ export default function OpenGraphModal({ trigger }: { trigger: ReactNode }) {
                   <Bullet isDisabled={true} isCollapsed={true} />
                 </Square>
                 <OpenGraphButton
-                  onClick={() => openGraph(name)}
+                  onClick={async () => {
+                    await commands.openGraph(name);
+                    openGraph(name);
+                  }}
                   key={name}
                   pl="2"
                   color="stone.900"
