@@ -28,7 +28,7 @@ function Entry() {
 
   return (
     <>
-      <TitlebarHandler bg="stone.50" />
+      <TitlebarHandler />
       <Container>
         <AppIconContainer>
           <img src="assets/khipu-icon.svg" className={khipuIconStyle} />
@@ -58,7 +58,6 @@ const Container = styled("div", {
     flexDir: "column",
     justifyContent: "center",
     alignItems: "center",
-    bg: "stone.50",
   },
 });
 
