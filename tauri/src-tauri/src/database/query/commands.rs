@@ -2,7 +2,7 @@ use std::collections::{HashMap, HashSet};
 
 use super::*;
 use crate::{
-    graph::ConnectionState,
+    database::ConnectionState,
     model::{Base64Bytes, Outline, SqliteBool},
 };
 use tauri::{AppHandle, Manager, State};

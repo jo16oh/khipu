@@ -1,6 +1,6 @@
 use std::path::PathBuf;
 
-use crate::graph::ConnectionState;
+use crate::database::ConnectionState;
 use eyre::{OptionExt, bail};
 use tauri::{AppHandle, Manager, State};
 
@@ -19,7 +19,7 @@ pub async fn create_graph(
 
     let graph_path = graphs_path.join(graph_name.to_string() + ".sqlite3");
     if graph_path.exists() {
-        bail!("A graph named `{}` already exists", graph_name);
+        bail!("A database named `{}` already exists", graph_name);
     }
 
     let url = graph_path.to_str().ok_or_eyre("invalid sqlite url")?;
@@ -39,7 +39,7 @@ pub async fn open_graph(
 
     let graph_path = graphs_path.join(graph_name.to_string() + ".sqlite3");
     if !graph_path.exists() {
-        bail!("Graph named `{}` not found", graph_name);
+        bail!("Database named `{}` not found", graph_name);
     }
 
     let url = graph_path.to_str().ok_or_eyre("invalid sqlite url")?;
@@ -97,11 +97,11 @@ pub async fn rename_graph(
     let new_path = graphs_path.join(new_name.to_string() + ".sqlite3");
 
     if !old_path.exists() {
-        bail!("Graph named `{}` not found", old_name);
+        bail!("Database named `{}` not found", old_name);
     }
 
     if new_path.exists() {
-        bail!("A graph named `{}` already exists", new_name);
+        bail!("A database named `{}` already exists", new_name);
     }
 
     std::fs::rename(old_path, new_path)?;

@@ -1,6 +1,6 @@
 use super::*;
 use crate::{
-    graph::test::open_connection_in_memory,
+    database::test::open_connection_in_memory,
     model::{Link, LinkType, OutlineType, SqliteBool},
 };
 use chrono::Duration;
@@ -345,7 +345,7 @@ async fn test_upsert_outline() {
     // Is new links registared?
     {
         let r: HashSet<Link> =
-            sqlx::query_file_as_unchecked!(Link, "src/graph/fetch_link_list.sql", o1.id)
+            sqlx::query_file_as_unchecked!(Link, "src/database/fetch_link_list.sql", o1.id)
                 .fetch_all(&mut *tx)
                 .await
                 .unwrap()
@@ -368,7 +368,7 @@ async fn test_upsert_outline() {
     // Is old link removed?
     {
         let r: HashSet<Link> =
-            sqlx::query_file_as_unchecked!(Link, "src/graph/fetch_link_list.sql", o1.id)
+            sqlx::query_file_as_unchecked!(Link, "src/database/fetch_link_list.sql", o1.id)
                 .fetch_all(&mut *tx)
                 .await
                 .unwrap()

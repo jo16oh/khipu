@@ -1,4 +1,4 @@
-pub use crate::graph::commands::*;
+pub use crate::database::commands::*;
 
 pub fn commands() -> tauri_specta::Commands<tauri::Wry> {
     tauri_specta::collect_commands![

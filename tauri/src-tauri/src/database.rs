@@ -18,7 +18,11 @@ impl ConnectionState {
     }
 
     pub async fn pool(&self) -> eyre::Result<SqlitePool> {
-        self.0.read().await.clone().ok_or_eyre("graph is not opened")
+        self.0
+            .read()
+            .await
+            .clone()
+            .ok_or_eyre("database is not opened")
     }
 
     pub async fn open(&self, url: &str) -> eyre::Result<()> {
