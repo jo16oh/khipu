@@ -1,11 +1,10 @@
 import { styled } from "generated/styled-system/jsx";
 import { square } from "generated/styled-system/patterns";
-import { ClockArrowDown, Search, SquarePen, StickyNote } from "lucide-react";
-import { startTransition, use } from "react";
-import { Button, OverlayTriggerStateContext } from "react-aria-components";
+import { ClockArrowDown, Search, StickyNote } from "lucide-react";
+import { Button } from "react-aria-components";
 import { useWorkspaceState } from "src/stores/workspace-state-store";
 import { useShallow } from "zustand/react/shallow";
-import HoverViewModal from "../modal/HoverViewModal";
+import CreateNewOutlineButton from "./Dock/CreateNewOutlineButton";
 
 export default function Dock() {
   const [focus, switchTab] = useWorkspaceState(
@@ -14,8 +13,8 @@ export default function Dock() {
 
   return (
     <Container>
-      <Buttons>
-        <DockButton
+      <Tabs>
+        <TabItem
           className="group"
           data-selected={focus === "timeline" ? true : undefined}
           onClick={() => switchTab("timeline")}
@@ -24,36 +23,26 @@ export default function Dock() {
             className={iconStyle}
             data-selected={focus === "timeline" ? true : undefined}
           />
-        </DockButton>
-        <DockButton
+        </TabItem>
+        <TabItem
           className="group"
           data-selected={focus === "search" ? true : undefined}
           onClick={() => switchTab("search")}
         >
           <Search className={iconStyle} data-selected={focus === "search" ? true : undefined} />
-        </DockButton>
-        <DockButton
+        </TabItem>
+        <TabItem
           className="group"
           data-selected={focus === "stage" ? true : undefined}
           onClick={() => switchTab("stage")}
         >
           <StickyNote className={iconStyle} data-selected={focus === "stage" ? true : undefined} />
-        </DockButton>
-      </Buttons>
-      <HoverViewModal trigger={<Trigger />} />
+        </TabItem>
+      </Tabs>
+      <CreateNewOutlineButton />
     </Container>
   );
 }
-
-const Trigger = () => {
-  const overlayState = use(OverlayTriggerStateContext);
-
-  return (
-    <CreateNewOutlineButton onClick={() => startTransition(() => overlayState?.open())}>
-      <SquarePen className={iconStyle} />
-    </CreateNewOutlineButton>
-  );
-};
 
 const Container = styled("div", {
   base: {
@@ -67,7 +56,7 @@ const Container = styled("div", {
   },
 });
 
-const Buttons = styled("div", {
+const Tabs = styled("div", {
   base: {
     display: "flex",
     gap: "1.5",
@@ -83,7 +72,7 @@ const Buttons = styled("div", {
   },
 });
 
-const DockButton = styled(Button, {
+const TabItem = styled(Button, {
   base: {
     display: "grid",
     rounded: "xl",
@@ -98,25 +87,6 @@ const DockButton = styled(Button, {
       },
     },
     _hover: {
-      bg: "stone.200",
-    },
-  },
-});
-
-const CreateNewOutlineButton = styled("button", {
-  base: {
-    display: "grid",
-    borderColor: "stone.200",
-    rounded: "full",
-    borderWidth: "thin",
-    w: "11",
-    h: "11",
-    p: "4",
-    bg: "white",
-    shadow: "md",
-    placeContent: "center",
-    _hover: {
-      cursor: "pointer",
       bg: "stone.200",
     },
   },

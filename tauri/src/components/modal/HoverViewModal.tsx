@@ -2,12 +2,10 @@ import { css } from "generated/styled-system/css";
 import { styled } from "generated/styled-system/jsx";
 import { center, square } from "generated/styled-system/patterns";
 import { ChevronLeft, ChevronRight, X } from "lucide-react";
-import { ReactNode, startTransition, useCallback, useDeferredValue, useRef } from "react";
+import { ReactNode, startTransition, use, useDeferredValue } from "react";
 import { Button } from "react-aria-components";
-import { useOutlineStore } from "src/stores/outline-store";
-import { createViewStateStore, ViewStateStoreContext } from "src/stores/view-state-store";
+import { useViewState, ViewStateStoreContext } from "src/stores/view-state-store";
 import { useWorkspaceState } from "src/stores/workspace-state-store";
-import { useStore } from "zustand";
 import { useShallow } from "zustand/react/shallow";
 import Dialog from "../common/Dialog";
 import DialogSideActionButton, {
@@ -17,67 +15,58 @@ import LazySuspense from "../common/LazySuspense";
 import OutlineTreeEditor from "../OutlineTreeEditor";
 
 export default function HoverViewModal({ trigger }: { trigger: ReactNode }) {
-  const outlineStore = useOutlineStore();
-  const viewStateStore = useRef(createViewStateStore());
-  const viewState = useStore(viewStateStore.current);
+  const viewStateStore = use(ViewStateStoreContext);
+  const viewState = useViewState((state) => state);
+
   const { openHover, closeHover } = useWorkspaceState(
     useShallow(({ openHover, closeHover }) => ({ openHover, closeHover })),
   );
 
   const defferedId = useDeferredValue(viewState.id);
 
-  const onOpenChange = useCallback(
-    (isOpen: boolean) => {
-      if (isOpen) {
-        startTransition(() => {
-          const id = outlineStore.reducer.create("heading");
-          viewState.jump({ id, scrollPosition: 0 });
-          openHover(viewStateStore.current);
-        });
-      } else {
-        closeHover();
-      }
-    },
-    [outlineStore.reducer, viewState, openHover, closeHover],
-  );
+  const onOpenChange = (isOpen: boolean) => {
+    if (isOpen) {
+      if (viewStateStore) openHover(viewStateStore);
+    } else {
+      closeHover();
+    }
+  };
 
   return (
-    <ViewStateStoreContext value={viewStateStore.current}>
-      <Dialog
-        trigger={trigger}
-        triggerProps={{ onOpenChange }}
-        buttons={(state) => (
-          <DialogSideActionButton onClick={state.close}>
-            <X className={css(dialogSideActionButtonIconStyle)} />
-          </DialogSideActionButton>
-        )}
-        content={() => (
-          <LazySuspense>
-            {defferedId ? (
-              <ViewCotainer>
-                <ViewHeader>
-                  <HistoryButton
-                    className="group"
-                    isDisabled={!viewState.hasPrev()}
-                    onClick={() => startTransition(viewState.back)}
-                  >
-                    <ChevronLeft className={headerIconStyle} />
-                  </HistoryButton>
-                  <HistoryButton
-                    className="group"
-                    isDisabled={!viewState.hasNext()}
-                    onClick={() => startTransition(viewState.next)}
-                  >
-                    <ChevronRight className={headerIconStyle} />
-                  </HistoryButton>
-                </ViewHeader>
-                <OutlineTreeEditor id={defferedId} />
-              </ViewCotainer>
-            ) : null}
-          </LazySuspense>
-        )}
-      />
-    </ViewStateStoreContext>
+    <Dialog
+      trigger={trigger}
+      triggerProps={{ onOpenChange }}
+      buttons={(state) => (
+        <DialogSideActionButton onClick={state.close}>
+          <X className={css(dialogSideActionButtonIconStyle)} />
+        </DialogSideActionButton>
+      )}
+      content={() => (
+        <LazySuspense>
+          {defferedId ? (
+            <ViewCotainer>
+              <ViewHeader>
+                <HistoryButton
+                  className="group"
+                  isDisabled={!viewState.hasPrev()}
+                  onClick={() => startTransition(viewState.back)}
+                >
+                  <ChevronLeft className={headerIconStyle} />
+                </HistoryButton>
+                <HistoryButton
+                  className="group"
+                  isDisabled={!viewState.hasNext()}
+                  onClick={() => startTransition(viewState.next)}
+                >
+                  <ChevronRight className={headerIconStyle} />
+                </HistoryButton>
+              </ViewHeader>
+              <OutlineTreeEditor id={defferedId} />
+            </ViewCotainer>
+          ) : null}
+        </LazySuspense>
+      )}
+    />
   );
 }
 
