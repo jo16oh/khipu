@@ -2,8 +2,11 @@ import "../index.css";
 
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { getCurrentWebviewWindow } from "@tauri-apps/api/webviewWindow";
+import { memoize } from "es-toolkit";
 import { styled } from "generated/styled-system/jsx";
 import { Suspense, use, useDeferredValue, useEffect } from "react";
+import { Button } from "react-aria-components";
+import { ErrorBoundary } from "react-error-boundary";
 import { useStore } from "zustand";
 import { useShallow } from "zustand/react/shallow";
 import Entry from "./components/Entry";
@@ -13,8 +16,22 @@ import { StateStorage } from "./stores/state-storage";
 
 const queryClient = new QueryClient();
 
+const memoizedCreateAppStateStore = memoize(createAppStateStore);
+
 function App() {
-  const appStateStore = use(createAppStateStore(StateStorage));
+  return (
+    <Main>
+      <ErrorBoundary onError={(e) => console.error(e)} FallbackComponent={ErrorFallback}>
+        <Suspense>
+          <AppImpl />
+        </Suspense>
+      </ErrorBoundary>
+    </Main>
+  );
+}
+
+function AppImpl() {
+  const appStateStore = use(memoizedCreateAppStateStore(StateStorage));
 
   const graphName = useStore(
     appStateStore,
@@ -36,13 +53,20 @@ function App() {
   }, []);
 
   return (
-    <Main>
-      <AppStateStoreContext value={appStateStore}>
-        <QueryClientProvider client={queryClient}>
-          <Suspense fallback="loading">{defferedGraphName ? <Workspace /> : <Entry />}</Suspense>
-        </QueryClientProvider>
-      </AppStateStoreContext>
-    </Main>
+    <AppStateStoreContext value={appStateStore}>
+      <QueryClientProvider client={queryClient}>
+        <Suspense>{defferedGraphName ? <Workspace /> : <Entry />}</Suspense>
+      </QueryClientProvider>
+    </AppStateStoreContext>
+  );
+}
+
+function ErrorFallback() {
+  return (
+    <>
+      <div>unhandled error</div>
+      <Button onClick={() => window.location.reload()}>→ Click here to reload</Button>
+    </>
   );
 }
 

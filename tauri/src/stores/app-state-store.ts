@@ -1,5 +1,4 @@
 import { LazyStore } from "@tauri-apps/plugin-store";
-import { memoize } from "es-toolkit";
 import { commands } from "generated/tauri-commands";
 import { createContext, use } from "react";
 import { createStore, StoreApi, useStore } from "zustand";
@@ -20,7 +19,7 @@ export function useAppState<U>(selector: (state: AppState) => U) {
   return useStore(store, selector);
 }
 
-export const createAppStateStore = memoize(async (stateStorage: LazyStore) => {
+export async function createAppStateStore(stateStorage: LazyStore) {
   const store = createStore<AppState>((set) => ({
     graphName: null,
     openGraph: (graphName) => {
@@ -46,4 +45,4 @@ export const createAppStateStore = memoize(async (stateStorage: LazyStore) => {
   store.subscribe((state) => stateStorage.set("appState", state));
 
   return store;
-});
+}
