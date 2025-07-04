@@ -38,28 +38,10 @@ export async function createWorkspaceStateStore({
   graphName: string;
   stateStorage?: LazyStore;
 }) {
-  const mainViewStateStore = createViewStateStore();
+  const stageViewState = createViewStateStore();
 
-  if (stateStorage) {
-    const initialState = await stateStorage.get("stageView" + graphName);
-
-    if (
-      initialState !== null &&
-      typeof initialState === "object" &&
-      "id" in initialState &&
-      typeof initialState?.id === "string"
-    ) {
-      mainViewStateStore.setState({ id: initialState.id });
-    }
-
-    mainViewStateStore.subscribe((current) => {
-      const state = { id: current.id };
-      stateStorage.set("stageView" + graphName, state);
-    });
-  }
-
-  return createStore<WorkspaceState>((set) => ({
-    stage: mainViewStateStore,
+  const workspaceStateStore = createStore<WorkspaceState>((set) => ({
+    stage: stageViewState,
     hover: null,
     focus: "stage",
     switchTab: (to: TabKind) => {
@@ -72,4 +54,43 @@ export async function createWorkspaceStateStore({
       set(() => ({ hover: null }));
     },
   }));
+
+  if (stateStorage) {
+    const prevStageViewState = await stateStorage.get(`stageView|${graphName}`);
+
+    if (
+      prevStageViewState !== null &&
+      typeof prevStageViewState === "object" &&
+      "id" in prevStageViewState &&
+      typeof prevStageViewState?.id === "string"
+    ) {
+      stageViewState.setState({ id: prevStageViewState.id });
+    }
+
+    stageViewState.subscribe((current) => {
+      const state = { id: current.id };
+      stateStorage.set(`stageView|${graphName}`, state);
+    });
+
+    const prevWorkspaceState = await stateStorage.get(`workspaceState|${graphName}`);
+
+    if (
+      prevWorkspaceState !== null &&
+      typeof prevWorkspaceState === "object" &&
+      "focus" in prevWorkspaceState &&
+      typeof prevWorkspaceState?.focus === "string" &&
+      (prevWorkspaceState.focus === "stage" ||
+        prevWorkspaceState.focus === "search" ||
+        prevWorkspaceState.focus === "timeline")
+    ) {
+      workspaceStateStore.setState({ focus: prevWorkspaceState.focus });
+    }
+
+    workspaceStateStore.subscribe((current) => {
+      const state = { focus: current.focus };
+      stateStorage.set(`workspaceState|${graphName}`, state);
+    });
+  }
+
+  return workspaceStateStore;
 }
