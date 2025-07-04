@@ -2,7 +2,7 @@ import { LazyStore } from "@tauri-apps/plugin-store";
 import { memoize } from "es-toolkit";
 import { styled } from "generated/styled-system/jsx";
 import { commands } from "generated/tauri-commands";
-import { PropsWithChildren, use } from "react";
+import { PropsWithChildren, use, useDeferredValue } from "react";
 import { useAppState } from "src/stores/app-state-store";
 import { DocUpdateNotifier, DocUpdateNotifierContext } from "src/stores/doc-update-notifier";
 import { FocusManager, FocusManagerContext } from "src/stores/focus-manager";
@@ -116,13 +116,15 @@ function WorkspaceImpl() {
 
   const focus = useWorkspaceState(useShallow(({ focus }) => focus));
 
+  const defferedFocus = useDeferredValue(focus);
+
   return graphName ? (
     <>
       <TitlebarHandler />
       <Container>
-        {focus === "timeline" && <div>timeline</div>}
-        {focus === "search" && <div>search</div>}
-        {focus === "stage" && <Stage />}
+        {defferedFocus === "timeline" && <div>timeline</div>}
+        {defferedFocus === "search" && <div>search</div>}
+        {defferedFocus === "stage" && <Stage />}
         <button onClick={closeGraph}>close {graphName}</button>
       </Container>
       <Dock />
