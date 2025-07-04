@@ -2,7 +2,7 @@ import { css } from "generated/styled-system/css";
 import { styled } from "generated/styled-system/jsx";
 import { center, square } from "generated/styled-system/patterns";
 import { ChevronLeft, ChevronRight, X } from "lucide-react";
-import { ReactNode, Suspense, startTransition, useCallback, useDeferredValue, useRef } from "react";
+import { ReactNode, startTransition, useCallback, useDeferredValue, useRef } from "react";
 import { Button } from "react-aria-components";
 import { useOutlineStore } from "src/stores/outline-store";
 import { createViewStateStore, ViewStateStoreContext } from "src/stores/view-state-store";
@@ -13,6 +13,7 @@ import Dialog from "../common/Dialog";
 import DialogSideActionButton, {
   dialogSideActionButtonIconStyle,
 } from "../common/DialogSideButton";
+import LazySuspense from "../common/LazySuspense";
 import OutlineTreeEditor from "../OutlineTreeEditor";
 
 export default function HoverViewModal({ trigger }: { trigger: ReactNode }) {
@@ -51,7 +52,7 @@ export default function HoverViewModal({ trigger }: { trigger: ReactNode }) {
           </DialogSideActionButton>
         )}
         content={() => (
-          <Suspense>
+          <LazySuspense>
             {defferedId ? (
               <ViewCotainer>
                 <ViewHeader>
@@ -73,7 +74,7 @@ export default function HoverViewModal({ trigger }: { trigger: ReactNode }) {
                 <OutlineTreeEditor id={defferedId} />
               </ViewCotainer>
             ) : null}
-          </Suspense>
+          </LazySuspense>
         )}
       />
     </ViewStateStoreContext>

@@ -1,7 +1,8 @@
 import { styled } from "generated/styled-system/jsx";
 import { square } from "generated/styled-system/patterns";
 import { ClockArrowDown, Search, SquarePen, StickyNote } from "lucide-react";
-import { Button } from "react-aria-components";
+import { startTransition, use } from "react";
+import { Button, OverlayTriggerStateContext } from "react-aria-components";
 import { useWorkspaceState } from "src/stores/workspace-state-store";
 import { useShallow } from "zustand/react/shallow";
 import HoverViewModal from "../modal/HoverViewModal";
@@ -39,16 +40,20 @@ export default function Dock() {
           <StickyNote className={iconStyle} data-selected={focus === "stage" ? true : undefined} />
         </DockButton>
       </Buttons>
-      <HoverViewModal
-        trigger={
-          <CreateNewOutlineButton>
-            <SquarePen className={iconStyle} />
-          </CreateNewOutlineButton>
-        }
-      />
+      <HoverViewModal trigger={<Trigger />} />
     </Container>
   );
 }
+
+const Trigger = () => {
+  const overlayState = use(OverlayTriggerStateContext);
+
+  return (
+    <CreateNewOutlineButton onClick={() => startTransition(() => overlayState?.open())}>
+      <SquarePen className={iconStyle} />
+    </CreateNewOutlineButton>
+  );
+};
 
 const Container = styled("div", {
   base: {
@@ -98,7 +103,7 @@ const DockButton = styled(Button, {
   },
 });
 
-const CreateNewOutlineButton = styled(Button, {
+const CreateNewOutlineButton = styled("button", {
   base: {
     display: "grid",
     borderColor: "stone.200",
