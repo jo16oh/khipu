@@ -40,14 +40,6 @@ export default function HoverViewModal({ trigger }: { trigger: ReactNode }) {
     [outlineStore.reducer, viewState, openHover, closeHover],
   );
 
-  const back = useCallback(() => {
-    startTransition(() => viewState.back());
-  }, [viewState]);
-
-  const next = useCallback(() => {
-    startTransition(() => viewState.next());
-  }, [viewState]);
-
   return (
     <ViewStateStoreContext value={viewStateStore.current}>
       <Dialog
@@ -63,10 +55,18 @@ export default function HoverViewModal({ trigger }: { trigger: ReactNode }) {
             {defferedId ? (
               <ViewCotainer>
                 <ViewHeader>
-                  <HistoryButton className="group" isDisabled={!viewState.hasPrev()} onClick={back}>
+                  <HistoryButton
+                    className="group"
+                    isDisabled={!viewState.hasPrev()}
+                    onClick={() => startTransition(viewState.back)}
+                  >
                     <ChevronLeft className={headerIconStyle} />
                   </HistoryButton>
-                  <HistoryButton className="group" isDisabled={!viewState.hasNext()} onClick={next}>
+                  <HistoryButton
+                    className="group"
+                    isDisabled={!viewState.hasNext()}
+                    onClick={() => startTransition(viewState.next)}
+                  >
                     <ChevronRight className={headerIconStyle} />
                   </HistoryButton>
                 </ViewHeader>

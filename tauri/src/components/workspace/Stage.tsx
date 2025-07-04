@@ -1,6 +1,6 @@
 import { css } from "generated/styled-system/css";
 import { styled } from "generated/styled-system/jsx";
-import { useCallback, useDeferredValue } from "react";
+import { useDeferredValue } from "react";
 import { Button } from "react-aria-components";
 import KhipuIcon from "src/icons/khipu-icon";
 import { useOutlineStore } from "src/stores/outline-store";
@@ -50,11 +50,11 @@ const Title = () => {
   const store = useOutlineStore();
   const [jump] = useViewState(useShallow(({ jump }) => [jump]));
 
-  const onClick = useCallback(() => {
+  const createNewOutline = async () => {
     const id = store.reducer.create("heading");
+    await store.save(id);
     jump({ id, scrollPosition: 0 });
-    store.save(id);
-  }, [store, jump]);
+  };
 
   return (
     <Container>
@@ -64,7 +64,9 @@ const Title = () => {
       <Operations>
         <Operation>
           <Bullet isCollapsed={true} isDisabled={true} />
-          <CreateNewOutlineButton onClick={onClick}>Create New Outline</CreateNewOutlineButton>
+          <CreateNewOutlineButton onClick={createNewOutline}>
+            Create New Outline
+          </CreateNewOutlineButton>
         </Operation>
       </Operations>
     </Container>

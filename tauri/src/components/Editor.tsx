@@ -76,7 +76,13 @@ export default function Editor({ ref, id }: { ref?: Ref<EditorHandle>; id: strin
   );
 }
 
-function MockEditor({ id, onMouseEnter }: { id: string; onMouseEnter: () => void }) {
+const MockEditor = memo(function MockEditor({
+  id,
+  onMouseEnter,
+}: {
+  id: string;
+  onMouseEnter: () => void;
+}) {
   const { type, doc } = useOutline(id, ({ type, doc }) => ({ type, doc }));
   const extensions = useMemo(() => createRendererExtensions(type), [type]);
 
@@ -85,7 +91,7 @@ function MockEditor({ id, onMouseEnter }: { id: string; onMouseEnter: () => void
       {renderToReactElement({ extensions, content: doc as JSONContent })}
     </EditorContainer>
   );
-}
+});
 
 const ActiveEditor = memo(function ActiveEditor({
   ref,
@@ -122,11 +128,11 @@ const ActiveEditor = memo(function ActiveEditor({
     };
   }, [store, id]);
 
-  const onMouseLeave = useCallback(() => {
+  const onMouseLeave = () => {
     if (editor.current && !editor.current.isFocused) {
       setFocused(false);
     }
-  }, [editor, setFocused]);
+  };
 
   useImperativeHandle(
     ref,
