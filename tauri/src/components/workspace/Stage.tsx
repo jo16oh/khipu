@@ -2,6 +2,7 @@ import { css } from "generated/styled-system/css";
 import { Flex, styled } from "generated/styled-system/jsx";
 import { useCallback, useDeferredValue } from "react";
 import { Button } from "react-aria-components";
+import KhipuIcon from "src/icons/khipu-icon";
 import { useOutlineStore } from "src/stores/outline-store";
 import { useViewState, ViewStateStoreContext } from "src/stores/view-state-store";
 import { useWorkspaceState } from "src/stores/workspace-state-store";
@@ -58,7 +59,7 @@ const Title = () => {
   return (
     <Container>
       <AppIconContainer>
-        <img src="assets/khipu-icon.svg" className={khipuIconStyle} />
+        <KhipuIcon className={khipuIconStyle} />
       </AppIconContainer>
       <Operations>
         <Flex gap="2" alignItems="center">

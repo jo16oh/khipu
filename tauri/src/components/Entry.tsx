@@ -4,6 +4,8 @@ import { css } from "generated/styled-system/css";
 import { styled } from "generated/styled-system/jsx";
 import { commands } from "generated/tauri-commands";
 import { Button } from "react-aria-components";
+import KhipuAppName from "src/icons/khipu-app-name";
+import KhipuIcon from "src/icons/khipu-icon";
 import BulletButton from "./common/BulletButton";
 import TitlebarHandler from "./common/TitlebarHandler";
 import CreateOrRenameGraphModal from "./modal/CreateOrRenameGraphModal";
@@ -31,9 +33,9 @@ function Entry() {
       <TitlebarHandler />
       <Container>
         <AppIconContainer>
-          <img src="assets/khipu-icon.svg" className={khipuIconStyle} />
-          <img src="assets/khipu-app-name.svg" className={khipuLogoStyle} />
-          <div className={versionStyle}>v{version}</div>
+          <KhipuIcon className={khipuIconStyle} />
+          <KhipuAppName className={KhipuAppNameStyle} />
+          <Version>v{version}</Version>
         </AppIconContainer>
         <Operations>
           <CreateOrRenameGraphModal
@@ -82,13 +84,15 @@ const khipuIconStyle = css(imageStyle, {
   filter: "[drop-shadow(0px 4px 2px rgba(0, 0, 0, .25))]",
 });
 
-const khipuLogoStyle = css(imageStyle, {
+const KhipuAppNameStyle = css(imageStyle, {
   pl: "2",
 });
 
-const versionStyle = css({
-  fontFamily: "mono",
-  fontSize: "sm",
+const Version = styled("div", {
+  base: {
+    fontFamily: "mono",
+    fontSize: "sm",
+  },
 });
 
 const Operations = styled("div", {
