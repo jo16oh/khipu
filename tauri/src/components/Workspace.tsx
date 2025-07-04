@@ -18,7 +18,7 @@ import {
 import { useStore } from "zustand";
 import { useShallow } from "zustand/react/shallow";
 import TitlebarHandler from "./common/TitlebarHandler";
-import Dock from "./Dock";
+import Dock from "./workspace/Dock";
 import Stage from "./workspace/Stage";
 
 type Commands = typeof commands;

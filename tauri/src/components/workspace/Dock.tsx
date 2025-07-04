@@ -4,7 +4,7 @@ import { ClockArrowDown, Search, SquarePen, StickyNote } from "lucide-react";
 import { Button } from "react-aria-components";
 import { useWorkspaceState } from "src/stores/workspace-state-store";
 import { useShallow } from "zustand/react/shallow";
-import HoverViewModal from "./modal/HoverViewModal";
+import HoverViewModal from "../modal/HoverViewModal";
 
 export default function Dock() {
   const [focus, switchTab] = useWorkspaceState(
