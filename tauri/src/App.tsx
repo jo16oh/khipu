@@ -11,10 +11,17 @@ import { useStore } from "zustand";
 import { useShallow } from "zustand/react/shallow";
 import Entry from "./components/Entry";
 import Workspace from "./components/Workspace";
+import { GC_TIME } from "./constants";
 import { AppStateStoreContext, createAppStateStore } from "./stores/app-state-store";
 import { StateStorage } from "./stores/state-storage";
 
-const queryClient = new QueryClient();
+const queryClient = new QueryClient({
+  defaultOptions: {
+    queries: {
+      gcTime: GC_TIME,
+    },
+  },
+});
 
 const memoizedCreateAppStateStore = memoize(createAppStateStore);
 

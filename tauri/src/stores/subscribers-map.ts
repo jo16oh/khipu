@@ -1,7 +1,10 @@
+import { GC_TIME } from "src/constants";
+
 export class SubscribersMap<Key, Args extends unknown[]> {
   #subscribers = new Map<Key, Set<(...args: Args) => void>>();
   #cleanupCallbacks = new Map<Key, Array<() => void>>();
-  #cleanupDefer: number = 60 * 1000;
+  // ensure that cleanup callbacks will run after the query cache is garbage collected
+  #cleanupDefer: number = GC_TIME + 10 * 1000;
 
   constructor(cleanupDefer?: number) {
     if (cleanupDefer) this.#cleanupDefer = cleanupDefer;
