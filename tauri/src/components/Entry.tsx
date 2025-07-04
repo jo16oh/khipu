@@ -17,9 +17,7 @@ function Entry() {
     queries: [
       {
         queryKey: ["version"],
-        queryFn: async () => {
-          return await getVersion();
-        },
+        queryFn: getVersion,
       },
       {
         queryKey: ["graphList"],
