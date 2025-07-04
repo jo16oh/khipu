@@ -6,7 +6,7 @@ import { commands } from "generated/tauri-commands";
 import { Button } from "react-aria-components";
 import KhipuAppName from "src/icons/khipu-app-name";
 import KhipuIcon from "src/icons/khipu-icon";
-import BulletButton from "./common/BulletButton";
+import Bullet from "./common/Bullet";
 import TitlebarHandler from "./common/TitlebarHandler";
 import CreateOrRenameGraphModal from "./modal/CreateOrRenameGraphModal";
 import OpenGraphModal from "./modal/OpenGraphModal";
@@ -104,23 +104,26 @@ const Operations = styled("div", {
 });
 
 const OperationTrigger = ({ text, isDisabled = false }: { text: string; isDisabled?: boolean }) => (
-  <div className={css({ display: "flex", gap: "2", alignItems: "center", p: "1" })}>
-    <BulletButton isCollapsed={!isDisabled} isDisabled={true} />
-    <Button
-      className={css({
-        color: "stone.900",
-        _disabled: {
-          color: "stone.400",
-          textDecoration: "line-through",
-          _hover: { cursor: "default", textDecoration: "line-through" },
-        },
-        _hover: { cursor: "pointer", textDecoration: "underline" },
-      })}
-      isDisabled={isDisabled}
-    >
-      {text}
-    </Button>
-  </div>
+  <OperationContainer>
+    <Bullet isCollapsed={!isDisabled} isDisabled={true} />
+    <OperationTextButton isDisabled={isDisabled}>{text}</OperationTextButton>
+  </OperationContainer>
 );
+
+const OperationContainer = styled("div", {
+  base: { display: "flex", gap: "2", alignItems: "center", p: "1" },
+});
+
+const OperationTextButton = styled(Button, {
+  base: {
+    color: "stone.900",
+    _disabled: {
+      color: "stone.400",
+      textDecoration: "line-through",
+      _hover: { cursor: "default", textDecoration: "line-through" },
+    },
+    _hover: { cursor: "pointer", textDecoration: "underline" },
+  },
+});
 
 export default Entry;

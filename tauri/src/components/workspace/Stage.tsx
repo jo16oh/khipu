@@ -1,5 +1,5 @@
 import { css } from "generated/styled-system/css";
-import { Flex, styled } from "generated/styled-system/jsx";
+import { styled } from "generated/styled-system/jsx";
 import { useCallback, useDeferredValue } from "react";
 import { Button } from "react-aria-components";
 import KhipuIcon from "src/icons/khipu-icon";
@@ -62,10 +62,10 @@ const Title = () => {
         <KhipuIcon className={khipuIconStyle} />
       </AppIconContainer>
       <Operations>
-        <Flex gap="2" alignItems="center">
+        <Operation>
           <Bullet isCollapsed={true} isDisabled={true} />
           <CreateNewOutlineButton onClick={onClick}>Create New Outline</CreateNewOutlineButton>
-        </Flex>
+        </Operation>
       </Operations>
     </Container>
   );
@@ -110,6 +110,14 @@ const Operations = styled("div", {
     flexDir: "column",
     alignItems: "start",
     color: "stone.900",
+  },
+});
+
+const Operation = styled("div", {
+  base: {
+    display: "flex",
+    gap: "2",
+    alignItems: "center",
   },
 });
 
