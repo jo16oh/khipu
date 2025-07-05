@@ -91,7 +91,9 @@ export class FractionallyIndexedList<T extends FractionallyIndexedItem> {
     }
   }
 
-  readonly map = this.#array.map;
+  map<U>(fn: (e: T) => U) {
+    return this.#array.map(fn);
+  }
 
   generateFractionalIndex(position: "start" | "end" | { after: T }): string {
     if (position === "start") {
