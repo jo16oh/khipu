@@ -1,34 +1,34 @@
 import { styled } from "generated/styled-system/jsx";
 import { ErrorBoundary } from "react-error-boundary";
 import { useFetchOutlineTree } from "src/hooks/useFetchOutlineTree";
+import { useOutline } from "src/hooks/useOutline";
 import { useOutlineChildren } from "src/hooks/useOutlineChildren";
 import BulletButton from "./common/BulletButton";
 import Editor from "./Editor";
 
 export default function OutlineTreeEditor({ id }: { id: string }) {
   useFetchOutlineTree(id);
+  const children = useOutlineChildren(id);
 
   return (
     <ErrorBoundary resetKeys={[id]} fallback="outline not found">
-      <RootEditor id={id} />
-      <EditorWithChildren id={id} />
+      <Editor id={id} />
+      {children?.map(({ id }) => <Outline key={id} id={id} />)}
     </ErrorBoundary>
   );
 }
 
-function RootEditor({ id }: { id: string }) {
-  return <Editor id={id} />;
-}
-
-function EditorWithChildren({ id }: { id: string }) {
+function Outline({ id }: { id: string }) {
   const children = useOutlineChildren(id);
+  const collapsed = useOutline(id, ({ collapsed }) => collapsed);
 
-  return children.map((id) => (
+  return (
     <Container key={id}>
-      <BulletButton isCollapsed={false} />
-      <EditorWithChildren id={id} />
+      <BulletButton isCollapsed={collapsed} />
+      <Editor id={id} />
+      {!collapsed && children?.map(({ id }) => <Outline key={id} id={id} />)}
     </Container>
-  ));
+  );
 }
 
 const Container = styled("div", {
