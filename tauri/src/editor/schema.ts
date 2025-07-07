@@ -140,6 +140,8 @@ export function createKeydownHandlers(
     },
     Tab: (_, event) => {
       event.preventDefault();
+      event.stopPropagation();
+
       if (outlineId === viewStateStore.getState().id) return;
 
       if (!event.shiftKey) {
