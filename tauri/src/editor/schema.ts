@@ -76,7 +76,7 @@ export function createKeydownHandlers(
   viewStateStore: ViewStateStore,
 ) {
   const common: Parameters<typeof createKeydownHandlersExtension>[0] = {
-    ArrowUp: (view) => {
+    ArrowUp: (view, event) => {
       const editorRect = view.dom.getBoundingClientRect();
       const cursorRect = view.coordsAtPos(view.state.selection.from);
 
@@ -87,9 +87,12 @@ export function createKeydownHandlers(
           const siblings = store.getOutlineChildren(outline.parentId);
           if (!siblings) return outline.parentId;
           const { found, index } = siblings.findIndex(outline);
-          return found && index > 0
-            ? (siblings.at(index - 1)?.id ?? outline.parentId)
-            : outline.parentId;
+          if (found && index > 0) {
+            const { id: aboveId } = siblings.at(index - 1) ?? {};
+            return aboveId ? findTail(aboveId, store) : null;
+          } else {
+            return outline.parentId;
+          }
         })();
 
         if (above) focusManager.focus({ id: above, position: "end" });
@@ -207,5 +210,25 @@ export function createKeydownHandlers(
           ...common,
         }),
       ];
+  }
+}
+
+function findTail(id: string, store: OutlineStore) {
+  const children = store.getOutlineChildren(id);
+  if (children) {
+    const { id: tailId } = children.at(-1) ?? {};
+    if (tailId) {
+      const tail = store.getOutline(tailId);
+      if (!tail) return id;
+      if (tail.collapsed) {
+        return tail.id;
+      } else {
+        return findTail(tail.id, store);
+      }
+    } else {
+      return id;
+    }
+  } else {
+    return id;
   }
 }
