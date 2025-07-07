@@ -27,7 +27,7 @@ export class FractionallyIndexedList<T extends FractionallyIndexedItem> {
    * @param item The item to search for
    * @returns `index`: The index of the item (or insertion point if not found), `found`: Boolean indicating whether an exact match was found
    */
-  #findIndex(item: { findex: string; id: string }): {
+  findIndex(item: { findex: string; id: string }): {
     index: number;
     found: boolean;
   } {
@@ -82,7 +82,7 @@ export class FractionallyIndexedList<T extends FractionallyIndexedItem> {
   }
 
   toInserted(item: T) {
-    const { index, found } = this.#findIndex(item);
+    const { index, found } = this.findIndex(item);
 
     if (!found) {
       return new FractionallyIndexedList(this.#array.toSpliced(index, 0, item));
@@ -95,6 +95,10 @@ export class FractionallyIndexedList<T extends FractionallyIndexedItem> {
     return this.#array.map(fn);
   }
 
+  at(index: number) {
+    return this.#array.at(index);
+  }
+
   generateFractionalIndex(position: "start" | "end" | { after: T }): string {
     if (position === "start") {
       const upper = this.#array[0]?.findex ?? null;
@@ -103,7 +107,7 @@ export class FractionallyIndexedList<T extends FractionallyIndexedItem> {
       const lower = this.#array.at(-1)?.findex ?? null;
       return generateKeyBetween(lower, null);
     } else {
-      const { index, found } = this.#findIndex(position.after);
+      const { index, found } = this.findIndex(position.after);
 
       if (!found) {
         throw new Error("The item specified in 'after' was not found in the list.");

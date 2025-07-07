@@ -23,6 +23,7 @@ import { useOutline } from "src/hooks/useOutline";
 import { useDocUpdateNotifier } from "src/stores/doc-update-notifier";
 import { FocusManager, useFocusManager } from "src/stores/focus-manager";
 import { useOutlineStore } from "src/stores/outline-store";
+import { ViewStateStoreContext } from "src/stores/view-state-store";
 
 export type EditorHandle = {
   focus: (pos: FocusPosition) => void;
@@ -110,16 +111,26 @@ const ActiveEditor = memo(function ActiveEditor({
   const store = useOutlineStore();
   const ydoc = use(store.getYDoc(id));
   const notifier = useDocUpdateNotifier();
+  const viewStateStore = use(ViewStateStoreContext)!;
 
   const editor = useRef(
     new Tiptap({
-      extensions: createEditorExtensions(id, ydoc, type, notifier, focusManager),
+      extensions: createEditorExtensions(
+        id,
+        ydoc,
+        type,
+        store,
+        notifier,
+        focusManager,
+        viewStateStore,
+      ),
       editorProps: {
         attributes: {
           class: editorStyle,
         },
       },
       onBlur: () => setFocused(false),
+      injectCSS: false,
     }),
   );
 
