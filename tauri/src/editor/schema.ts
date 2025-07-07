@@ -77,6 +77,8 @@ export function createKeydownHandlers(
 ) {
   const common: Parameters<typeof createKeydownHandlersExtension>[0] = {
     ArrowUp: (view, event) => {
+      if (outlineId === viewStateStore.getState().id) return;
+
       const editorRect = view.dom.getBoundingClientRect();
       const cursorRect = view.coordsAtPos(view.state.selection.from);
 
@@ -138,6 +140,8 @@ export function createKeydownHandlers(
     },
     Tab: (_, event) => {
       event.preventDefault();
+      if (outlineId === viewStateStore.getState().id) return;
+
       if (!event.shiftKey) {
         const outline = store.getOutline(outlineId);
         if (!outline || !outline.parentId) return;
