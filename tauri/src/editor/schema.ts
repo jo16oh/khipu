@@ -163,7 +163,7 @@ export function createKeydownHandlers(
       return [
         createKeydownHandlersExtension({
           ...common,
-          Enter: async (view) => {
+          Enter: async (view, _, editor) => {
             const start = view.state.selection.from;
             const end = view.state.doc.content.size;
 
@@ -176,6 +176,7 @@ export function createKeydownHandlers(
 
             const childId = store.reducer.create("bullet", outlineId, "start", doc);
 
+            editor.commands.blur();
             focusManager.focus({ id: childId, position: "end" });
           },
         }),
@@ -184,7 +185,7 @@ export function createKeydownHandlers(
       return [
         createKeydownHandlersExtension({
           ...common,
-          Enter: async (view) => {
+          Enter: async (view, _, editor) => {
             const start = view.state.selection.from;
             const end = view.state.doc.content.size;
 
@@ -206,6 +207,7 @@ export function createKeydownHandlers(
               doc,
             );
 
+            editor.commands.blur();
             focusManager.focus({ id: newOutlineId, position: "end" });
           },
         }),
