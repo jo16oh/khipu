@@ -1,5 +1,6 @@
 import Collabolation from "@tiptap/extension-collaboration";
 import Document from "@tiptap/extension-document";
+import Heading from "@tiptap/extension-heading";
 import Paragraph from "@tiptap/extension-paragraph";
 import Text from "@tiptap/extension-text";
 import { Extensions, getSchema, Node } from "@tiptap/react";
@@ -19,7 +20,7 @@ const SingleBlockDocument = Node.create({
 export function createRendererExtensions(type: OutlineType): Extensions {
   switch (type) {
     case "heading":
-      return [SingleBlockDocument, Paragraph, Text];
+      return [SingleBlockDocument, Heading, Text];
     case "bullet":
       return [SingleBlockDocument, Paragraph, Text];
     case "card":
