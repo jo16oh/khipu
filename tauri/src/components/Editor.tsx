@@ -144,11 +144,9 @@ const ActiveEditor = memo(function ActiveEditor({
   );
 
   return (
-    <>
-      <EditorContainer type="active" onMouseLeave={onMouseLeave}>
-        <EditorContent editor={editor.current} />
-      </EditorContainer>
-    </>
+    <EditorContainer type="active" onMouseLeave={onMouseLeave}>
+      <EditorContent editor={editor.current} />
+    </EditorContainer>
   );
 });
 
