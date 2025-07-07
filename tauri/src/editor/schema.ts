@@ -121,7 +121,13 @@ export function createKeydownHandlers(
           const siblings = store.getOutlineChildren(outline.parentId);
           if (!siblings) return outline.parentId;
           const { found, index } = siblings.findIndex(outline);
-          return found ? siblings.at(index + 1)?.id : null;
+          if (found && siblings.size === index + 1) {
+            return findBelow(outline.parentId, store);
+          } else if (found) {
+            return siblings.at(index + 1)?.id;
+          } else {
+            return null;
+          }
         })();
 
         if (below) {
@@ -236,5 +242,18 @@ function findAbove(id: string, store: OutlineStore) {
     }
   } else {
     return id;
+  }
+}
+
+function findBelow(parentId: string, store: OutlineStore): string | null {
+  const parent = store.getOutline(parentId);
+  if (!parent?.parentId) return null;
+  const siblings = store.getOutlineChildren(parent.parentId);
+  if (!siblings) return null;
+  const { index } = siblings.findIndex(parent);
+  if (siblings.size > index + 1) {
+    return siblings.at(index + 1)?.id ?? null;
+  } else {
+    return parent.parentId ? findBelow(parent.parentId, store) : null;
   }
 }
