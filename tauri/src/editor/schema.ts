@@ -89,7 +89,7 @@ export function createKeydownHandlers(
           const { found, index } = siblings.findIndex(outline);
           if (found && index > 0) {
             const { id: aboveId } = siblings.at(index - 1) ?? {};
-            return aboveId ? findTail(aboveId, store) : null;
+            return aboveId ? findAbove(aboveId, store) : null;
           } else {
             return outline.parentId;
           }
@@ -219,7 +219,7 @@ export function createKeydownHandlers(
   }
 }
 
-function findTail(id: string, store: OutlineStore) {
+function findAbove(id: string, store: OutlineStore) {
   const children = store.getOutlineChildren(id);
   if (children) {
     const { id: tailId } = children.at(-1) ?? {};
@@ -229,7 +229,7 @@ function findTail(id: string, store: OutlineStore) {
       if (tail.collapsed) {
         return tail.id;
       } else {
-        return findTail(tail.id, store);
+        return findAbove(tail.id, store);
       }
     } else {
       return id;
