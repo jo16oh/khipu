@@ -57,6 +57,13 @@ export default function Editor({ ref, id }: { ref?: Ref<EditorHandle>; id: strin
   useImperativeHandle(ref, () => ({ focus }), [focus]);
 
   useEffect(() => {
+    const currentFocus = focusManager.current();
+    if (currentFocus && id === currentFocus.id) {
+      focus(currentFocus.position);
+    }
+  }, [id, focusManager, focus]);
+
+  useEffect(() => {
     const unmanage = focusManager.manage(id, focus);
     return unmanage;
   }, [focusManager, id, focus]);
