@@ -17,6 +17,7 @@ import {
   useTransition,
 } from "react";
 import { createEditorExtensions, createRendererExtensions } from "src/editor/schema";
+import { editorStyleRecipe } from "src/editor/style";
 import { useObservableRef } from "src/hooks/useObservableRef";
 import { useOutline } from "src/hooks/useOutline";
 import { useDocUpdateNotifier } from "src/stores/doc-update-notifier";
@@ -173,5 +174,6 @@ const EditorContainer = styled("div", {
   base: {
     w: "full",
     minH: "6",
+    ...editorStyleRecipe.raw(),
   },
 });
