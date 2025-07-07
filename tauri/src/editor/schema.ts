@@ -95,10 +95,13 @@ export function createKeydownHandlers(
           }
         })();
 
-        if (above) focusManager.focus({ id: above, position: "end" });
+        if (above) {
+          event.preventDefault();
+          focusManager.focus({ id: above, position: "end" });
+        }
       }
     },
-    ArrowDown: (view) => {
+    ArrowDown: (view, event) => {
       const editorRect = view.dom.getBoundingClientRect();
       const cursorRect = view.coordsAtPos(view.state.selection.from);
 
@@ -121,7 +124,10 @@ export function createKeydownHandlers(
           return found ? siblings.at(index + 1)?.id : null;
         })();
 
-        if (below) focusManager.focus({ id: below, position: "end" });
+        if (below) {
+          event.preventDefault();
+          focusManager.focus({ id: below, position: "end" });
+        }
       }
     },
     Tab: (_, event) => {
