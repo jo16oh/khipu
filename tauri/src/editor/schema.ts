@@ -163,7 +163,9 @@ export function createKeydownHandlers(
       return [
         createKeydownHandlersExtension({
           ...common,
-          Enter: async (view, _, editor) => {
+          Enter: async (view, event, editor) => {
+            if (event.isComposing || event.key === "Process") return;
+
             const start = view.state.selection.from;
             const end = view.state.doc.content.size;
 
@@ -185,7 +187,9 @@ export function createKeydownHandlers(
       return [
         createKeydownHandlersExtension({
           ...common,
-          Enter: async (view, _, editor) => {
+          Enter: async (view, event, editor) => {
+            if (event.isComposing || event.key === "Process") return;
+
             const start = view.state.selection.from;
             const end = view.state.doc.content.size;
 
