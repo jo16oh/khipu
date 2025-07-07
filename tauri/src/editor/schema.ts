@@ -76,7 +76,7 @@ export function createKeydownHandlers(
   viewStateStore: ViewStateStore,
 ) {
   const common: Parameters<typeof createKeydownHandlersExtension>[0] = {
-    ArrowUp: (view, _, editor) => {
+    ArrowUp: (view) => {
       const editorRect = view.dom.getBoundingClientRect();
       const cursorRect = view.coordsAtPos(view.state.selection.from);
 
@@ -92,13 +92,10 @@ export function createKeydownHandlers(
             : outline.parentId;
         })();
 
-        if (above) {
-          editor.commands.blur();
-          focusManager.focus({ id: above, position: "end" });
-        }
+        if (above) focusManager.focus({ id: above, position: "end" });
       }
     },
-    ArrowDown: (view, _, editor) => {
+    ArrowDown: (view) => {
       const editorRect = view.dom.getBoundingClientRect();
       const cursorRect = view.coordsAtPos(view.state.selection.from);
 
@@ -121,10 +118,27 @@ export function createKeydownHandlers(
           return found ? siblings.at(index + 1)?.id : null;
         })();
 
-        if (below) {
-          editor.commands.blur();
-          focusManager.focus({ id: below, position: "end" });
-        }
+        if (below) focusManager.focus({ id: below, position: "end" });
+      }
+    },
+    Tab: (_, event) => {
+      event.preventDefault();
+      if (!event.shiftKey) {
+        const outline = store.getOutline(outlineId);
+        if (!outline || !outline.parentId) return;
+        const children = store.getOutlineChildren(outline.parentId);
+        if (!children) return;
+        const { index, found } = children.findIndex(outline);
+        if (!found || index <= 0) return;
+        const { id: newParentId } = children.at(index - 1)!;
+        if (!newParentId) return;
+        store.reducer.move([outlineId], newParentId, "end");
+      } else {
+        const outline = store.getOutline(outlineId);
+        if (!outline || !outline.parentId) return;
+        const parent = store.getOutline(outline.parentId);
+        if (!parent?.parentId) return;
+        store.reducer.move([outlineId], parent.parentId, { after: parent });
       }
     },
   };

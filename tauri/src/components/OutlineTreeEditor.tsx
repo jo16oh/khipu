@@ -23,11 +23,13 @@ function Outline({ id }: { id: string }) {
   const collapsed = useOutline(id, ({ collapsed }) => collapsed);
 
   return (
-    <Container key={id}>
-      <BulletButton isCollapsed={collapsed} />
-      <Editor id={id} />
-      {!collapsed && children?.map(({ id }) => <Outline key={id} id={id} />)}
-    </Container>
+    <>
+      <Container key={id}>
+        <BulletButton isCollapsed={collapsed} />
+        <Editor id={id} />
+      </Container>
+      <Children>{!collapsed && children?.map(({ id }) => <Outline key={id} id={id} />)}</Children>
+    </>
   );
 }
 
@@ -35,5 +37,12 @@ const Container = styled("div", {
   base: {
     display: "flex",
     w: "full",
+  },
+});
+
+const Children = styled("div", {
+  base: {
+    w: "full",
+    pl: "8",
   },
 });
