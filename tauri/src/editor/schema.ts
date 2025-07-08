@@ -79,43 +79,30 @@ export function createKeydownHandlers(
   const common: Parameters<typeof createKeydownHandlersExtension>[0] = {
     Backspace: async (_, event, editor) => {
       if (editor.state.selection.from !== 1) return;
-
       if (event.isComposing || event.key === "Process") return;
-
       if (viewStateStore.getState().id === outlineId) return;
 
       if (editor.isEmpty) {
-        const outline = store.getOutline(outlineId);
-        if (!outline?.parentId) return;
-        const siblings = store.getOutlineChildren(outline.parentId);
-        if (!siblings) return;
-        const { index, found } = siblings.findIndex(outline);
-        if (!found || index <= 0) return;
-        const above = siblings.at(index - 1);
-        if (!above) return;
-
-        store.reducer.delete(outlineId);
-        focusManager.focus({ id: above.id, position: "end" });
-      } else {
-        const doc = editor.getJSON().content as JSONContent[];
-
-        const outline = store.getOutline(outlineId);
-        if (!outline?.parentId) return;
-        const siblings = store.getOutlineChildren(outline.parentId);
-        if (!siblings) return;
-        const { index, found } = siblings.findIndex(outline);
-        if (!found || index <= 0) return;
-        const { id: aboveId } = siblings.at(index - 1) ?? {};
-        if (!aboveId) return;
-        const above = store.getOutline(aboveId);
-        if (!above) return;
-        const ydoc = await store.getYDoc(aboveId);
-        const yxml = ydoc.getXmlFragment("doc");
-
-        if (type === above.type) {
+        const aboveOutlineId = findAbove(outlineId, store);
+        if (aboveOutlineId) {
           store.reducer.delete(outlineId);
-          insertJSONContentsToYXMLFragment(doc, getSchemaOf(type), yxml, ydoc, true);
-          focusManager.focus({ id: above.id, position: -editor.state.doc.content.size });
+          focusManager.focus({ id: aboveOutlineId, position: "end" });
+        }
+      } else {
+        const aboveOutlineId = findAbove(outlineId, store);
+        const aboveOutline = aboveOutlineId && store.getOutline(aboveOutlineId);
+
+        if (aboveOutline) {
+          const docToInsert = editor.getJSON().content as JSONContent[];
+          const docSize = editor.state.doc.content.size;
+          const ydoc = await store.getYDoc(aboveOutlineId);
+          const yxml = ydoc.getXmlFragment("doc");
+
+          if (type === aboveOutline.type) {
+            store.reducer.delete(outlineId);
+            insertJSONContentsToYXMLFragment(docToInsert, getSchemaOf(type), yxml, ydoc, true);
+            focusManager.focus({ id: aboveOutlineId, position: -docSize });
+          }
         }
       }
     },
@@ -126,19 +113,7 @@ export function createKeydownHandlers(
       const cursorRect = view.coordsAtPos(view.state.selection.from);
 
       if (cursorRect.top - editorRect.top < REM) {
-        const above = (() => {
-          const outline = store.getOutline(outlineId);
-          if (!outline?.parentId) return null;
-          const siblings = store.getOutlineChildren(outline.parentId);
-          if (!siblings) return outline.parentId;
-          const { found, index } = siblings.findIndex(outline);
-          if (found && index > 0) {
-            const { id: aboveId } = siblings.at(index - 1) ?? {};
-            return aboveId ? findAbove(aboveId, store) : null;
-          } else {
-            return outline.parentId;
-          }
-        })();
+        const above = findAbove(outlineId, store);
 
         if (above) {
           event.preventDefault();
@@ -151,29 +126,7 @@ export function createKeydownHandlers(
       const cursorRect = view.coordsAtPos(view.state.selection.from);
 
       if (editorRect.bottom - cursorRect.bottom < REM) {
-        const below = (() => {
-          const outline = store.getOutline(outlineId);
-          const children = store.getOutlineChildren(outlineId);
-
-          if (
-            children &&
-            children.size > 0 &&
-            (outlineId === viewStateStore.getState().id || (outline && !outline.collapsed))
-          )
-            return children.at(0)?.id;
-
-          if (!outline?.parentId) return null;
-          const siblings = store.getOutlineChildren(outline.parentId);
-          if (!siblings) return outline.parentId;
-          const { found, index } = siblings.findIndex(outline);
-          if (found && siblings.size === index + 1) {
-            return findBelow(outline.parentId, store);
-          } else if (found) {
-            return siblings.at(index + 1)?.id;
-          } else {
-            return null;
-          }
-        })();
+        const below = findBelow(outlineId, store, viewStateStore);
 
         if (below) {
           event.preventDefault();
@@ -281,6 +234,20 @@ export function createKeydownHandlers(
 }
 
 function findAbove(id: string, store: OutlineStore) {
+  const outline = store.getOutline(id);
+  if (!outline?.parentId) return;
+  const siblings = store.getOutlineChildren(outline.parentId);
+  if (!siblings) return;
+  const { found, index } = siblings.findIndex(outline) ?? {};
+  if (found && index !== 0) {
+    const prev = siblings.at(index - 1);
+    return prev ? findAboveInner(prev?.id, store) : undefined;
+  } else {
+    return outline.parentId;
+  }
+}
+
+function findAboveInner(id: string, store: OutlineStore) {
   const children = store.getOutlineChildren(id);
   if (children) {
     const { id: tailId } = children.at(-1) ?? {};
@@ -290,7 +257,7 @@ function findAbove(id: string, store: OutlineStore) {
       if (tail.collapsed) {
         return tail.id;
       } else {
-        return findAbove(tail.id, store);
+        return findAboveInner(tail.id, store);
       }
     } else {
       return id;
@@ -300,15 +267,44 @@ function findAbove(id: string, store: OutlineStore) {
   }
 }
 
-function findBelow(parentId: string, store: OutlineStore): string | null {
+function findBelow(
+  outlineId: string,
+  store: OutlineStore,
+  viewStateStore: ViewStateStore,
+): string | undefined {
+  const outline = store.getOutline(outlineId);
+  const children = store.getOutlineChildren(outlineId);
+
+  if (
+    children &&
+    children.size > 0 &&
+    (outlineId === viewStateStore.getState().id || (outline && !outline.collapsed))
+  )
+    return children.at(0)?.id;
+
+  if (!outline?.parentId) return;
+  const siblings = store.getOutlineChildren(outline.parentId);
+  if (!siblings) return outline.parentId;
+  const { found, index } = siblings.findIndex(outline);
+
+  if (found && siblings.size === index + 1) {
+    return findBelowInner(outline.parentId, store);
+  } else if (found) {
+    return siblings.at(index + 1)?.id;
+  } else {
+    return;
+  }
+}
+
+function findBelowInner(parentId: string, store: OutlineStore): string | undefined {
   const parent = store.getOutline(parentId);
-  if (!parent?.parentId) return null;
+  if (!parent?.parentId) return;
   const siblings = store.getOutlineChildren(parent.parentId);
-  if (!siblings) return null;
+  if (!siblings) return;
   const { index } = siblings.findIndex(parent);
   if (siblings.size > index + 1) {
-    return siblings.at(index + 1)?.id ?? null;
+    return siblings.at(index + 1)?.id;
   } else {
-    return parent.parentId ? findBelow(parent.parentId, store) : null;
+    return parent.parentId ? findBelowInner(parent.parentId, store) : undefined;
   }
 }
