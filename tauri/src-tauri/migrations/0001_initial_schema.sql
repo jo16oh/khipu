@@ -273,7 +273,7 @@ WHERE
         FROM
           outlines
         WHERE
-          parent_id = NEW.id
+          id = NEW.id
         UNION ALL
         SELECT
           child.id

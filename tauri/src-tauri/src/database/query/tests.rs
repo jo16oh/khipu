@@ -656,3 +656,39 @@ async fn test_fetch_deleted_outline_trees() {
     let (r, _) = fetch_deleted_outline_trees(&pool, 0).await.unwrap();
     assert_eq!(r.len(), 3);
 }
+
+#[tokio::test]
+async fn test_derived_deleted() {
+    let pool = open_connection_in_memory().await;
+    let mut tx = pool.begin().await.unwrap();
+    let mut tree = Outline::create_tree(1, 3);
+
+    for o in tree.iter() {
+        upsert_outline(&mut tx, o).await.unwrap();
+    }
+
+    tree[1].deleted = SqliteBool(true);
+
+    upsert_outline(&mut tx, &tree[1]).await.unwrap();
+
+    tx.commit().await.unwrap();
+
+    let derived_deleted = sqlx::query_scalar!(
+        "SELECT derived_deleted FROM outlines WHERE id = ?;",
+        tree[1].id
+    )
+    .fetch_one(&pool)
+    .await
+    .unwrap();
+
+    assert_eq!(derived_deleted, 1);
+    let derived_deleted = sqlx::query_scalar!(
+        "SELECT derived_deleted FROM outlines WHERE id = ?;",
+        tree[2].id
+    )
+    .fetch_one(&pool)
+    .await
+    .unwrap();
+
+    assert_eq!(derived_deleted, 1);
+}
