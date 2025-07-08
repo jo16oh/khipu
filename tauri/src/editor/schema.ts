@@ -13,6 +13,7 @@ import * as Y from "yjs";
 import { createKeydownHandlersExtension } from "./extensions/keydown-handlers";
 import { createSyncFocusPositionExtension } from "./extensions/sync-focus-position";
 import { createUpdateNotifierExtension } from "./extensions/update-notifier";
+import { insertJSONContentsToYXMLFragment } from "./utils";
 
 const SingleBlockDocument = Node.create({
   name: "doc",
@@ -76,6 +77,48 @@ export function createKeydownHandlers(
   viewStateStore: ViewStateStore,
 ) {
   const common: Parameters<typeof createKeydownHandlersExtension>[0] = {
+    Backspace: async (_, event, editor) => {
+      if (editor.state.selection.from !== 1) return;
+
+      if (event.isComposing || event.key === "Process") return;
+
+      if (viewStateStore.getState().id === outlineId) return;
+
+      if (editor.isEmpty) {
+        const outline = store.getOutline(outlineId);
+        if (!outline?.parentId) return;
+        const siblings = store.getOutlineChildren(outline.parentId);
+        if (!siblings) return;
+        const { index, found } = siblings.findIndex(outline);
+        if (!found || index <= 0) return;
+        const above = siblings.at(index - 1);
+        if (!above) return;
+
+        store.reducer.delete(outlineId);
+        focusManager.focus({ id: above.id, position: "end" });
+      } else {
+        const doc = editor.getJSON().content as JSONContent[];
+
+        const outline = store.getOutline(outlineId);
+        if (!outline?.parentId) return;
+        const siblings = store.getOutlineChildren(outline.parentId);
+        if (!siblings) return;
+        const { index, found } = siblings.findIndex(outline);
+        if (!found || index <= 0) return;
+        const { id: aboveId } = siblings.at(index - 1) ?? {};
+        if (!aboveId) return;
+        const above = store.getOutline(aboveId);
+        if (!above) return;
+        const ydoc = await store.getYDoc(aboveId);
+        const yxml = ydoc.getXmlFragment("doc");
+
+        if (type === above.type) {
+          store.reducer.delete(outlineId);
+          insertJSONContentsToYXMLFragment(doc, getSchemaOf(type), yxml, ydoc, true);
+          focusManager.focus({ id: above.id, position: -editor.state.doc.content.size });
+        }
+      }
+    },
     ArrowUp: (view, event) => {
       if (outlineId === viewStateStore.getState().id) return;
 
