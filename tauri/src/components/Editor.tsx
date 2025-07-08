@@ -156,7 +156,13 @@ const ActiveEditor = memo(function ActiveEditor({
   useImperativeHandle(
     ref,
     () => ({
-      focus: (pos) => editor.current.commands.focus(pos),
+      focus: (pos) => {
+        if (typeof pos === "number" && pos < 0) {
+          const size = editor.current.state.doc.nodeSize - 1;
+          setTimeout(() => editor.current.commands.focus(size - Math.abs(pos)), 0);
+        }
+        editor.current.commands.focus(pos);
+      },
     }),
     [editor],
   );
