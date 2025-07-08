@@ -126,6 +126,8 @@ export class OutlineStoreReducer {
       this.#updateOutline(id, (draft) => {
         draft.deleted = true;
       });
+
+      this.#childrenStore.delete(id);
     }
   }
 
