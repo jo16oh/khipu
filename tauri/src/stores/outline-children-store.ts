@@ -75,6 +75,9 @@ export class OutlineChildrenStore {
       const updatedChildren = this.#parentToChildrenMap.get(parentId)?.toDeleted(outlineId);
       if (updatedChildren) this.#parentToChildrenMap.set(parentId, updatedChildren);
       this.#childToParentMap.delete(outlineId);
+
+      // notify changes to listeners
+      this.#subscribers.notify(parentId);
     }
     this.#parentToChildrenMap.delete(outlineId);
   }
