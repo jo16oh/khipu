@@ -228,7 +228,7 @@ export function createKeydownHandlers(
             const childId = store.reducer.create("bullet", outlineId, "start", doc);
 
             editor.commands.blur();
-            focusManager.focus({ id: childId, position: "end" });
+            focusManager.focus({ id: childId, position: "start" });
           },
         }),
       ];
@@ -261,7 +261,7 @@ export function createKeydownHandlers(
             );
 
             editor.commands.blur();
-            focusManager.focus({ id: newOutlineId, position: "end" });
+            focusManager.focus({ id: newOutlineId, position: "start" });
           },
         }),
       ];
