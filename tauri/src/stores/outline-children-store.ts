@@ -25,7 +25,11 @@ export class OutlineChildrenStore {
     }
   }
 
-  #updateParentTrackingMaps(outline: Outline, prevParentId: string | null, changedParentIds: Set<string>) {
+  #updateParentTrackingMaps(
+    outline: Outline,
+    prevParentId: string | null,
+    changedParentIds: Set<string>,
+  ) {
     // track changed parent IDs for notifications
     if (outline.parentId) {
       changedParentIds.add(outline.parentId);
