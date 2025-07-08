@@ -8,21 +8,28 @@ import Editor from "./Editor";
 
 export default function OutlineTreeEditor({ id }: { id: string }) {
   useFetchOutlineTree(id);
+  const deleted = useOutline(id, ({ deleted }) => deleted);
+  if (deleted) throw new Error("outline is deleted");
   const children = useOutlineChildren(id);
 
-  return (
+  return !deleted ? (
     <ErrorBoundary resetKeys={[id]} fallback="outline not found">
       <Editor id={id} />
       {children?.map(({ id }) => <Outline key={id} id={id} />)}
     </ErrorBoundary>
+  ) : (
+    <div>outline is deleted</div>
   );
 }
 
 function Outline({ id }: { id: string }) {
   const children = useOutlineChildren(id);
-  const collapsed = useOutline(id, ({ collapsed }) => collapsed);
+  const { collapsed, deleted } = useOutline(id, ({ collapsed, deleted }) => ({
+    collapsed,
+    deleted,
+  }));
 
-  return (
+  return !deleted ? (
     <>
       <Container key={id}>
         <BulletButton isCollapsed={collapsed} />
@@ -30,6 +37,8 @@ function Outline({ id }: { id: string }) {
       </Container>
       <Children>{!collapsed && children?.map(({ id }) => <Outline key={id} id={id} />)}</Children>
     </>
+  ) : (
+    <div>outline is deleted</div>
   );
 }
 
