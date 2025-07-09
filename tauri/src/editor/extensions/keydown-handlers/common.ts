@@ -165,5 +165,39 @@ export function createCommonKeydownHandlers(
         return true;
       },
     },
+    {
+      on: [Key.UpArrow, ["shift", "meta"]],
+      fn: () => {
+        if (viewStateStore.getState().id === outlineId) return true;
+        const outline = store.getOutline(outlineId);
+        if (!outline?.parentId) return true;
+        const siblings = store.getOutlineChildren(outline.parentId);
+        if (!siblings) return true;
+        const { index, found } = siblings.findIndex(outline) ?? {};
+        if (!found || index === 0) return true;
+        const { id: prevId } = siblings.at(index - 1) ?? {};
+        if (!prevId) return true;
+        store.reducer.move([prevId], outline.parentId, { after: outline });
+        return true;
+      },
+    },
+    {
+      on: [Key.DownArrow, ["shift", "meta"]],
+      fn: () => {
+        if (viewStateStore.getState().id === outlineId) return true;
+        const outline = store.getOutline(outlineId);
+        if (!outline?.parentId) return true;
+        const siblings = store.getOutlineChildren(outline.parentId);
+        if (!siblings) return true;
+        const { index, found } = siblings.findIndex(outline) ?? {};
+        if (!found || index === siblings.size - 1) return true;
+        const { id: nextId } = siblings.at(index + 1) ?? {};
+        if (!nextId) return true;
+        const next = store.getOutline(nextId);
+        if (!next) return true;
+        store.reducer.move([outlineId], outline.parentId, { after: next });
+        return true;
+      },
+    },
   ];
 }
