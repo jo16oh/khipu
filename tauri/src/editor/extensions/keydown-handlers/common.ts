@@ -138,13 +138,18 @@ export function createCommonKeydownHandlers(
     {
       on: [Key.DownArrow, ["meta"]],
       fn: () => {
-        const children = store.getOutlineChildren(outlineId);
-        if (children && children.size) {
-          store.reducer.expand(outlineId);
-        }
         if (viewStateStore.getState().id === outlineId) return true;
         const outline = store.getOutline(outlineId);
         if (!outline || !outline.collapsed) return true;
+
+        (async () => {
+          await store.loader.fetchTree(outlineId);
+          const children = store.getOutlineChildren(outlineId);
+          if (children && children.size) {
+            store.reducer.expand(outlineId);
+          }
+        })();
+
         return true;
       },
     },
