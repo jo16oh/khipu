@@ -27,27 +27,33 @@ export function createCommonKeydownHandlers(
         if (event.isComposing || event.key === "Process") return;
         if (viewStateStore.getState().id === outlineId) return;
 
+        const outline = store.getOutline(outlineId);
+        if (!outline) return;
+
+        const aboveOutlineId = findAbove(outlineId, store);
+        const aboveOutline = aboveOutlineId && store.getOutline(aboveOutlineId);
+        if (!aboveOutline) return;
+
         if (editor.isEmpty) {
-          const aboveOutlineId = findAbove(outlineId, store);
-          if (aboveOutlineId) {
-            store.reducer.delete(outlineId);
-            focusManager.focus({ id: aboveOutlineId, position: "end" });
-          }
+          store.reducer.delete(outlineId);
+          focusManager.focus({ id: aboveOutlineId, position: "end" });
         } else {
-          const aboveOutlineId = findAbove(outlineId, store);
-          const aboveOutline = aboveOutlineId && store.getOutline(aboveOutlineId);
+          const docToInsert = editor.getJSON().content as JSONContent[];
+          const docSize = editor.state.doc.content.size;
+          const ydoc = await store.getYDoc(aboveOutlineId);
+          const yxml = ydoc.getXmlFragment("doc");
 
-          if (aboveOutline) {
-            const docToInsert = editor.getJSON().content as JSONContent[];
-            const docSize = editor.state.doc.content.size;
-            const ydoc = await store.getYDoc(aboveOutlineId);
-            const yxml = ydoc.getXmlFragment("doc");
+          if (type === aboveOutline.type) {
+            store.reducer.delete(outlineId);
+            insertJSONContentsToYXMLFragment(docToInsert, getSchemaOf(type), yxml, ydoc, true);
+            focusManager.focus({ id: aboveOutlineId, position: -docSize });
+          }
+        }
 
-            if (type === aboveOutline.type) {
-              store.reducer.delete(outlineId);
-              insertJSONContentsToYXMLFragment(docToInsert, getSchemaOf(type), yxml, ydoc, true);
-              focusManager.focus({ id: aboveOutlineId, position: -docSize });
-            }
+        if (aboveOutlineId === outline.parentId) {
+          const siblings = store.getOutlineChildren(aboveOutlineId);
+          if ((!siblings || siblings.size === 0) && aboveOutline.collapsed) {
+            store.reducer.expand(aboveOutlineId);
           }
         }
       },
