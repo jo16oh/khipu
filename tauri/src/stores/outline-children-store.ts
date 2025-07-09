@@ -2,20 +2,34 @@ import { Outline } from "src/model";
 import { FractionallyIndexedList } from "./fractionally-indexed-list";
 import { SubscribersMap } from "./subscribers-map";
 
+type OutlinePosition = {
+  parentId: string | null;
+  findex: string;
+};
+
 export class OutlineChildrenStore {
   #parentToChildrenMap = new Map<string, FractionallyIndexedList<{ id: string; findex: string }>>();
   #childToParentMap = new Map<string, string>();
+  #prevPositionMap = new Map<string, OutlinePosition>();
   #subscribers = new SubscribersMap<string, []>();
 
   set(...outlines: Outline[]) {
     const changedParentIds = new Set<string>();
 
     for (const outline of outlines) {
-      const prevParentId = this.#childToParentMap.get(outline.id) ?? null;
+      const prevPosition = this.#prevPositionMap.get(outline.id);
+      const prevParentId = prevPosition?.parentId ?? null;
+      const prevFindex = prevPosition?.findex ?? null;
 
-      if (prevParentId !== outline.parentId) {
+      if (prevParentId !== outline.parentId || prevFindex !== outline.findex) {
         this.#updateParentTrackingMaps(outline, prevParentId, changedParentIds);
         this.#updateChildrenMaps(outline, prevParentId);
+        this.#prevPositionMap.set(outline.id, { parentId: outline.parentId, findex: outline.findex });
+        
+        // notify current parent if only findex changed
+        if (prevParentId === outline.parentId && outline.parentId) {
+          changedParentIds.add(outline.parentId);
+        }
       }
     }
 
@@ -80,6 +94,7 @@ export class OutlineChildrenStore {
       this.#subscribers.notify(parentId);
     }
     this.#parentToChildrenMap.delete(outlineId);
+    this.#prevPositionMap.delete(outlineId);
   }
 
   get(id: string) {
