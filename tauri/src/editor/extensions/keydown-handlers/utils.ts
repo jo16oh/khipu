@@ -4,21 +4,22 @@ import { ViewStateStore } from "src/stores/view-state-store";
 export function findAbove(id: string, store: OutlineStore) {
   const outline = store.getOutline(id);
   if (!outline?.parentId) return;
+
   const siblings = store.getOutlineChildren(outline.parentId);
   if (!siblings) return;
-  const { found, index } = siblings.findIndex(outline) ?? {};
-  if (found && index !== 0) {
-    const { id: prevId } = siblings.at(index - 1) ?? {};
-    if (prevId) {
-      const prev = store.getOutline(prevId);
 
-      return prev ? (prev.collapsed ? prev.id : findAboveInner(prev?.id, store)) : undefined;
-    } else {
-      return undefined;
-    }
-  } else {
-    return outline.parentId;
-  }
+  const { found, index } = siblings.findIndex(outline) ?? {};
+  if (!found) return outline.parentId;
+
+  if (index === 0) return outline.parentId;
+
+  const { id: aboveId } = siblings.at(index - 1) ?? {};
+  if (!aboveId) return;
+
+  const above = store.getOutline(aboveId);
+  if (!above) return;
+
+  return above.collapsed ? above.id : findAboveInner(above.id, store);
 }
 
 function findAboveInner(id: string, store: OutlineStore) {
@@ -49,25 +50,27 @@ export function findBelow(
   const outline = store.getOutline(outlineId);
   const children = store.getOutlineChildren(outlineId);
 
-  if (
-    children &&
-    children.size > 0 &&
-    (outlineId === viewStateStore.getState().id || (outline && !outline.collapsed))
-  )
+  const hasChildren = children && children.size > 0;
+  const isExpanded = outlineId === viewStateStore.getState().id || (outline && !outline.collapsed);
+
+  if (hasChildren && isExpanded) {
     return children.at(0)?.id;
+  }
 
   if (!outline?.parentId) return;
+
   const siblings = store.getOutlineChildren(outline.parentId);
   if (!siblings) return outline.parentId;
-  const { found, index } = siblings.findIndex(outline);
 
-  if (found && siblings.size === index + 1) {
+  const { found, index } = siblings.findIndex(outline);
+  if (!found) return;
+
+  const isLastSibling = siblings.size === index + 1;
+  if (isLastSibling) {
     return findBelowInner(outline.parentId, store);
-  } else if (found) {
-    return siblings.at(index + 1)?.id;
-  } else {
-    return;
   }
+
+  return siblings.at(index + 1)?.id;
 }
 
 function findBelowInner(parentId: string, store: OutlineStore): string | undefined {
