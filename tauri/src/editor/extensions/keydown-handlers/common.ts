@@ -120,5 +120,27 @@ export function createCommonKeydownHandlers(
         store.reducer.move([outlineId], parent.parentId, { after: parent });
       },
     },
+    {
+      on: [Key.UpArrow, ["meta"]],
+      fn: () => {
+        if (viewStateStore.getState().id === outlineId) return;
+        const children = store.getOutlineChildren(outlineId);
+        if (children && children.size) {
+          store.reducer.collapse(outlineId);
+        }
+        return true;
+      },
+    },
+    {
+      on: [Key.DownArrow, ["meta"]],
+      fn: () => {
+        if (viewStateStore.getState().id === outlineId) return;
+        const children = store.getOutlineChildren(outlineId);
+        if (children && children.size) {
+          store.reducer.expand(outlineId);
+        }
+        return true;
+      },
+    },
   ];
 }
