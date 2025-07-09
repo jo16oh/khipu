@@ -77,6 +77,9 @@ importers:
       react-error-boundary:
         specifier: ^6.0.0
         version: 6.0.0(react@19.1.0)
+      ts-keycode-enum:
+        specifier: ^1.0.6
+        version: 1.0.6
       uuidv7:
         specifier: ^1.0.2
         version: 1.0.2
@@ -3209,6 +3212,9 @@ packages:
     peerDependenciesMeta:
       jsdom:
         optional: true
+
+  ts-keycode-enum@1.0.6:
+    resolution: {integrity: sha512-DF8+Cf/FJJnPRxwz8agCoDelQXKZWQOS/gnnwx01nZ106tPJdB3BgJ9QTtLwXgR82D8O+nTjuZzWgf0Rg4vuRA==}
 
   ts-morph@24.0.0:
     resolution: {integrity: sha512-2OAOg/Ob5yx9Et7ZX4CvTCc0UFoZHwLEJ+dpDPSUi5TgwwlTlX47w+iFRrEwzUZwYACjq83cgjS/Da50Ga37uw==}
@@ -7367,6 +7373,8 @@ snapshots:
       crosspath: 2.0.0
       object-path: 0.11.8
       typescript: 5.6.3
+
+  ts-keycode-enum@1.0.6: {}
 
   ts-morph@24.0.0:
     dependencies:
