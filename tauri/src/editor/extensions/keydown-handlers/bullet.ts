@@ -41,5 +41,25 @@ export function createBulletKeydownHandlers(
         focusManager.focus({ id: newOutlineId, position: "start" });
       },
     },
+    {
+      on: [Key.UpArrow, ["meta"]],
+      fn: () => {
+        const children = store.getOutlineChildren(outlineId);
+        if (children && children.size) {
+          store.reducer.collapse(outlineId);
+        }
+        return true;
+      },
+    },
+    {
+      on: [Key.DownArrow, ["meta"]],
+      fn: () => {
+        const children = store.getOutlineChildren(outlineId);
+        if (children && children.size) {
+          store.reducer.expand(outlineId);
+        }
+        return true;
+      },
+    },
   ];
 }
