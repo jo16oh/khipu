@@ -1,17 +1,20 @@
 import { Plugin, PluginKey } from "@tiptap/pm/state";
 import { EditorView } from "@tiptap/pm/view";
 import { Editor, Extension, JSONContent } from "@tiptap/react";
+import { groupBy } from "es-toolkit";
 import { OutlineType } from "generated/tauri-commands";
 import { FocusManager } from "src/stores/focus-manager";
 import { OutlineStore } from "src/stores/outline-store";
 import { ViewStateStore } from "src/stores/view-state-store";
+import {
+  KeyboardEventHandler,
+  runKeyboardEventHandlerIfMatches,
+} from "src/utils/keyboard-event-handler";
+import { Key } from "ts-keycode-enum";
 import { getSchemaOf } from "../schema";
 import { insertJSONContentsToYXMLFragment } from "../utils";
 
 const REM = 16;
-
-type Handler = (view: EditorView, event: KeyboardEvent, editor: Editor) => void;
-type Handlers = { [key: string]: Handler };
 
 export function createKeydownHandlersExtension(
   outlineId: string,
@@ -20,18 +23,24 @@ export function createKeydownHandlersExtension(
   focusManager: FocusManager,
   viewStateStore: ViewStateStore,
 ) {
-  const handlers = createHandlers(outlineId, type, store, focusManager, viewStateStore);
-
   return Extension.create({
     name: "KeydownHandlers",
     addProseMirrorPlugins() {
       const editor = this.editor;
+
+      const handlers: Record<number, KeyboardEventHandler<[EditorView]>[]> = groupBy(
+        createHandlers(outlineId, type, store, focusManager, viewStateStore, editor),
+        (i) => i.on[0],
+      );
+
       return [
         new Plugin({
           key: new PluginKey("KeydownHandlers"),
           props: {
             handleKeyDown(view, event) {
-              handlers[event.key]?.(view, event, editor);
+              for (const handler of handlers[event.keyCode] ?? []) {
+                runKeyboardEventHandlerIfMatches(event, handler, view);
+              }
             },
           },
         }),
@@ -46,72 +55,83 @@ function createHandlers(
   store: OutlineStore,
   focusManager: FocusManager,
   viewStateStore: ViewStateStore,
-): Handlers {
-  const common: Handlers = {
-    Backspace: async (_, event, editor) => {
-      if (editor.state.selection.from !== 1) return;
-      if (event.isComposing || event.key === "Process") return;
-      if (viewStateStore.getState().id === outlineId) return;
+  editor: Editor,
+): KeyboardEventHandler<[EditorView]>[] {
+  const common: KeyboardEventHandler<[EditorView]>[] = [
+    {
+      on: [Key.Backspace],
+      fn: async (event) => {
+        if (editor.state.selection.from !== 1) return;
+        if (event.isComposing || event.key === "Process") return;
+        if (viewStateStore.getState().id === outlineId) return;
 
-      if (editor.isEmpty) {
-        const aboveOutlineId = findAbove(outlineId, store);
-        if (aboveOutlineId) {
-          store.reducer.delete(outlineId);
-          focusManager.focus({ id: aboveOutlineId, position: "end" });
-        }
-      } else {
-        const aboveOutlineId = findAbove(outlineId, store);
-        const aboveOutline = aboveOutlineId && store.getOutline(aboveOutlineId);
-
-        if (aboveOutline) {
-          const docToInsert = editor.getJSON().content as JSONContent[];
-          const docSize = editor.state.doc.content.size;
-          const ydoc = await store.getYDoc(aboveOutlineId);
-          const yxml = ydoc.getXmlFragment("doc");
-
-          if (type === aboveOutline.type) {
+        if (editor.isEmpty) {
+          const aboveOutlineId = findAbove(outlineId, store);
+          if (aboveOutlineId) {
             store.reducer.delete(outlineId);
-            insertJSONContentsToYXMLFragment(docToInsert, getSchemaOf(type), yxml, ydoc, true);
-            focusManager.focus({ id: aboveOutlineId, position: -docSize });
+            focusManager.focus({ id: aboveOutlineId, position: "end" });
+          }
+        } else {
+          const aboveOutlineId = findAbove(outlineId, store);
+          const aboveOutline = aboveOutlineId && store.getOutline(aboveOutlineId);
+
+          if (aboveOutline) {
+            const docToInsert = editor.getJSON().content as JSONContent[];
+            const docSize = editor.state.doc.content.size;
+            const ydoc = await store.getYDoc(aboveOutlineId);
+            const yxml = ydoc.getXmlFragment("doc");
+
+            if (type === aboveOutline.type) {
+              store.reducer.delete(outlineId);
+              insertJSONContentsToYXMLFragment(docToInsert, getSchemaOf(type), yxml, ydoc, true);
+              focusManager.focus({ id: aboveOutlineId, position: -docSize });
+            }
           }
         }
-      }
+      },
     },
-    ArrowUp: (view, event) => {
-      if (outlineId === viewStateStore.getState().id) return;
+    {
+      on: [Key.UpArrow],
+      fn: (event, view) => {
+        if (outlineId === viewStateStore.getState().id) return;
 
-      const editorRect = view.dom.getBoundingClientRect();
-      const cursorRect = view.coordsAtPos(view.state.selection.from);
+        const editorRect = view.dom.getBoundingClientRect();
+        const cursorRect = view.coordsAtPos(view.state.selection.from);
 
-      if (cursorRect.top - editorRect.top < REM) {
-        const above = findAbove(outlineId, store);
+        if (cursorRect.top - editorRect.top < REM) {
+          const above = findAbove(outlineId, store);
 
-        if (above) {
-          event.preventDefault();
-          focusManager.focus({ id: above, position: "end" });
+          if (above) {
+            event.preventDefault();
+            focusManager.focus({ id: above, position: "end" });
+          }
         }
-      }
+      },
     },
-    ArrowDown: (view, event) => {
-      const editorRect = view.dom.getBoundingClientRect();
-      const cursorRect = view.coordsAtPos(view.state.selection.from);
+    {
+      on: [Key.DownArrow],
+      fn: (event, view) => {
+        const editorRect = view.dom.getBoundingClientRect();
+        const cursorRect = view.coordsAtPos(view.state.selection.from);
 
-      if (editorRect.bottom - cursorRect.bottom < REM) {
-        const below = findBelow(outlineId, store, viewStateStore);
+        if (editorRect.bottom - cursorRect.bottom < REM) {
+          const below = findBelow(outlineId, store, viewStateStore);
 
-        if (below) {
-          event.preventDefault();
-          focusManager.focus({ id: below, position: "end" });
+          if (below) {
+            event.preventDefault();
+            focusManager.focus({ id: below, position: "end" });
+          }
         }
-      }
+      },
     },
-    Tab: (_, event) => {
-      event.preventDefault();
-      event.stopPropagation();
+    {
+      on: [Key.Tab],
+      fn: (event) => {
+        event.preventDefault();
+        event.stopPropagation();
 
-      if (outlineId === viewStateStore.getState().id) return;
+        if (outlineId === viewStateStore.getState().id) return;
 
-      if (!event.shiftKey) {
         const outline = store.getOutline(outlineId);
         if (!outline || !outline.parentId) return;
         const children = store.getOutlineChildren(outline.parentId);
@@ -121,78 +141,89 @@ function createHandlers(
         const { id: newParentId } = children.at(index - 1)!;
         if (!newParentId) return;
         store.reducer.move([outlineId], newParentId, "end");
-      } else {
+      },
+    },
+    {
+      on: [Key.Tab, ["shift"]],
+      fn: (event) => {
+        event.preventDefault();
+        event.stopPropagation();
+
+        if (outlineId === viewStateStore.getState().id) return;
+
         const outline = store.getOutline(outlineId);
         if (!outline || !outline.parentId) return;
         const parent = store.getOutline(outline.parentId);
         if (!parent?.parentId) return;
         store.reducer.move([outlineId], parent.parentId, { after: parent });
-      }
+      },
     },
-  };
+  ];
 
   switch (type) {
     case "heading":
-      return {
+      return [
         ...common,
-        Enter: async (view, event, editor) => {
-          if (event.isComposing || event.key === "Process") return;
+        {
+          on: [Key.Enter],
+          fn: (event, view) => {
+            if (event.isComposing || event.key === "Process") return;
 
-          const start = view.state.selection.from;
-          const end = view.state.doc.content.size;
+            const start = view.state.selection.from;
+            const end = view.state.doc.content.size;
 
-          const rightContent: JSONContent[] = view.state.doc
-            .slice(start, end)
-            .toJSON()
-            .content.map((node: JSONContent) => ({ type: "paragraph", content: node.content }));
+            const rightContent: JSONContent[] = view.state.doc
+              .slice(start, end)
+              .toJSON()
+              .content.map((node: JSONContent) => ({ type: "paragraph", content: node.content }));
 
-          const doc: JSONContent = { type: "doc", content: rightContent };
+            const doc: JSONContent = { type: "doc", content: rightContent };
 
-          const childId = store.reducer.create("bullet", outlineId, "start", doc);
+            const childId = store.reducer.create("bullet", outlineId, "start", doc);
 
-          editor.commands.blur();
-          focusManager.focus({ id: childId, position: "start" });
+            editor.commands.blur();
+            focusManager.focus({ id: childId, position: "start" });
+          },
         },
-      };
+      ];
     case "bullet":
-      return {
+      return [
         ...common,
-        Enter: async (view, event, editor) => {
-          if (event.isComposing || event.key === "Process") return;
+        {
+          on: [Key.Enter],
+          fn: (event, view) => {
+            if (event.isComposing || event.key === "Process") return;
 
-          const start = view.state.selection.from;
-          const end = view.state.doc.content.size;
+            const start = view.state.selection.from;
+            const end = view.state.doc.content.size;
 
-          const rightContent: JSONContent[] = view.state.doc
-            .slice(start, end)
-            .toJSON()
-            .content.map((node: JSONContent) => ({ type: "paragraph", content: node.content }));
+            const rightContent: JSONContent[] = view.state.doc
+              .slice(start, end)
+              .toJSON()
+              .content.map((node: JSONContent) => ({ type: "paragraph", content: node.content }));
 
-          const doc: JSONContent = { type: "doc", content: rightContent };
+            const doc: JSONContent = { type: "doc", content: rightContent };
 
-          const outline = store.getOutline(outlineId);
+            const outline = store.getOutline(outlineId);
 
-          if (!outline?.parentId) return;
+            if (!outline?.parentId) return;
 
-          const newOutlineId = store.reducer.create(
-            "bullet",
-            outline.parentId,
-            { after: outline },
-            doc,
-          );
+            const newOutlineId = store.reducer.create(
+              "bullet",
+              outline.parentId,
+              { after: outline },
+              doc,
+            );
 
-          editor.commands.blur();
-          focusManager.focus({ id: newOutlineId, position: "start" });
+            editor.commands.blur();
+            focusManager.focus({ id: newOutlineId, position: "start" });
+          },
         },
-      };
+      ];
     case "card":
-      return {
-        ...common,
-      };
+      return [...common];
     case "code":
-      return {
-        ...common,
-      };
+      return [...common];
   }
 }
 
