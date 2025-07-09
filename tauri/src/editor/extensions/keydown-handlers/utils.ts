@@ -8,8 +8,14 @@ export function findAbove(id: string, store: OutlineStore) {
   if (!siblings) return;
   const { found, index } = siblings.findIndex(outline) ?? {};
   if (found && index !== 0) {
-    const prev = siblings.at(index - 1);
-    return prev ? findAboveInner(prev?.id, store) : undefined;
+    const { id: prevId } = siblings.at(index - 1) ?? {};
+    if (prevId) {
+      const prev = store.getOutline(prevId);
+
+      return prev ? (prev.collapsed ? prev.id : findAboveInner(prev?.id, store)) : undefined;
+    } else {
+      return undefined;
+    }
   } else {
     return outline.parentId;
   }
