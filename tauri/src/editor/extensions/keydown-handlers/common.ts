@@ -126,6 +126,7 @@ export function createCommonKeydownHandlers(
 
         const outline = store.getOutline(outlineId);
         if (!outline || !outline.parentId) return;
+        if (viewStateStore.getState().id === outline.parentId) return;
         const parent = store.getOutline(outline.parentId);
         if (!parent?.parentId) return;
         store.reducer.move([outlineId], parent.parentId, { after: parent });
