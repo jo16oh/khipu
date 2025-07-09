@@ -106,9 +106,14 @@ export function createCommonKeydownHandlers(
         if (!children) return;
         const { index, found } = children.findIndex(outline);
         if (!found || index <= 0) return;
-        const { id: newParentId } = children.at(index - 1)!;
+        const { id: newParentId } = children.at(index - 1) ?? {};
         if (!newParentId) return;
+        const newParent = store.getOutline(newParentId);
+        if (!newParent) return;
         store.reducer.move([outlineId], newParentId, "end");
+        if (newParent.collapsed) {
+          store.reducer.expand(newParentId);
+        }
       },
     },
     {
