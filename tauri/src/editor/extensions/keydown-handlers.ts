@@ -26,8 +26,8 @@ export function createKeydownHandlersExtension(
     addProseMirrorPlugins() {
       const editor = this.editor;
 
-      const handlers: Record<number, KeyboardEventHandler<[EditorView]>[]> = groupBy(
-        createHandlers(outlineId, type, store, focusManager, viewStateStore, editor),
+      const handlers: Record<number, KeyboardEventHandler<[EditorView, Editor]>[]> = groupBy(
+        createHandlers(outlineId, type, store, focusManager, viewStateStore),
         (i) => i.on[0],
       );
 
@@ -58,22 +58,14 @@ function createHandlers(
   store: OutlineStore,
   focusManager: FocusManager,
   viewStateStore: ViewStateStore,
-  editor: Editor,
-): KeyboardEventHandler<[EditorView]>[] {
-  const common = createCommonKeydownHandlers(
-    outlineId,
-    type,
-    store,
-    focusManager,
-    viewStateStore,
-    editor,
-  );
+): KeyboardEventHandler<[EditorView, Editor]>[] {
+  const common = createCommonKeydownHandlers(outlineId, type, store, focusManager, viewStateStore);
 
   switch (type) {
     case "heading":
-      return [...common, ...createHeadingKeydownHandlers(outlineId, store, focusManager, editor)];
+      return [...common, ...createHeadingKeydownHandlers(outlineId, store, focusManager)];
     case "bullet":
-      return [...common, ...createBulletKeydownHandlers(outlineId, store, focusManager, editor)];
+      return [...common, ...createBulletKeydownHandlers(outlineId, store, focusManager)];
     case "card":
       return [...common];
     case "code":

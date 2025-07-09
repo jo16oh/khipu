@@ -18,12 +18,11 @@ export function createCommonKeydownHandlers(
   store: OutlineStore,
   focusManager: FocusManager,
   viewStateStore: ViewStateStore,
-  editor: Editor,
-): KeyboardEventHandler<[EditorView]>[] {
+): KeyboardEventHandler<[EditorView, Editor]>[] {
   return [
     {
       on: [Key.Backspace],
-      fn: async (event) => {
+      fn: async (event, _, editor) => {
         if (editor.state.selection.from !== 1) return;
         if (event.isComposing || event.key === "Process") return;
         if (viewStateStore.getState().id === outlineId) return;

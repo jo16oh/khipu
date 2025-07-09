@@ -9,12 +9,11 @@ export function createBulletKeydownHandlers(
   outlineId: string,
   store: OutlineStore,
   focusManager: FocusManager,
-  editor: Editor,
-): KeyboardEventHandler<[EditorView]>[] {
+): KeyboardEventHandler<[EditorView, Editor]>[] {
   return [
     {
       on: [Key.Enter],
-      fn: (event, view) => {
+      fn: (event, view, editor) => {
         if (event.isComposing || event.key === "Process") return;
 
         const start = view.state.selection.from;
