@@ -387,7 +387,7 @@ async fn test_path_construction() {
     }
 
     fn single_quoted(str: &str) -> String {
-        format!("'{}'", str)
+        format!("'{str}'")
     }
 
     let pool = open_connection_in_memory().await;

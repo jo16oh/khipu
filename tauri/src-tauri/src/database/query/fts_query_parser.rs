@@ -88,7 +88,7 @@ pub fn parse(input: &str) -> eyre::Result<Query> {
         eyre::bail!("input is empty");
     }
 
-    let grouped_input = format!("({})", input);
+    let grouped_input = format!("({input})");
 
     // 1. Try to parse using the defined strict grammar
     match query().parse(grouped_input.as_str()) {
@@ -157,8 +157,7 @@ impl Query {
                     phrase if phrase.chars().count() <= 2 => {
                         let escaped_phrase_for_like = phrase.replace('\'', "''");
                         let query = format!(
-                            r#"(SELECT coalesce(group_concat('"' || replace(term, '"', '""') || '"', ' OR '), '{}') FROM fts_vocab WHERE term LIKE '{}%')"#,
-                            ZERO_WIDTH_SPACE, escaped_phrase_for_like
+                            r#"(SELECT coalesce(group_concat('"' || replace(term, '"', '""') || '"', ' OR '), '{ZERO_WIDTH_SPACE}') FROM fts_vocab WHERE term LIKE '{escaped_phrase_for_like}%')"#
                         );
                         buf.push(FlattenQueryItem::SubQuery(query));
                     }
@@ -193,7 +192,7 @@ impl Query {
                 FlattenQueryItem::SubQuery(str) => {
                     if !current_term_accum.is_empty() {
                         let terms_joined = current_term_accum.join(" ").replace('\'', "''");
-                        final_sql_parts.push(format!("'{}'", terms_joined));
+                        final_sql_parts.push(format!("'{terms_joined}'"));
                         current_term_accum.clear();
                     }
                     final_sql_parts.push(str);

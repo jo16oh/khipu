@@ -19,14 +19,14 @@ impl From<eyre::Report> for KhipuError {
         let root_cause = value.root_cause();
 
         Self::AnyError {
-            root_cause: format!("{}", root_cause),
+            root_cause: format!("{root_cause}"),
             msg: format_eyre_message(value),
         }
     }
 }
 
 fn format_eyre_message(report: eyre::Report) -> String {
-    let msg = format!("{:?}", report);
+    let msg = format!("{report:?}");
     let mut lines: Vec<&str> = msg.lines().collect();
 
     while let Some(last_line) = lines.last() {

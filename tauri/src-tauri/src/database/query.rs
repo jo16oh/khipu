@@ -128,7 +128,7 @@ pub async fn suggest<'a>(
             .ngrams(2)
             .map(|cs| {
                 let token = cs.iter().collect::<String>().replace("'", "''");
-                format!("term LIKE '{}%'", token)
+                format!("term LIKE '{token}%'")
             })
             .join(" OR ");
 
