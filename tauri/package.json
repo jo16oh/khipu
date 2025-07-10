@@ -8,9 +8,9 @@
     "build": "tsc && vite build",
     "preview": "vite preview",
     "tauri": "tauri",
-    "test": "pnpm vitest --watch",
+    "test": "vitest",
     "lint": "eslint --ext .js,.ts,.jsx,.tsx ./src",
-    "format": "pnpm lint:fix && pnpm biome check --write && prettier --write ./src",
+    "format": "pnpm lint:fix && biome check --write && prettier --write ./src",
     "lint:fix": "eslint --fix --ext .js,.ts,.jsx,.tsx ./src",
     "prepare": "panda codegen"
   },
