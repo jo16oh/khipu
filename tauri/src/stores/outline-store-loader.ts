@@ -34,6 +34,8 @@ export class OutlineStoreLoader {
   }
 
   async fetchSearchResults(query: string, orderBy: OrderBy, offset: number) {
+    if (query.trim().length === 0) return [];
+
     const [results, links]: [Outline[], Outline[]] = await this.#commands
       .search(query, orderBy, offset)
       .then(([results, links]) => [results.map(Outline.from), links.map(Outline.from)]);
