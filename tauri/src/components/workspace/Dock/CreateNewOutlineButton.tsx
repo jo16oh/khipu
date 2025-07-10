@@ -1,8 +1,8 @@
 import { styled } from "generated/styled-system/jsx";
 import { square } from "generated/styled-system/patterns";
 import { SquarePen } from "lucide-react";
-import { startTransition, use, useRef } from "react";
-import { Button, OverlayTriggerStateContext } from "react-aria-components";
+import { startTransition, useRef } from "react";
+import { Button } from "react-aria-components";
 import { useOutlineStore } from "src/stores/outline-store";
 import {
   createViewStateStore,
@@ -22,16 +22,15 @@ export default function CreateNewOutlineButton() {
 }
 
 const HoverViewTrigger = () => {
-  const overlayState = use(OverlayTriggerStateContext);
   const outlineStore = useOutlineStore();
   const viewState = useViewState((state) => state);
 
   return (
     <StyledTriggerButton
-      onPress={() => {
+      onPress={(e) => {
         const id = outlineStore.reducer.create("heading");
         viewState.jump({ id, scrollPosition: 0 });
-        startTransition(() => overlayState?.open());
+        startTransition(() => e.continuePropagation());
       }}
     >
       <SquarePen className={iconStyle} />
