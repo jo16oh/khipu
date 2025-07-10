@@ -1,9 +1,26 @@
 import { Schema } from "@tiptap/pm/model";
-import { JSONContent } from "@tiptap/react";
+import { JSONContent } from "src/model";
 import { prosemirrorJSONToYXmlFragment } from "y-prosemirror";
 import * as Y from "yjs";
 
 type NodesGroupedByType = { [key in string]: JSONContent[] };
+
+export function extractTextFromDoc(doc: JSONContent) {
+  const results: string[] = [];
+  const stack = [doc];
+
+  while (stack.length > 0) {
+    const node = stack.pop()!;
+    if (node.text) results.push(node.text);
+    if (node.content) {
+      for (const child of node.content.toReversed()) {
+        stack.push(child);
+      }
+    }
+  }
+
+  return results.join(" ");
+}
 
 function findNodesByTypeNameImpl(doc: JSONContent, typeNames: string[], buf: NodesGroupedByType) {
   if (!doc.content) return;
