@@ -24,8 +24,11 @@ export class OutlineChildrenStore {
       if (prevParentId !== outline.parentId || prevFindex !== outline.findex) {
         this.#updateParentTrackingMaps(outline, prevParentId, changedParentIds);
         this.#updateChildrenMaps(outline, prevParentId);
-        this.#prevPositionMap.set(outline.id, { parentId: outline.parentId, findex: outline.findex });
-        
+        this.#prevPositionMap.set(outline.id, {
+          parentId: outline.parentId,
+          findex: outline.findex,
+        });
+
         // notify current parent if only findex changed
         if (prevParentId === outline.parentId && outline.parentId) {
           changedParentIds.add(outline.parentId);
