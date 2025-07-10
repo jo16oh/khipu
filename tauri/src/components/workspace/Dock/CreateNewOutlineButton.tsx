@@ -2,7 +2,7 @@ import { styled } from "generated/styled-system/jsx";
 import { square } from "generated/styled-system/patterns";
 import { SquarePen } from "lucide-react";
 import { startTransition, use, useRef } from "react";
-import { OverlayTriggerStateContext } from "react-aria-components";
+import { Button, OverlayTriggerStateContext } from "react-aria-components";
 import { useOutlineStore } from "src/stores/outline-store";
 import {
   createViewStateStore,
@@ -28,7 +28,7 @@ const HoverViewTrigger = () => {
 
   return (
     <StyledTriggerButton
-      onClick={() => {
+      onPress={() => {
         const id = outlineStore.reducer.create("heading");
         viewState.jump({ id, scrollPosition: 0 });
         startTransition(() => overlayState?.open());
@@ -39,7 +39,7 @@ const HoverViewTrigger = () => {
   );
 };
 
-const StyledTriggerButton = styled("button", {
+const StyledTriggerButton = styled(Button, {
   base: {
     display: "grid",
     borderColor: "stone.200",
