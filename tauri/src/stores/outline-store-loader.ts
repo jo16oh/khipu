@@ -4,7 +4,7 @@ import { RegisterToStore } from "./outline-store";
 
 type Commands = Pick<
   typeof commands,
-  "tree" | "timeline" | "search" | "inboundLinks" | "outboundLinks" | "excerpt"
+  "tree" | "timeline" | "search" | "inboundLinks" | "outboundLinks" | "excerpt" | "suggest"
 >;
 
 export class OutlineStoreLoader {
@@ -36,6 +36,18 @@ export class OutlineStoreLoader {
   async fetchSearchResults(query: string, orderBy: OrderBy, offset: number) {
     const [results, links]: [Outline[], Outline[]] = await this.#commands
       .search(query, orderBy, offset)
+      .then(([results, links]) => [results.map(Outline.from), links.map(Outline.from)]);
+
+    this.#registerToStore(...results, ...links);
+
+    return results.map((r) => r.id);
+  }
+
+  async fetchSuggestion(query: string) {
+    if (query.trim().length === 0) return [];
+
+    const [results, links]: [Outline[], Outline[]] = await this.#commands
+      .suggest(query)
       .then(([results, links]) => [results.map(Outline.from), links.map(Outline.from)]);
 
     this.#registerToStore(...results, ...links);

@@ -26,7 +26,14 @@ export type RegisterToStore = (...outlines: Outline[]) => void;
 
 type Commands = Pick<
   typeof commands,
-  "upsertOutline" | "tree" | "timeline" | "search" | "inboundLinks" | "outboundLinks" | "excerpt"
+  | "upsertOutline"
+  | "tree"
+  | "timeline"
+  | "search"
+  | "inboundLinks"
+  | "outboundLinks"
+  | "excerpt"
+  | "suggest"
 >;
 
 export const OutlineStoreContext = createContext<OutlineStore | null>(null);
