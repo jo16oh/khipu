@@ -187,9 +187,9 @@ impl<'de> Deserialize<'de> for Base64Bytes {
             where
                 E: serde::de::Error,
             {
-                let decoded = BASE64_STANDARD.decode(value).map_err(|e| {
-                    E::custom(format!("failed to decode from base64 string: {e}"))
-                })?;
+                let decoded = BASE64_STANDARD
+                    .decode(value)
+                    .map_err(|e| E::custom(format!("failed to decode from base64 string: {e}")))?;
                 Ok(Base64Bytes(decoded))
             }
         }
