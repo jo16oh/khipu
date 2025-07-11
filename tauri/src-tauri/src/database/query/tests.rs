@@ -291,40 +291,6 @@ async fn test_upsert_outline() {
     o1.doc = r#"{ "text": "test2" }"#.to_string();
     upsert_outline(&mut tx, &o1).await.unwrap();
 
-    // Is old index removed?
-    {
-        let r = sqlx::query_scalar!(
-            r#"
-                    SELECT id 
-                    FROM outlines o 
-                    INNER JOIN fts ON o.rowid = fts.rowid 
-                    WHERE fts MATCH 'test1';
-                "#
-        )
-        .fetch_all(&mut *tx)
-        .await
-        .unwrap();
-
-        assert_eq!(r.len(), 0);
-    }
-
-    // Is new document indexed?
-    {
-        let r = sqlx::query_scalar!(
-            r#"
-                    SELECT id 
-                    FROM outlines o 
-                    INNER JOIN fts ON o.rowid = fts.rowid 
-                    WHERE fts MATCH 'test2';
-                "#
-        )
-        .fetch_all(&mut *tx)
-        .await
-        .unwrap();
-
-        assert_eq!(r.len(), 1);
-    }
-
     sync_links(
         &mut tx,
         &o1.id,
@@ -376,6 +342,31 @@ async fn test_upsert_outline() {
                 .collect();
         assert_eq!(r.len(), 1);
     }
+}
+
+#[tokio::test]
+async fn test_fts_update() {
+    let pool = open_connection_in_memory().await;
+
+    let mut tx = pool.begin().await.unwrap();
+    let mut o = Outline::new();
+    o.doc = r#"{ "text": "a" }"#.to_string();
+    upsert_outline(&mut tx, &o).await.unwrap();
+    tx.commit().await.unwrap();
+
+    let (r, _) = search(&pool, "a", OrderBy::CreatedAt, 0).await.unwrap();
+    assert!(r.len() == 1);
+
+    let mut tx = pool.begin().await.unwrap();
+    o.doc = r#"{ "text": "b" }"#.to_string();
+    upsert_outline(&mut tx, &o).await.unwrap();
+    tx.commit().await.unwrap();
+
+    let (r, _) = search(&pool, "b", OrderBy::CreatedAt, 0).await.unwrap();
+    assert!(r.len() == 1);
+
+    let (r, _) = search(&pool, "a", OrderBy::CreatedAt, 0).await.unwrap();
+    assert!(r.is_empty());
 }
 
 #[tokio::test]

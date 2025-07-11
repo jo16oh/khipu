@@ -308,7 +308,7 @@ async fn delete_fts_index(tx: &mut SqliteTransaction<'_>, outline_id: &str) -> e
     .fetch_optional(&mut **tx)
     .await?
     {
-        let text = extract_text_from_doc(&res.doc)?;
+        let text = extract_text_from_doc(&res.doc)? + &ZERO_WIDTH_SPACE.repeat(2);
         sqlx::query_file!("src/database/delete_fts_index.sql", res.rowid, text)
             .execute(&mut **tx)
             .await?;
