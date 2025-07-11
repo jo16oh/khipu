@@ -36,14 +36,15 @@ export function createKeydownHandlersExtension(
           key: new PluginKey("KeydownHandlers"),
           props: {
             handleKeyDown(view, event) {
-              let preventDefault: boolean | undefined;
-              for (const handler of handlers[event.keyCode] ?? []) {
-                const value = runKeyboardEventHandlerIfMatches(event, handler, view, editor);
-                if (typeof value === "boolean") {
-                  preventDefault = value || preventDefault;
-                }
-              }
-              return preventDefault;
+              return handlers[event.keyCode]?.reduce((prev, handler) => {
+                const preventDefault = runKeyboardEventHandlerIfMatches(
+                  event,
+                  handler,
+                  view,
+                  editor,
+                );
+                return typeof preventDefault === "boolean" ? preventDefault || prev : prev;
+              }, false);
             },
           },
         }),
