@@ -15,7 +15,7 @@ export type KeyboardEventHandler<T extends Args = []> = {
   fn: (event: KeyboardEvent, ...args: T) => void | boolean | Promise<void>;
 };
 
-export function runKeyboardEventHandlerIfMatches<T extends Args>(
+export function runHandlerIfMatches<T extends Args>(
   event: KeyboardEvent,
   handler: KeyboardEventHandler<T>,
   ...args: T

@@ -1,10 +1,7 @@
 import { Extension, InputRule } from "@tiptap/core";
 import { Plugin, PluginKey, Selection } from "@tiptap/pm/state";
 import { EditorView } from "@tiptap/pm/view";
-import {
-  KeyboardEventHandler,
-  runKeyboardEventHandlerIfMatches,
-} from "src/utils/keyboard-event-handler";
+import { KeyboardEventHandler, runHandlerIfMatches } from "src/utils/keyboard-event-handler";
 import { Key } from "ts-keycode-enum";
 
 export const SmartSquareBracketsExtension = Extension.create({
@@ -24,7 +21,7 @@ export const SmartSquareBracketsExtension = Extension.create({
       key: new PluginKey("smart-square-brackets"),
       props: {
         handleKeyDown(view, event) {
-          const preventDefault = runKeyboardEventHandlerIfMatches(event, backspaceHandler, view);
+          const preventDefault = runHandlerIfMatches(event, backspaceHandler, view);
           if (typeof preventDefault === "boolean") {
             return preventDefault;
           }

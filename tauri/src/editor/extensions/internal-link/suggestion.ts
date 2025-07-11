@@ -1,10 +1,7 @@
 import { Editor, ReactRenderer } from "@tiptap/react";
 import Suggestion from "@tiptap/suggestion";
 import { OutlineStore } from "src/stores/outline-store";
-import {
-  KeyboardEventHandler,
-  runKeyboardEventHandlerIfMatches,
-} from "src/utils/keyboard-event-handler";
+import { KeyboardEventHandler, runHandlerIfMatches } from "src/utils/keyboard-event-handler";
 import tippy, { GetReferenceClientRect } from "tippy.js";
 import { Key } from "ts-keycode-enum";
 import SuggestionRenderer from "./SuggestionRenderer";
@@ -71,7 +68,7 @@ export function createInternalLinkSuggestionPlugin(editor: Editor, store: Outlin
           ];
 
           return handlers.reduce((prev, handler) => {
-            const preventDefault = runKeyboardEventHandlerIfMatches(event, handler);
+            const preventDefault = runHandlerIfMatches(event, handler);
             return typeof preventDefault === "boolean" ? preventDefault || prev : prev;
           }, false);
         },

@@ -6,10 +6,7 @@ import { OutlineType } from "generated/tauri-commands";
 import { FocusManager } from "src/stores/focus-manager";
 import { OutlineStore } from "src/stores/outline-store";
 import { ViewStateStore } from "src/stores/view-state-store";
-import {
-  KeyboardEventHandler,
-  runKeyboardEventHandlerIfMatches,
-} from "src/utils/keyboard-event-handler";
+import { KeyboardEventHandler, runHandlerIfMatches } from "src/utils/keyboard-event-handler";
 import { createBulletKeydownHandlers } from "./keydown-handlers/bullet";
 import { createCommonKeydownHandlers } from "./keydown-handlers/common";
 import { createHeadingKeydownHandlers } from "./keydown-handlers/heading";
@@ -37,12 +34,7 @@ export function createKeydownHandlersExtension(
           props: {
             handleKeyDown(view, event) {
               return handlers[event.keyCode]?.reduce((prev, handler) => {
-                const preventDefault = runKeyboardEventHandlerIfMatches(
-                  event,
-                  handler,
-                  view,
-                  editor,
-                );
+                const preventDefault = runHandlerIfMatches(event, handler, view, editor);
                 return typeof preventDefault === "boolean" ? preventDefault || prev : prev;
               }, false);
             },
