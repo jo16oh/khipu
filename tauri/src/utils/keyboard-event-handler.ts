@@ -12,7 +12,7 @@ type Args = readonly unknown[];
 
 export type KeyboardEventHandler<T extends Args = []> = {
   on: KeyDefinition;
-  fn: (event: KeyboardEvent, ...args: T) => void;
+  fn: (event: KeyboardEvent, ...args: T) => void | boolean | Promise<void>;
 };
 
 export function runKeyboardEventHandlerIfMatches<T extends Args>(
