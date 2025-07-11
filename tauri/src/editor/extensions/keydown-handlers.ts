@@ -10,6 +10,7 @@ import { KeyboardEventHandler, runHandlerIfMatches } from "src/utils/keyboard-ev
 import { createBulletKeydownHandlers } from "./keydown-handlers/bullet";
 import { createCommonKeydownHandlers } from "./keydown-handlers/common";
 import { createHeadingKeydownHandlers } from "./keydown-handlers/heading";
+import { isSuggestionActive } from "./suggestion";
 
 export function createKeydownHandlersExtension(
   outlineId: string,
@@ -33,6 +34,7 @@ export function createKeydownHandlersExtension(
           key: new PluginKey("KeydownHandlers"),
           props: {
             handleKeyDown(view, event) {
+              if (isSuggestionActive(editor.state)) return false;
               return handlers[event.keyCode]?.reduce((prev, handler) => {
                 const preventDefault = runHandlerIfMatches(event, handler, view, editor);
                 return typeof preventDefault === "boolean" ? preventDefault || prev : prev;
