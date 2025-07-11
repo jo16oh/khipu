@@ -10,7 +10,7 @@ export type KeyDefinition =
 
 type Args = readonly unknown[];
 
-export type KeyboardEventHandler<T extends Args> = {
+export type KeyboardEventHandler<T extends Args = []> = {
   on: KeyDefinition;
   fn: (event: KeyboardEvent, ...args: T) => void;
 };
