@@ -60,7 +60,7 @@ export function createInternalLinkSuggestionPlugin(editor: Editor, store: Outlin
           });
         },
 
-        onKeyDown({ event }) {
+        onKeyDown({ event, view, range }) {
           const handlers: KeyboardEventHandler[] = [
             {
               on: [Key.Escape],
@@ -70,6 +70,9 @@ export function createInternalLinkSuggestionPlugin(editor: Editor, store: Outlin
                 reactRenderer?.destroy();
                 reactRenderer?.element.remove();
                 popup?.[0]?.destroy();
+
+                view.dispatch(view.state.tr.delete(range.from, range.to));
+
                 return true;
               },
             },
