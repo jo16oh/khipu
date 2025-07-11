@@ -136,7 +136,10 @@ const ActiveEditor = memo(function ActiveEditor({
           class: editorStyle,
         },
       },
-      onBlur: () => setFocused(false),
+      onBlur: ({ editor }) => {
+        setFocused(false);
+        setTimeout(() => editor.destroy());
+      },
       injectCSS: false,
     }),
   );
