@@ -1,13 +1,21 @@
+import { PluginKey } from "@tiptap/pm/state";
 import { Editor, ReactRenderer } from "@tiptap/react";
 import Suggestion from "@tiptap/suggestion";
 import { OutlineStore } from "src/stores/outline-store";
 import { KeyboardEventHandler, runHandlerIfMatches } from "src/utils/keyboard-event-handler";
 import tippy, { GetReferenceClientRect } from "tippy.js";
 import { Key } from "ts-keycode-enum";
+import { SuggestionPluginState } from "../suggestion";
 import SuggestionRenderer from "./SuggestionRenderer";
+
+export const InternalLinkSuggestionPluginKey = new PluginKey<SuggestionPluginState>(
+  "internal-link-suggestion",
+);
 
 export function createInternalLinkSuggestionPlugin(editor: Editor, store: OutlineStore) {
   return Suggestion({
+    pluginKey: InternalLinkSuggestionPluginKey,
+
     editor,
 
     items: ({ query }) => store.loader.fetchSuggestion(query),

@@ -3,7 +3,10 @@ import { NodeViewProps, ReactNodeViewRenderer } from "@tiptap/react";
 import { ErrorBoundary } from "react-error-boundary";
 import { OutlineStore } from "src/stores/outline-store";
 import { SmartSquareBracketsExtension } from "./internal-link/smart-square-brackets";
-import { createInternalLinkSuggestionPlugin } from "./internal-link/suggestion";
+import {
+  createInternalLinkSuggestionPlugin,
+  InternalLinkSuggestionPluginKey,
+} from "./internal-link/suggestion";
 
 type InternalLinkAttributes = {
   id: string | null;
@@ -54,3 +57,5 @@ function Link({ id }: { id: string }) {
   // const text = useMemo(() => extractTextFromDoc(doc), [doc]);
   return <div>{id}</div>;
 }
+
+export { InternalLinkSuggestionPluginKey };
