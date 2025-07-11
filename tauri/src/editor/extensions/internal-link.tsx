@@ -1,6 +1,5 @@
 import { Node } from "@tiptap/core";
 import { NodeViewProps, ReactNodeViewRenderer } from "@tiptap/react";
-import type { SuggestionOptions } from "@tiptap/suggestion";
 import { ErrorBoundary } from "react-error-boundary";
 import { OutlineStore } from "src/stores/outline-store";
 import { SmartSquareBracketsExtension } from "./internal-link/smart-square-brackets";
@@ -10,16 +9,8 @@ type InternalLinkAttributes = {
   id: string | null;
 };
 
-type InternallinkOptions = {
-  suggestion: Omit<SuggestionOptions, "editor">;
-};
-
-type InternalLinkStorage = {
-  wasLastTransactionAnInput: boolean;
-};
-
 export const createInternalLinkExtension = (store: OutlineStore) => {
-  return Node.create<InternallinkOptions, InternalLinkStorage>({
+  return Node.create({
     name: "internal-link",
     group: "inline",
     inline: true,
