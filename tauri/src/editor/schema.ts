@@ -10,6 +10,7 @@ import { FocusManager } from "src/stores/focus-manager";
 import { OutlineStore } from "src/stores/outline-store";
 import { ViewStateStore } from "src/stores/view-state-store";
 import * as Y from "yjs";
+import { createInternalLinkExtension } from "./extensions/internal-link";
 import { createKeydownHandlersExtension } from "./extensions/keydown-handlers";
 import { createSyncFocusPositionExtension } from "./extensions/sync-focus-position";
 import { createUpdateNotifierExtension } from "./extensions/update-notifier";
@@ -46,6 +47,7 @@ export function createEditorExtensions(
 
   return [
     ...createRendererExtensions(type),
+    createInternalLinkExtension(store),
     createKeydownHandlersExtension(outlineId, type, store, focusManager, viewStateStore),
     Collabolation.extend().configure({ fragment }),
     createUpdateNotifierExtension(outlineId, notifier),

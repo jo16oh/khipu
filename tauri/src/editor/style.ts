@@ -5,6 +5,11 @@ export const editorStyleRecipe = cva({
     cursor: "text",
     ring: "none",
     w: "full",
+    "& .suggestion": {
+      rounded: "md",
+      p: "1",
+      bg: "stone.200",
+    },
     "& *": {
       wordBreak: "break-word",
       textWrap: "wrap",
