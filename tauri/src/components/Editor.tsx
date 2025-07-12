@@ -16,6 +16,7 @@ import {
   useState,
   useTransition,
 } from "react";
+import { InternalLinkNodeView } from "src/editor/extensions/internal-link";
 import { createEditorExtensions, createRendererExtensions } from "src/editor/schema";
 import { editorStyleRecipe } from "src/editor/style";
 import { useObservableRef } from "src/hooks/useObservableRef";
@@ -93,11 +94,20 @@ const MockEditor = memo(function MockEditor({
   onMouseEnter: () => void;
 }) {
   const { type, doc } = useOutline(id, ({ type, doc }) => ({ type, doc }));
-  const extensions = useMemo(() => createRendererExtensions(type), [type]);
+  const store = useOutlineStore();
+  const extensions = useMemo(() => createRendererExtensions(type, store), [type, store]);
 
   return (
     <EditorContainer type="mock" onMouseEnter={onMouseEnter}>
-      {renderToReactElement({ extensions, content: doc as JSONContent })}
+      {renderToReactElement({
+        extensions,
+        content: doc as JSONContent,
+        options: {
+          nodeMapping: {
+            "internal-link": InternalLinkNodeView,
+          },
+        },
+      })}
     </EditorContainer>
   );
 });

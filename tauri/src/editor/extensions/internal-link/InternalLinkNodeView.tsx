@@ -1,0 +1,29 @@
+import { NodeViewProps } from "@tiptap/core";
+import { NodeViewWrapper } from "@tiptap/react";
+import { styled } from "generated/styled-system/jsx";
+import { useMemo } from "react";
+import { ErrorBoundary } from "react-error-boundary";
+import { extractTextFromDoc } from "src/editor/utils";
+import { useOutline } from "src/hooks/useOutline";
+
+export function InternalLinkNodeView({ node }: NodeViewProps) {
+  const { id } = node.attrs as InternalLinkAttributes;
+
+  if (!id) {
+    return <span>(Link ID not set)</span>;
+  }
+
+  return (
+    <NodeViewWrapper as="span">
+      <ErrorBoundary fallback={<span>(Link not found)</span>}>
+        <Link id={id} />
+      </ErrorBoundary>
+    </NodeViewWrapper>
+  );
+}
+
+function Link({ id }: { id: string }) {
+  const doc = useOutline(id, (o) => o.doc);
+  const text = useMemo(() => extractTextFromDoc(doc), [doc]);
+  return <styled.span color="blue.500">{text}</styled.span>;
+}

@@ -10,7 +10,7 @@ import { FocusManager } from "src/stores/focus-manager";
 import { OutlineStore } from "src/stores/outline-store";
 import { ViewStateStore } from "src/stores/view-state-store";
 import * as Y from "yjs";
-import { createInternalLinkExtension } from "./extensions/internal-link";
+import { createInternalLinkExtension, InternalLink } from "./extensions/internal-link";
 import { createKeydownHandlersExtension } from "./extensions/keydown-handlers";
 import { createSyncFocusPositionExtension } from "./extensions/sync-focus-position";
 import { createUpdateNotifierExtension } from "./extensions/update-notifier";
@@ -21,12 +21,12 @@ const SingleBlockDocument = Node.create({
   content: "block",
 });
 
-export function createRendererExtensions(type: OutlineType): Extensions {
+export function createRendererExtensions(type: OutlineType, store: OutlineStore): Extensions {
   switch (type) {
     case "heading":
       return [SingleBlockDocument, Heading, Text];
     case "bullet":
-      return [SingleBlockDocument, Paragraph, Text];
+      return [SingleBlockDocument, Paragraph, Text, createInternalLinkExtension(store)];
     case "card":
       return [Document, Paragraph, Text];
     case "code":
@@ -46,8 +46,7 @@ export function createEditorExtensions(
   const fragment = ydoc.getXmlFragment("doc");
 
   return [
-    ...createRendererExtensions(type),
-    createInternalLinkExtension(store),
+    ...createRendererExtensions(type, store),
     createKeydownHandlersExtension(outlineId, type, store, focusManager, viewStateStore),
     Collabolation.extend().configure({ fragment }),
     createUpdateNotifierExtension(outlineId, notifier),
@@ -60,7 +59,7 @@ export function getSchemaOf(type: OutlineType) {
     case "heading":
       return getSchema([SingleBlockDocument, Paragraph, Text]);
     case "bullet":
-      return getSchema([SingleBlockDocument, Paragraph, Text]);
+      return getSchema([SingleBlockDocument, Paragraph, Text, InternalLink]);
     case "card":
       return getSchema([Document, Paragraph, Text]);
     case "code":
