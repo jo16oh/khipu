@@ -20,6 +20,17 @@ export function createInternalLinkSuggestionPlugin(editor: Editor, store: Outlin
 
     items: ({ query }) => store.loader.fetchSuggestion(query),
 
+    command: ({ editor, range, props }) => {
+      editor.commands.insertContentAt(range, [
+        {
+          type: "internal-link",
+          attrs: {
+            ...props,
+          },
+        },
+      ]);
+    },
+
     render: () => {
       let reactRenderer: ReactRenderer | undefined;
       let popup: ReturnType<typeof tippy> | undefined;
