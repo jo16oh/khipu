@@ -150,7 +150,6 @@ const ActiveEditor = memo(function ActiveEditor({
         setFocused(false);
         setTimeout(() => editor.destroy());
       },
-      injectCSS: false,
     }),
   );
 
