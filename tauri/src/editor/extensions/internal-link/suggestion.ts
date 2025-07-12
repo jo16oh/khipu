@@ -6,7 +6,7 @@ import { KeyboardEventHandler, runHandlerIfMatches } from "src/utils/keyboard-ev
 import tippy, { GetReferenceClientRect } from "tippy.js";
 import { Key } from "ts-keycode-enum";
 import { SuggestionPluginState } from "../suggestion";
-import SuggestionRenderer from "./SuggestionRenderer";
+import SuggestionList, { SuggestionListHandler } from "./SuggestionList";
 
 export const InternalLinkSuggestionPluginKey = new PluginKey<SuggestionPluginState>(
   "internal-link-suggestion",
@@ -32,28 +32,28 @@ export function createInternalLinkSuggestionPlugin(editor: Editor, store: Outlin
     },
 
     render: () => {
-      let reactRenderer: ReactRenderer | undefined;
+      let renderer: ReactRenderer<SuggestionListHandler> | undefined;
       let popup: ReturnType<typeof tippy> | undefined;
 
       return {
         onStart(props) {
           if (!props.clientRect) return;
 
-          reactRenderer = new ReactRenderer(SuggestionRenderer, {
+          renderer = new ReactRenderer(SuggestionList, {
             props,
             editor: props.editor,
           });
 
-          if (reactRenderer.element instanceof HTMLElement) {
-            reactRenderer.element.style.position = "absolute";
+          if (renderer.element instanceof HTMLElement) {
+            renderer.element.style.position = "absolute";
           }
 
-          document.body.appendChild(reactRenderer.element);
+          document.body.appendChild(renderer.element);
 
           popup = tippy("body", {
             getReferenceClientRect: props.clientRect as GetReferenceClientRect,
             appendTo: () => document.body,
-            content: reactRenderer?.element,
+            content: renderer?.element,
             showOnCreate: true,
             interactive: true,
             trigger: "manual",
@@ -62,7 +62,7 @@ export function createInternalLinkSuggestionPlugin(editor: Editor, store: Outlin
         },
 
         onUpdate(props) {
-          reactRenderer?.updateProps(props);
+          renderer?.updateProps(props);
 
           if (props.clientRect) return;
 
@@ -71,19 +71,54 @@ export function createInternalLinkSuggestionPlugin(editor: Editor, store: Outlin
           });
         },
 
-        onKeyDown({ event, view, range }) {
+        onKeyDown({ event, range }) {
           const handlers: KeyboardEventHandler[] = [
             {
               on: [Key.Escape],
               fn: (event) => {
                 event.preventDefault();
                 event.stopPropagation();
-                reactRenderer?.destroy();
-                reactRenderer?.element.remove();
+                renderer?.destroy();
+                renderer?.element.remove();
                 popup?.[0]?.destroy();
 
-                view.dispatch(view.state.tr.delete(range.from, range.to));
+                editor.commands.deleteRange(range);
 
+                return true;
+              },
+            },
+            {
+              on: [Key.Tab],
+              fn: (event) => {
+                event.preventDefault();
+                event.stopPropagation();
+                return true;
+              },
+            },
+            {
+              on: [Key.UpArrow],
+              fn: (event) => {
+                event.preventDefault();
+                event.stopPropagation();
+                renderer?.ref?.goUp();
+                return true;
+              },
+            },
+            {
+              on: [Key.DownArrow],
+              fn: (event) => {
+                event.preventDefault();
+                event.stopPropagation();
+                renderer?.ref?.goDown();
+                return true;
+              },
+            },
+            {
+              on: [Key.Enter],
+              fn: (event) => {
+                event.preventDefault();
+                event.stopPropagation();
+                renderer?.ref?.select();
                 return true;
               },
             },
@@ -97,8 +132,8 @@ export function createInternalLinkSuggestionPlugin(editor: Editor, store: Outlin
 
         onExit() {
           popup?.[0]?.destroy();
-          reactRenderer?.destroy();
-          reactRenderer?.element.remove();
+          renderer?.destroy();
+          renderer?.element.remove();
         },
       };
     },
