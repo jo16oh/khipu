@@ -15,6 +15,7 @@
     "prepare": "panda codegen"
   },
   "dependencies": {
+    "@floating-ui/dom": "^1.7.2",
     "@tanstack/react-query": "^5.82.0",
     "@tauri-apps/api": "^2.6.0",
     "@tauri-apps/plugin-opener": "^2.4.0",
@@ -39,7 +40,6 @@
     "react-aria-components": "^1.10.1",
     "react-dom": "^19.1.0",
     "react-error-boundary": "^6.0.0",
-    "tippy.js": "^6.3.7",
     "ts-keycode-enum": "^1.0.6",
     "uuidv7": "^1.0.2",
     "valid-filename": "^4.0.0",

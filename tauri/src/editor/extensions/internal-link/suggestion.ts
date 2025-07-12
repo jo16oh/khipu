@@ -1,9 +1,9 @@
+import { computePosition, flip, shift } from "@floating-ui/dom";
 import { PluginKey } from "@tiptap/pm/state";
-import { Editor, ReactRenderer } from "@tiptap/react";
+import { Editor, posToDOMRect, ReactRenderer } from "@tiptap/react";
 import Suggestion from "@tiptap/suggestion";
 import { OutlineStore } from "src/stores/outline-store";
 import { KeyboardEventHandler, runHandlerIfMatches } from "src/utils/keyboard-event-handler";
-import tippy, { GetReferenceClientRect } from "tippy.js";
 import { Key } from "ts-keycode-enum";
 import { SuggestionPluginState } from "../suggestion";
 import SuggestionList, { SuggestionListHandler } from "./SuggestionList";
@@ -11,6 +11,28 @@ import SuggestionList, { SuggestionListHandler } from "./SuggestionList";
 export const InternalLinkSuggestionPluginKey = new PluginKey<SuggestionPluginState>(
   "internal-link-suggestion",
 );
+
+const updatePosition = (
+  editor: Editor,
+  element: HTMLElement,
+  range: { from: number; to: number },
+) => {
+  const virtualElement = {
+    getBoundingClientRect: () => posToDOMRect(editor.view, range.from, range.to),
+  };
+
+  computePosition(virtualElement, element, {
+    placement: "bottom-start",
+    strategy: "absolute",
+    middleware: [shift(), flip()],
+  }).then(({ x, y, strategy }) => {
+    element.style.width = "max-content";
+    element.style.position = strategy;
+    element.style.left = `${x}px`;
+    element.style.top = `${y}px`;
+    element.style.zIndex = "1000";
+  });
+};
 
 export function createInternalLinkSuggestionPlugin(editor: Editor, store: OutlineStore) {
   return Suggestion({
@@ -33,7 +55,6 @@ export function createInternalLinkSuggestionPlugin(editor: Editor, store: Outlin
 
     render: () => {
       let renderer: ReactRenderer<SuggestionListHandler> | undefined;
-      let popup: ReturnType<typeof tippy> | undefined;
 
       return {
         onStart(props) {
@@ -46,29 +67,19 @@ export function createInternalLinkSuggestionPlugin(editor: Editor, store: Outlin
 
           if (renderer.element instanceof HTMLElement) {
             renderer.element.style.position = "absolute";
+            document.body.appendChild(renderer.element);
+            updatePosition(props.editor, renderer.element, props.range);
           }
-
-          document.body.appendChild(renderer.element);
-
-          popup = tippy("body", {
-            getReferenceClientRect: props.clientRect as GetReferenceClientRect,
-            appendTo: () => document.body,
-            content: renderer?.element,
-            showOnCreate: true,
-            interactive: true,
-            trigger: "manual",
-            placement: "bottom-start",
-          });
         },
 
         onUpdate(props) {
           renderer?.updateProps(props);
 
-          if (props.clientRect) return;
+          if (!props.clientRect) return;
 
-          popup?.[0]?.setProps({
-            getReferenceClientRect: props.clientRect as GetReferenceClientRect | null,
-          });
+          if (renderer?.element instanceof HTMLElement) {
+            updatePosition(props.editor, renderer.element, props.range);
+          }
         },
 
         onKeyDown({ event, range }) {
@@ -79,8 +90,7 @@ export function createInternalLinkSuggestionPlugin(editor: Editor, store: Outlin
                 event.preventDefault();
                 event.stopPropagation();
                 renderer?.destroy();
-                renderer?.element.remove();
-                popup?.[0]?.destroy();
+                if (renderer?.element) renderer.element.remove();
 
                 editor.commands.deleteRange(range);
 
@@ -131,9 +141,8 @@ export function createInternalLinkSuggestionPlugin(editor: Editor, store: Outlin
         },
 
         onExit() {
-          popup?.[0]?.destroy();
           renderer?.destroy();
-          renderer?.element.remove();
+          if (renderer?.element) renderer.element.remove();
         },
       };
     },
