@@ -30,6 +30,8 @@ export function createBulletKeydownHandlers(
 
         if (!outline?.parentId) return;
 
+        editor.commands.deleteRange({ from: start, to: end });
+
         const newOutlineId = store.reducer.create(
           "bullet",
           outline.parentId,

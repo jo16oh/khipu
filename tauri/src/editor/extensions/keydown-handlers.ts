@@ -58,7 +58,10 @@ function createHandlers(
 
   switch (type) {
     case "heading":
-      return [...common, ...createHeadingKeydownHandlers(outlineId, store, focusManager)];
+      return [
+        ...common,
+        ...createHeadingKeydownHandlers(outlineId, store, focusManager, viewStateStore),
+      ];
     case "bullet":
       return [...common, ...createBulletKeydownHandlers(outlineId, store, focusManager)];
     case "card":
