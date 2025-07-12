@@ -94,38 +94,59 @@ export function createInternalLinkSuggestionPlugin(editor: Editor, store: Outlin
 
     findSuggestionMatch({ $position }) {
       const regexp = /\[\[(.*?)\]\]/g;
-
       const parent = $position.parent;
-      const textContent = parent.textContent;
-
-      if (!textContent) return null;
-
       const parentFrom = $position.start();
 
-      const matches = Array.from(textContent.matchAll(regexp));
+      const allMatches: {
+        match: RegExpMatchArray;
+        nodeStartPos: number;
+      }[] = [];
 
-      const activeMatch = matches.find((match) => {
-        const matchFrom = parentFrom + (match.index || 0);
+      parent.forEach((childNode, offsetInParent) => {
+        if (!childNode.isText) {
+          return;
+        }
+
+        const childText = childNode.text;
+        if (!childText) return;
+        const matchesInChild = Array.from(childText.matchAll(regexp));
+
+        if (matchesInChild.length > 0) {
+          const childNodeStartPos = parentFrom + offsetInParent;
+
+          matchesInChild.forEach((match) => {
+            allMatches.push({
+              match,
+              nodeStartPos: childNodeStartPos,
+            });
+          });
+        }
+      });
+
+      if (allMatches.length === 0) return null;
+
+      const activeMatchInfo = allMatches.find(({ match, nodeStartPos }) => {
+        const matchFrom = nodeStartPos + (match.index || 0);
         const matchTo = matchFrom + match[0].length;
 
-        // カーソルが[[]]の内側にあるかどうかチェック
+        // カーソルが [[]] の内側にあるかチェック
+        // (+2, -2 は [[ と ]] の文字分)
         return $position.pos >= matchFrom + 2 && $position.pos <= matchTo - 2;
       });
 
-      if (!activeMatch) return null;
+      if (!activeMatchInfo) return null;
 
-      const from = parentFrom + (activeMatch.index || 0);
-      const to = from + activeMatch[0].length;
-      const query = activeMatch[1] ?? "";
-      const text = activeMatch[0];
+      const { match, nodeStartPos } = activeMatchInfo;
+
+      const from = nodeStartPos + (match.index || 0);
+      const to = from + match[0].length;
+      const query = match[1] ?? "";
+      const text = match[0];
 
       return {
-        range: {
-          from,
-          to,
-        },
+        range: { from, to },
         query,
-        text: text,
+        text,
       };
     },
   });
