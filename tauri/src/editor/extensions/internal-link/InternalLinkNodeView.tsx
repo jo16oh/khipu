@@ -6,6 +6,10 @@ import { ErrorBoundary } from "react-error-boundary";
 import { extractTextFromDoc } from "src/editor/utils";
 import { useOutline } from "src/hooks/useOutline";
 
+interface InternalLinkAttributes {
+  id: string | null;
+}
+
 export function InternalLinkNodeView({ node }: NodeViewProps) {
   const { id } = node.attrs as InternalLinkAttributes;
 

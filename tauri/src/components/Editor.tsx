@@ -104,6 +104,7 @@ const MockEditor = memo(function MockEditor({
         content: doc as JSONContent,
         options: {
           nodeMapping: {
+            // @ts-expect-error NodeViewProps is incompatible with NodeProps from static renderer
             "internal-link": InternalLinkNodeView,
           },
         },
