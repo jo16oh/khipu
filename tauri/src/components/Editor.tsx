@@ -16,7 +16,7 @@ import {
   useState,
   useTransition,
 } from "react";
-import { InternalLinkNodeView } from "src/editor/extensions/internal-link";
+import { InternalLinkNodeView } from "src/editor/extensions/internal-link/InternalLinkNodeView";
 import { createEditorExtensions, createRendererExtensions } from "src/editor/schema";
 import { editorStyleRecipe } from "src/editor/style";
 import { useObservableRef } from "src/hooks/useObservableRef";
