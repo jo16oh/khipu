@@ -23,7 +23,9 @@ export function createCommonKeydownHandlers(
     {
       on: [Key.Backspace],
       fn: async (event, _, editor) => {
-        if (editor.state.selection.from !== 1) return;
+        const selection = editor.state.selection;
+        if (selection.from !== 1) return;
+        if (selection.from !== selection.to) return;
         if (event.isComposing || event.key === "Process") return;
         if (viewStateStore.getState().id === outlineId) return;
 
