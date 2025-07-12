@@ -1,8 +1,9 @@
 import { isEqual } from "es-toolkit";
-import { commands } from "generated/tauri-commands";
+import { commands, Link } from "generated/tauri-commands";
 import { produce, WritableDraft } from "immer";
 import { createContext, use } from "react";
 import { fetchYUpdates } from "src/custom-protocol";
+import { findNodesByTypeName } from "src/editor/utils";
 import { Outline, RawOutline } from "src/model";
 import { uint8ArrayToBase64Async as uint8ArrayToBase64Async } from "src/utils";
 import * as Y from "yjs";
@@ -260,10 +261,19 @@ export class OutlineStore {
       }, {}),
     );
 
+    const links: Link[] = (
+      findNodesByTypeName(outline.doc, ["internal-link"])["internal-link"] ?? []
+    )
+      .map((node) => {
+        const id = node?.attrs?.["id"] as string | undefined;
+        return id ? ({ id, type: "link" } as Link) : undefined;
+      })
+      .filter((e) => e !== undefined);
+
     await this.#commands.upsertOutline(
       RawOutline.from(outline),
       encodedPendingYUpdates,
-      [],
+      links,
       [],
       newAssetsData,
     );
