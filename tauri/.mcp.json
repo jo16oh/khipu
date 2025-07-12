@@ -3,6 +3,11 @@
     "typescript": {
       "command": "pnpm",
       "args": ["typescript-mcp"]
+    },
+    "eslint": {
+      "command": "pnpm",
+      "args": ["eslint", "--mcp"],
+      "env": {}
     }
   }
 }
