@@ -22,18 +22,6 @@ export function extractTextFromDoc(doc: JSONContent) {
   return results.join(" ");
 }
 
-function findNodesByTypeNameImpl(doc: JSONContent, typeNames: string[], buf: NodesGroupedByType) {
-  if (!doc.content) return;
-
-  for (const c of doc.content) {
-    for (const query of typeNames) {
-      if (c.type === query) buf[c.type]!.push(c);
-    }
-
-    findNodesByTypeNameImpl(c, typeNames, buf);
-  }
-}
-
 export function findNodesByTypeName(doc: JSONContent, typeNames: string[]): NodesGroupedByType {
   const buf: NodesGroupedByType = {};
 
@@ -44,6 +32,18 @@ export function findNodesByTypeName(doc: JSONContent, typeNames: string[]): Node
   findNodesByTypeNameImpl(doc, typeNames, buf);
 
   return buf;
+}
+
+function findNodesByTypeNameImpl(doc: JSONContent, typeNames: string[], buf: NodesGroupedByType) {
+  if (!doc.content) return;
+
+  for (const c of doc.content) {
+    for (const query of typeNames) {
+      if (c.type === query) buf[c.type]!.push(c);
+    }
+
+    findNodesByTypeNameImpl(c, typeNames, buf);
+  }
 }
 
 export function insertJSONContentsToYXMLFragment(
