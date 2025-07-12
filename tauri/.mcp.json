@@ -1,0 +1,8 @@
+{
+  "mcpServers": {
+    "typescript": {
+      "command": "pnpm",
+      "args": ["typescript-mcp"]
+    }
+  }
+}
