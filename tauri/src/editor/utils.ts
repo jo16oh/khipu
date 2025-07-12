@@ -11,7 +11,10 @@ export function extractTextFromDoc(doc: JSONContent) {
 
   while (stack.length > 0) {
     const node = stack.pop()!;
-    if (node.text) results.push(node.text);
+    if (node.text) {
+      results.push(node.text);
+    }
+
     if (node.content) {
       for (const child of node.content.toReversed()) {
         stack.push(child);
@@ -35,13 +38,13 @@ export function findNodesByTypeName(doc: JSONContent, typeNames: string[]): Node
 }
 
 function findNodesByTypeNameImpl(doc: JSONContent, typeNames: string[], buf: NodesGroupedByType) {
+  for (const query of typeNames) {
+    if (doc.type === query) buf[doc.type]!.push(doc);
+  }
+
   if (!doc.content) return;
 
   for (const c of doc.content) {
-    for (const query of typeNames) {
-      if (c.type === query) buf[c.type]!.push(c);
-    }
-
     findNodesByTypeNameImpl(c, typeNames, buf);
   }
 }
