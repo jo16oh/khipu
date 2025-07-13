@@ -1,6 +1,7 @@
 mod commands;
 mod custom_protocol;
 mod database;
+mod doc;
 mod error;
 mod model;
 mod util;

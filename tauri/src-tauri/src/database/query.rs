@@ -1,8 +1,9 @@
 use std::collections::{HashMap, HashSet};
 
 use crate::{
+    doc::extract_text_from_doc,
     model::{Asset, Base64Bytes, Link, Outline},
-    util::{day_start, extract_text_from_doc, uuidv7bs58},
+    util::{day_start, uuidv7bs58},
 };
 use chrono::Utc;
 use eyre::bail;
@@ -244,13 +245,15 @@ pub async fn asset<'a>(conn: impl SqliteExecutor<'a>, id: &str) -> eyre::Result<
 }
 
 pub async fn is_conflicting<'a>(
-    conn: impl SqliteExecutor<'a>,
+    conn: impl SqliteExecutor<'a> + Copy,
     id: &str,
     doc: &str,
 ) -> eyre::Result<bool> {
     let text = format!(
         r#""{}""#,
-        extract_text_from_doc(doc)?.replace(r#"""#, r#""""#)
+        extract_text_from_doc(conn, doc)
+            .await?
+            .replace(r#"""#, r#""""#)
     );
 
     sqlx::query_file_scalar!("src/database/is_conflicting.sql", id, text)
@@ -308,7 +311,7 @@ async fn delete_fts_index(tx: &mut SqliteTransaction<'_>, outline_id: &str) -> e
     .fetch_optional(&mut **tx)
     .await?
     {
-        let text = extract_text_from_doc(&res.doc)? + &ZERO_WIDTH_SPACE.repeat(2);
+        let text = extract_text_from_doc(&mut **tx, &res.doc).await? + &ZERO_WIDTH_SPACE.repeat(2);
         sqlx::query_file!("src/database/delete_fts_index.sql", res.rowid, text)
             .execute(&mut **tx)
             .await?;
@@ -323,7 +326,7 @@ async fn insert_fts_index(
     doc: &str,
 ) -> eyre::Result<()> {
     // add meaningless two chars to index the end of text correctly by trigram tokenizer
-    let text = extract_text_from_doc(doc)? + &ZERO_WIDTH_SPACE.repeat(2);
+    let text = extract_text_from_doc(&mut **tx, doc).await? + &ZERO_WIDTH_SPACE.repeat(2);
 
     sqlx::query_file_scalar!("src/database/insert_fts_index.sql", rowid, text)
         .execute(&mut **tx)
@@ -499,4 +502,26 @@ pub async fn clear_all_deleted_outlines(tx: &mut SqliteTransaction<'_>) -> eyre:
         .execute(&mut **tx)
         .await?;
     eyre::Ok(())
+}
+
+pub async fn docs<'a>(
+    conn: impl SqliteExecutor<'a>,
+    ids: &[&str],
+) -> eyre::Result<Vec<(String, String)>> {
+    #[derive(Debug)]
+    struct QueryResult {
+        id: String,
+        doc: String,
+    }
+
+    let ids = serde_json::to_string(ids)?;
+
+    let docs = sqlx::query_file_as!(QueryResult, "src/database/fetch_docs.sql", ids)
+        .fetch_all(conn)
+        .await?
+        .into_iter()
+        .map(|r| (r.id, r.doc))
+        .collect_vec();
+
+    Ok(docs)
 }
