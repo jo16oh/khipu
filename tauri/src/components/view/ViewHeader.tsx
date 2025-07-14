@@ -56,7 +56,7 @@ const HistoryButton = styled(Button, {
 });
 
 const headerIconStyle = square({
-  size: "4",
+  size: "5",
   color: "stone.500",
   _groupDisabled: {
     color: "stone.300",
