@@ -3,7 +3,6 @@ use std::collections::HashMap;
 use itertools::Itertools;
 use serde::Deserialize;
 use sqlx::SqliteExecutor;
-use strum::Display;
 
 use crate::database::query;
 
@@ -19,10 +18,18 @@ struct Document {
     attrs: Option<serde_json::Value>,
 }
 
-#[derive(Display)]
 enum ExtractionResult {
     Text(String),
     Link(String),
+}
+
+impl ExtractionResult {
+    fn into_string(self) -> String {
+        match self {
+            Self::Text(str) => str,
+            Self::Link(str) => str,
+        }
+    }
 }
 
 pub async fn extract_text_from_doc<'a>(
@@ -109,7 +116,7 @@ fn extract_text_from_linked_document(
         let extracted_items = extract_document_items(&doc);
         let text = extracted_items
             .into_iter()
-            .map(|item| item.to_string())
+            .map(|item| item.into_string())
             .join("");
         Ok(Some(text))
     } else {
