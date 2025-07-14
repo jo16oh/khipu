@@ -29,9 +29,9 @@ export default function Stage() {
       {defferedId ? (
         <>
           <LazySuspense>
-            <TitlebarHandler borderBottomWidth="thin" borderBottomColor="stone.200" w="full" h="12">
-              <MacOsTrafficLights />
-              <ViewHeader />
+            <TitlebarHandler borderBottomWidth="thin" borderBottomColor="stone.200" w="full" h="10">
+              <MacOsTrafficLights data-tauri-drag-region />
+              <ViewHeader data-tauri-drag-region />
             </TitlebarHandler>
             <OutlineTreeEditor id={defferedId} />
           </LazySuspense>
@@ -132,7 +132,7 @@ const CreateNewOutlineButton = styled(Button, {
 
 const MacOsTrafficLights = styled("div", {
   base: {
-    w: "20",
+    w: "[5.375rem]",
     h: "full",
   },
 });
