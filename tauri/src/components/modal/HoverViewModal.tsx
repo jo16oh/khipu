@@ -44,7 +44,9 @@ export default function HoverViewModal({ trigger }: { trigger: ReactNode }) {
         <LazySuspense>
           {defferedId ? (
             <ViewCotainer>
-              <ViewHeader />
+              <Header>
+                <ViewHeader />
+              </Header>
               <OutlineView id={defferedId} />
             </ViewCotainer>
           ) : null}
@@ -60,5 +62,14 @@ const ViewCotainer = styled("div", {
     h: "[90vh]",
     px: "1.5",
     bg: "stone.50",
+  },
+});
+
+const Header = styled("div", {
+  base: {
+    borderBottomWidth: "thin",
+    borderBottomColor: "stone.200",
+    w: "full",
+    h: "10",
   },
 });
