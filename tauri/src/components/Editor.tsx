@@ -1,5 +1,4 @@
 import { EditorContent, FocusPosition, JSONContent, Editor as Tiptap } from "@tiptap/react";
-import { renderToReactElement } from "@tiptap/static-renderer";
 import { css } from "generated/styled-system/css";
 import { styled } from "generated/styled-system/jsx";
 import { OutlineType } from "generated/tauri-commands";
@@ -11,13 +10,12 @@ import {
   useCallback,
   useEffect,
   useImperativeHandle,
-  useMemo,
   useRef,
   useState,
   useTransition,
 } from "react";
-import { InternalLinkNodeView } from "src/editor/extensions/internal-link/InternalLinkNodeView";
-import { createEditorExtensions, createRendererExtensions } from "src/editor/schema";
+import StaticRenderer from "src/editor/StaticRenderer";
+import { createEditorExtensions } from "src/editor/schema";
 import { editorStyleRecipe } from "src/editor/style";
 import { useObservableRef } from "src/hooks/useObservableRef";
 import { useOutline } from "src/hooks/useOutline";
@@ -94,21 +92,10 @@ const MockEditor = memo(function MockEditor({
   onMouseEnter: () => void;
 }) {
   const { type, doc } = useOutline(id, ({ type, doc }) => ({ type, doc }));
-  const store = useOutlineStore();
-  const extensions = useMemo(() => createRendererExtensions(type, store), [type, store]);
 
   return (
     <EditorContainer type="mock" onMouseEnter={onMouseEnter}>
-      {renderToReactElement({
-        extensions,
-        content: doc as JSONContent,
-        options: {
-          nodeMapping: {
-            // @ts-expect-error NodeViewProps is incompatible with NodeProps from static renderer
-            "internal-link": InternalLinkNodeView,
-          },
-        },
-      })}
+      <StaticRenderer doc={doc as JSONContent} type={type} />
     </EditorContainer>
   );
 });
