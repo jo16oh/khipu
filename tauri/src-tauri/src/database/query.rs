@@ -2,7 +2,7 @@ use std::collections::{HashMap, HashSet};
 
 use crate::{
     doc::extract_text_from_doc,
-    model::{Asset, Base64Bytes, Link, Outline},
+    model::{Asset, Base64Bytes, Link, Outline, SqliteBool},
     util::{day_start, uuidv7bs58},
 };
 use chrono::Utc;
@@ -272,6 +272,24 @@ pub async fn outline_exists<'a>(conn: impl SqliteExecutor<'a>, id: &str) -> eyre
 }
 
 pub async fn upsert_outline(tx: &mut SqliteTransaction<'_>, outline: &Outline) -> eyre::Result<()> {
+    struct InboundLink {
+        rowid: i64,
+        id: String,
+        doc: String,
+    }
+
+    let inbound_links = sqlx::query_file_as!(
+        InboundLink,
+        "src/database/fetch_inbound_link_id_and_doc.sql",
+        outline.id
+    )
+    .fetch_all(&mut **tx)
+    .await?;
+
+    for InboundLink { id, .. } in inbound_links.iter() {
+        delete_fts_index(tx, id).await?;
+    }
+
     delete_fts_index(tx, &outline.id).await?;
 
     let rowid = sqlx::query_file_scalar!(
@@ -291,6 +309,10 @@ pub async fn upsert_outline(tx: &mut SqliteTransaction<'_>, outline: &Outline) -
     .await?;
 
     insert_fts_index(tx, rowid, &outline.doc).await?;
+
+    for InboundLink { rowid, doc, .. } in inbound_links {
+        insert_fts_index(tx, rowid, &doc).await?;
+    }
 
     eyre::Ok(())
 }
@@ -504,24 +526,22 @@ pub async fn clear_all_deleted_outlines(tx: &mut SqliteTransaction<'_>) -> eyre:
     eyre::Ok(())
 }
 
+#[derive(Debug)]
+pub struct DocsQueryResult {
+    pub id: String,
+    pub doc: String,
+    pub deleted: SqliteBool,
+}
+
 pub async fn docs<'a>(
     conn: impl SqliteExecutor<'a>,
     ids: &[&str],
-) -> eyre::Result<Vec<(String, String)>> {
-    #[derive(Debug)]
-    struct QueryResult {
-        id: String,
-        doc: String,
-    }
-
+) -> eyre::Result<Vec<DocsQueryResult>> {
     let ids = serde_json::to_string(ids)?;
 
-    let docs = sqlx::query_file_as!(QueryResult, "src/database/fetch_docs.sql", ids)
+    let docs = sqlx::query_file_as!(DocsQueryResult, "src/database/fetch_docs.sql", ids)
         .fetch_all(conn)
-        .await?
-        .into_iter()
-        .map(|r| (r.id, r.doc))
-        .collect_vec();
+        .await?;
 
     Ok(docs)
 }

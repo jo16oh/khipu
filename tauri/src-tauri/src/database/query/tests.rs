@@ -352,10 +352,44 @@ async fn test_fts_update() {
     let mut o = Outline::new();
     o.doc = r#"{ "text": "a" }"#.to_string();
     upsert_outline(&mut tx, &o).await.unwrap();
+
+    let mut o2 = Outline::new();
+    o2.doc = r#"
+        { 
+            "type": "doc",
+            "content": [
+                { 
+                    "type": "text",
+                    "text": "link → "
+                }, 
+                { 
+                    "type": "internal-link",
+                    "attrs": {
+                        "id": "link_id"
+                    } 
+                }
+            ] 
+        }
+    "#
+    .replace("link_id", &o.id);
+
+    upsert_outline(&mut tx, &o2).await.unwrap();
+
+    sync_links(
+        &mut tx,
+        &o2.id,
+        HashSet::from_iter([Link {
+            id: o.id.clone(),
+            r#type: LinkType::Link,
+        }]),
+    )
+    .await
+    .unwrap();
+
     tx.commit().await.unwrap();
 
     let (r, _) = search(&pool, "a", OrderBy::CreatedAt, 0).await.unwrap();
-    assert!(r.len() == 1);
+    assert!(r.len() == 2);
 
     let mut tx = pool.begin().await.unwrap();
     o.doc = r#"{ "text": "b" }"#.to_string();
@@ -363,7 +397,7 @@ async fn test_fts_update() {
     tx.commit().await.unwrap();
 
     let (r, _) = search(&pool, "b", OrderBy::CreatedAt, 0).await.unwrap();
-    assert!(r.len() == 1);
+    assert!(r.len() == 2);
 
     let (r, _) = search(&pool, "a", OrderBy::CreatedAt, 0).await.unwrap();
     assert!(r.is_empty());

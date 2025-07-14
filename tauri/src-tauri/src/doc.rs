@@ -75,8 +75,15 @@ async fn resolve_and_concatenate_text<'a>(
     extracted_items: Vec<ExtractionResult>,
 ) -> eyre::Result<String> {
     let link_ids = collect_link_ids(&extracted_items);
-    let linked_docs: HashMap<String, String> =
-        query::docs(conn, &link_ids).await?.into_iter().collect();
+
+    let linked_docs: HashMap<String, String> = query::docs(conn, &link_ids)
+        .await?
+        .into_iter()
+        .filter_map(|e| match e.deleted.0 {
+            false => Some((e.id, e.doc)),
+            true => None,
+        })
+        .collect();
 
     let mut text = String::new();
     for item in extracted_items {
@@ -113,8 +120,8 @@ fn extract_text_from_linked_document(
     linked_docs: &HashMap<String, String>,
     link_id: &str,
 ) -> eyre::Result<Option<String>> {
-    if let Some(doc_json) = linked_docs.get(link_id) {
-        let doc: Document = serde_json::from_str(doc_json)?;
+    if let Some(doc) = linked_docs.get(link_id) {
+        let doc: Document = serde_json::from_str(doc)?;
         let extracted_items = extract_document_items(&doc);
         let text = extracted_items
             .into_iter()
