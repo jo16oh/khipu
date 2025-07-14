@@ -14,9 +14,8 @@ import OutlineTreeEditor from "../OutlineTreeEditor";
 
 export default function Stage() {
   const viewStateStore = useWorkspaceState(useShallow((state) => state.stage));
-  const store = useOutlineStore();
 
-  const { id, jump } = useStore(
+  const { id } = useStore(
     viewStateStore,
     useShallow(({ id, jump }) => ({ id, jump })),
   );
@@ -27,15 +26,8 @@ export default function Stage() {
     <ViewStateStoreContext value={viewStateStore}>
       {defferedId ? (
         <>
-          <button
-            onClick={() => {
-              const newId = store.reducer.create("heading");
-              jump({ id: newId, scrollPosition: 0 });
-            }}
-          >
-            new outline
-          </button>
           <LazySuspense>
+              <ViewHeader />
             <OutlineTreeEditor id={defferedId} />
           </LazySuspense>
         </>
