@@ -43,7 +43,7 @@ export const InternalLink = Node.create({
   },
 });
 
-export const createInternalLinkExtension = (store: OutlineStore) => {
+export const createInternalLinkExtensionWithSuggestion = (store: OutlineStore) => {
   return InternalLink.extend({
     addProseMirrorPlugins() {
       return [createInternalLinkSuggestionPlugin(this.editor, store)];

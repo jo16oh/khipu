@@ -10,7 +10,10 @@ import { FocusManager } from "src/stores/focus-manager";
 import { OutlineStore } from "src/stores/outline-store";
 import { ViewStateStore } from "src/stores/view-state-store";
 import * as Y from "yjs";
-import { createInternalLinkExtension, InternalLink } from "./extensions/internal-link";
+import {
+  createInternalLinkExtensionWithSuggestion,
+  InternalLink,
+} from "./extensions/internal-link";
 import { createKeydownHandlersExtension } from "./extensions/keydown-handlers";
 import { createSyncFocusPositionExtension } from "./extensions/sync-focus-position";
 import { createUpdateNotifierExtension } from "./extensions/update-notifier";
@@ -26,7 +29,12 @@ export function createRendererExtensions(type: OutlineType, store: OutlineStore)
     case "heading":
       return [SingleBlockDocument, Heading, Text];
     case "bullet":
-      return [SingleBlockDocument, Paragraph, Text, createInternalLinkExtension(store)];
+      return [
+        SingleBlockDocument,
+        Paragraph,
+        Text,
+        createInternalLinkExtensionWithSuggestion(store),
+      ];
     case "card":
       return [Document, Paragraph, Text];
     case "code":
