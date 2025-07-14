@@ -51,4 +51,4 @@ export const createInternalLinkExtension = (store: OutlineStore) => {
   });
 };
 
-export { InternalLinkSuggestionPluginKey };
+export { InternalLinkSuggestionPluginKey, InternalLinkNodeView };

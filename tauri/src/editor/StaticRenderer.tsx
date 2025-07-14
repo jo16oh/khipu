@@ -3,6 +3,7 @@ import { renderToReactElement } from "@tiptap/static-renderer";
 import { OutlineType } from "generated/tauri-commands";
 import { useMemo } from "react";
 import { useOutlineStore } from "src/stores/outline-store";
+import { InternalLinkNodeView } from "./extensions/internal-link";
 import { createRendererExtensions } from "./schema";
 
 export default function StaticRenderer({ type, doc }: { type: OutlineType; doc: JSONContent }) {
