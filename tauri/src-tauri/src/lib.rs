@@ -8,7 +8,7 @@ mod util;
 
 use database::ConnectionState;
 use specta_typescript::Typescript;
-use tauri::{Manager, TitleBarStyle, WebviewUrl, WebviewWindowBuilder};
+use tauri::{Manager, PhysicalPosition, TitleBarStyle, WebviewUrl, WebviewWindowBuilder};
 use tauri_plugin_window_state::{AppHandleExt, StateFlags};
 
 #[cfg_attr(mobile, tauri::mobile_entry_point)]
@@ -32,7 +32,8 @@ pub fn run() {
                 .inner_size(1025.0, 800.0)
                 .min_inner_size(470.0, 420.0)
                 .resizable(true)
-                .visible(false);
+                .visible(false)
+                .traffic_light_position(PhysicalPosition { x: 32, y: 36 });
 
             // set transparent title bar only when building for macOS
             #[cfg(target_os = "macos")]
