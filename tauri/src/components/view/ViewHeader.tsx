@@ -36,8 +36,6 @@ const Header = styled("div", {
     display: "flex",
     gap: "2",
     alignItems: "center",
-    borderBottomWidth: "thin",
-    borderBottomColor: "stone.200",
     p: "1",
   },
 });
