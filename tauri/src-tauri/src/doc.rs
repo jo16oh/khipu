@@ -88,6 +88,8 @@ async fn resolve_and_concatenate_text<'a>(
                 {
                     text.push_str(&linked_text);
                 } else {
+                    // if the linked document is not found,
+                    // push whitespace to separate the text around the link
                     text.push(' ');
                 }
             }
