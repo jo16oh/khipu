@@ -325,7 +325,7 @@ async fn insert_fts_index(
     rowid: i64,
     doc: &str,
 ) -> eyre::Result<()> {
-    // add meaningless two chars to index the end of text correctly by trigram tokenizer
+    // add two meaningless chars to index the end of the text correctly by trigram tokenizer
     let text = extract_text_from_doc(&mut **tx, doc).await? + &ZERO_WIDTH_SPACE.repeat(2);
 
     sqlx::query_file_scalar!("src/database/insert_fts_index.sql", rowid, text)
