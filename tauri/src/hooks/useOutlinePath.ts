@@ -9,7 +9,7 @@ export function useOutlinePath(id: string): string[] {
     () => store.getOutlinePath(id),
   );
 
-  if (path === undefined) throw new Error("outline not found");
+  if (path === undefined) throw new Error("path not found");
 
   return path;
 }
