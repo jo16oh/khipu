@@ -10,7 +10,9 @@ import { useStore } from "zustand";
 import { useShallow } from "zustand/react/shallow";
 import Bullet from "../common/Bullet";
 import LazySuspense from "../common/LazySuspense";
+import TitlebarHandler from "../common/TitlebarHandler";
 import OutlineTreeEditor from "../OutlineTreeEditor";
+import ViewHeader from "../view/ViewHeader";
 
 export default function Stage() {
   const viewStateStore = useWorkspaceState(useShallow((state) => state.stage));
@@ -27,7 +29,10 @@ export default function Stage() {
       {defferedId ? (
         <>
           <LazySuspense>
+            <TitlebarHandler borderBottomWidth="thin" borderBottomColor="stone.200" w="full" h="12">
+              <MacOsTrafficLights />
               <ViewHeader />
+            </TitlebarHandler>
             <OutlineTreeEditor id={defferedId} />
           </LazySuspense>
         </>
@@ -122,5 +127,12 @@ const CreateNewOutlineButton = styled(Button, {
       cursor: "pointer",
       textDecoration: "underline",
     },
+  },
+});
+
+const MacOsTrafficLights = styled("div", {
+  base: {
+    w: "20",
+    h: "full",
   },
 });

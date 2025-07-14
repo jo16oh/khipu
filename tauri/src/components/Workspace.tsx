@@ -17,9 +17,10 @@ import {
 } from "src/stores/workspace-state-store";
 import { useStore } from "zustand";
 import { useShallow } from "zustand/react/shallow";
-import TitlebarHandler from "./common/TitlebarHandler";
 import Dock from "./workspace/Dock";
+import Search from "./workspace/Search";
 import Stage from "./workspace/Stage";
+import Timeline from "./workspace/Timeline";
 
 type Commands = typeof commands;
 
@@ -120,10 +121,9 @@ function WorkspaceImpl() {
 
   return graphName ? (
     <>
-      <TitlebarHandler />
       <Container>
-        {defferedFocus === "timeline" && <div>timeline</div>}
-        {defferedFocus === "search" && <div>search</div>}
+        {defferedFocus === "timeline" && <Timeline />}
+        {defferedFocus === "search" && <Search />}
         {defferedFocus === "stage" && <Stage />}
         <button onClick={closeGraph}>close {graphName}</button>
       </Container>
@@ -136,8 +136,7 @@ function WorkspaceImpl() {
 
 const Container = styled("div", {
   base: {
-    display: "grid",
-    flex: "1",
-    placeContent: "center",
+    w: "full",
+    h: "full",
   },
 });
