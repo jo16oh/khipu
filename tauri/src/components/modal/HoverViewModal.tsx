@@ -67,9 +67,11 @@ const ViewCotainer = styled("div", {
 
 const Header = styled("div", {
   base: {
+    display: "flex",
+    alignItems: "center",
     borderBottomWidth: "thin",
     borderBottomColor: "stone.200",
     w: "full",
-    h: "10",
+    h: "8",
   },
 });
