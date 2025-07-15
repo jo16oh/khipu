@@ -81,9 +81,11 @@ const Main = styled("main", {
   base: {
     display: "flex",
     flexDir: "column",
+    alignItems: "center",
     w: "screen",
     h: "screen",
     bg: "stone.50",
+    overflow: "hidden",
   },
 });
 

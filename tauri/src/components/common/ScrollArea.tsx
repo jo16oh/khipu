@@ -1,7 +1,7 @@
 import { StyledComponent, styled } from "generated/styled-system/jsx";
-import { PropsWithChildren, Ref } from "react";
+import { ComponentProps, PropsWithChildren, Ref } from "react";
 
-type StyleProps = Omit<StyledComponent<"div">, "ref">;
+type StyleProps = Omit<ComponentProps<StyledComponent<"div">>, "ref">;
 type ScrollAreaProps = PropsWithChildren &
   StyleProps & {
     ref?: Ref<HTMLDivElement>;

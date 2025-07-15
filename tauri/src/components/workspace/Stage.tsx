@@ -10,6 +10,7 @@ import { useStore } from "zustand";
 import { useShallow } from "zustand/react/shallow";
 import Bullet from "../common/Bullet";
 import LazySuspense from "../common/LazySuspense";
+import ScrollArea from "../common/ScrollArea";
 import TitlebarHandler from "../common/TitlebarHandler";
 import OutlineView from "../view/OutlineView";
 import ViewHeader from "../view/ViewHeader";
@@ -33,7 +34,11 @@ export default function Stage() {
               <MacOsTrafficLights data-tauri-drag-region />
               <ViewHeader data-tauri-drag-region />
             </TitlebarHandler>
-            <OutlineView id={defferedId} />
+            <ViewContainer>
+              <View>
+                <OutlineView id={defferedId} />
+              </View>
+            </ViewContainer>
           </LazySuspense>
         </>
       ) : (
@@ -117,6 +122,26 @@ const Operation = styled("div", {
     display: "flex",
     gap: "2",
     alignItems: "center",
+  },
+});
+
+const ViewContainer = styled(ScrollArea, {
+  base: {
+    display: "flex",
+    flexDir: "column",
+    alignItems: "center",
+    w: "full",
+    h: "full",
+  },
+});
+
+const View = styled("div", {
+  base: {
+    w: "full",
+    maxW: "[46rem]",
+    px: "4",
+    pt: "12",
+    pb: "[50%]",
   },
 });
 

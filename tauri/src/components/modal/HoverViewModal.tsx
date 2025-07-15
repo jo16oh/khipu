@@ -10,6 +10,7 @@ import DialogSideActionButton, {
   dialogSideActionButtonIconStyle,
 } from "../common/DialogSideButton";
 import LazySuspense from "../common/LazySuspense";
+import ScrollArea from "../common/ScrollArea";
 import OutlineView from "../view/OutlineView";
 import ViewHeader from "../view/ViewHeader";
 
@@ -43,12 +44,16 @@ export default function HoverViewModal({ trigger }: { trigger: ReactNode }) {
       content={() => (
         <LazySuspense>
           {defferedId ? (
-            <ViewCotainer>
+            <Container>
               <Header>
                 <ViewHeader />
               </Header>
-              <OutlineView id={defferedId} />
-            </ViewCotainer>
+              <ScrollArea>
+                <View>
+                  <OutlineView id={defferedId} />
+                </View>
+              </ScrollArea>
+            </Container>
           ) : null}
         </LazySuspense>
       )}
@@ -56,11 +61,12 @@ export default function HoverViewModal({ trigger }: { trigger: ReactNode }) {
   );
 }
 
-const ViewCotainer = styled("div", {
+const Container = styled("div", {
   base: {
+    display: "flex",
+    flexDir: "column",
     rounded: "md",
     h: "[90vh]",
-    px: "1.5",
     bg: "stone.50",
   },
 });
@@ -73,5 +79,13 @@ const Header = styled("div", {
     borderBottomColor: "stone.200",
     w: "full",
     h: "8",
+  },
+});
+
+const View = styled("div", {
+  base: {
+    flex: "1",
+    w: "full",
+    px: "2",
   },
 });

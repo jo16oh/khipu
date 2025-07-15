@@ -1,6 +1,5 @@
 import { LazyStore } from "@tauri-apps/plugin-store";
 import { memoize } from "es-toolkit";
-import { styled } from "generated/styled-system/jsx";
 import { commands } from "generated/tauri-commands";
 import { PropsWithChildren, use, useDeferredValue } from "react";
 import { useAppState } from "src/stores/app-state-store";
@@ -111,9 +110,7 @@ function Providers({ graphName, children }: { graphName: string } & PropsWithChi
 }
 
 function WorkspaceImpl() {
-  const [graphName, closeGraph] = useAppState(
-    useShallow(({ graphName, closeGraph }) => [graphName, closeGraph]),
-  );
+  const graphName = useAppState(useShallow(({ graphName }) => graphName));
 
   const focus = useWorkspaceState(useShallow(({ focus }) => focus));
 
@@ -121,22 +118,12 @@ function WorkspaceImpl() {
 
   return graphName ? (
     <>
-      <Container>
-        {defferedFocus === "timeline" && <Timeline />}
-        {defferedFocus === "search" && <Search />}
-        {defferedFocus === "stage" && <Stage />}
-        <button onClick={closeGraph}>close {graphName}</button>
-      </Container>
+      {defferedFocus === "timeline" && <Timeline />}
+      {defferedFocus === "search" && <Search />}
+      {defferedFocus === "stage" && <Stage />}
       <Dock />
     </>
   ) : (
     <></>
   );
 }
-
-const Container = styled("div", {
-  base: {
-    w: "full",
-    h: "full",
-  },
-});
