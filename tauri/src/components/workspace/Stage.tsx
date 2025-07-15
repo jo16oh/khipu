@@ -11,7 +11,7 @@ import { useShallow } from "zustand/react/shallow";
 import Bullet from "../common/Bullet";
 import LazySuspense from "../common/LazySuspense";
 import TitlebarHandler from "../common/TitlebarHandler";
-import OutlineTreeEditor from "../OutlineTreeEditor";
+import OutlineView from "../view/OutlineView";
 import ViewHeader from "../view/ViewHeader";
 
 export default function Stage() {
@@ -33,7 +33,7 @@ export default function Stage() {
               <MacOsTrafficLights data-tauri-drag-region />
               <ViewHeader data-tauri-drag-region />
             </TitlebarHandler>
-            <OutlineTreeEditor id={defferedId} />
+            <OutlineView id={defferedId} />
           </LazySuspense>
         </>
       ) : (

@@ -3,8 +3,8 @@ import { ErrorBoundary } from "react-error-boundary";
 import { useFetchOutlineTree } from "src/hooks/useFetchOutlineTree";
 import { useOutline } from "src/hooks/useOutline";
 import { useOutlineChildren } from "src/hooks/useOutlineChildren";
-import BulletButton from "./common/BulletButton";
-import Editor from "./Editor";
+import BulletButton from "../common/BulletButton";
+import Editor from "../Editor";
 
 export default function OutlineTreeEditor({ id }: { id: string }) {
   useFetchOutlineTree(id);
