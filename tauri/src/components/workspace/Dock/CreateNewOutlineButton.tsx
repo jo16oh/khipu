@@ -3,6 +3,7 @@ import { square } from "generated/styled-system/patterns";
 import { SquarePen } from "lucide-react";
 import { startTransition, useRef } from "react";
 import { Button } from "react-aria-components";
+import { useFocusManager } from "src/stores/focus-manager";
 import { useOutlineStore } from "src/stores/outline-store";
 import {
   createViewStateStore,
@@ -24,12 +25,17 @@ export default function CreateNewOutlineButton() {
 const HoverViewTrigger = () => {
   const outlineStore = useOutlineStore();
   const viewState = useViewState((state) => state);
+  const focusManager = useFocusManager();
 
   return (
     <StyledTriggerButton
-      onPress={(e) => {
-        const id = outlineStore.reducer.create("heading");
-        viewState.jump({ id, scrollPosition: 0 });
+      onPress={async (e) => {
+        const parentId = outlineStore.reducer.create("heading");
+        const childId = outlineStore.reducer.create("bullet", parentId);
+        await outlineStore.save(parentId);
+        await outlineStore.save(childId);
+        viewState.jump({ id: parentId, scrollPosition: 0 });
+        focusManager.focus({ id: childId, position: "end" });
         startTransition(() => e.continuePropagation());
       }}
     >
