@@ -5,6 +5,7 @@ export const editorStyleRecipe = cva({
     cursor: "text",
     ring: "none",
     w: "full",
+    minH: "[1lh]",
     "& .suggestion": {
       rounded: "md",
       p: "1",
@@ -18,6 +19,7 @@ export const editorStyleRecipe = cva({
       pointerEvents: "none",
     },
     "& *": {
+      minH: "[1lh]",
       wordBreak: "break-word",
       textWrap: "wrap",
       userSelect: "text",

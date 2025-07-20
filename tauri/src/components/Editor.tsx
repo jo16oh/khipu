@@ -195,8 +195,6 @@ const EditorContainer = styled("div", {
     },
   },
   base: {
-    w: "full",
-    minH: "6",
     ...editorStyleRecipe.raw(),
   },
 });
