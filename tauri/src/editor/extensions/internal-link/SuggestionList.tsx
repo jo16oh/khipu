@@ -62,7 +62,7 @@ export default function SuggestionList({
 function Candidate({ id, selected }: { id: string; selected: boolean }) {
   const doc = useOutline(id, ({ doc }) => doc);
   const store = useOutlineStore();
-  const extensions = useMemo(() => createRendererExtensions("heading", store), [store]);
+  const extensions = useMemo(() => createRendererExtensions(id, "heading", store), [id, store]);
 
   return (
     <ListItem data-selected={selected}>

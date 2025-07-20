@@ -10,6 +10,13 @@ export const editorStyleRecipe = cva({
       p: "1",
       bg: "stone.200",
     },
+    "& [data-is-empty='true']:first-child::before": {
+      float: "start",
+      h: "0",
+      color: "stone.400",
+      content: '"Untitled"',
+      pointerEvents: "none",
+    },
     "& *": {
       wordBreak: "break-word",
       textWrap: "wrap",

@@ -17,6 +17,7 @@ import {
 import { createKeydownHandlersExtension } from "./extensions/keydown-handlers";
 import { createSyncFocusPositionExtension } from "./extensions/sync-focus-position";
 import { createUpdateNotifierExtension } from "./extensions/update-notifier";
+import { extractTextFromDoc } from "./utils";
 
 const SingleBlockDocument = Node.create({
   name: "doc",
@@ -24,10 +25,39 @@ const SingleBlockDocument = Node.create({
   content: "block",
 });
 
-export function createRendererExtensions(type: OutlineType, store: OutlineStore): Extensions {
+export function createRendererExtensions(
+  id: string,
+  type: OutlineType,
+  store: OutlineStore,
+): Extensions {
   switch (type) {
     case "heading":
-      return [SingleBlockDocument, Heading, Text];
+      return [
+        SingleBlockDocument,
+        Heading.extend({
+          addAttributes() {
+            const isEmpty = this.editor
+              ? String(this.editor.isEmpty)
+              : (() => {
+                  const outline = store.getOutline(id);
+                  const text = outline ? extractTextFromDoc(outline.doc) : null;
+                  return text?.length ? "false" : "true";
+                })();
+
+            return {
+              "data-is-empty": {
+                default: isEmpty,
+              },
+            };
+          },
+          onUpdate() {
+            this.editor.commands.updateAttributes("heading", {
+              "data-is-empty": String(this.editor.isEmpty),
+            });
+          },
+        }),
+        Text,
+      ];
     case "bullet":
       return [
         SingleBlockDocument,
@@ -54,7 +84,7 @@ export function createEditorExtensions(
   const fragment = ydoc.getXmlFragment("doc");
 
   return [
-    ...createRendererExtensions(type, store),
+    ...createRendererExtensions(outlineId, type, store),
     createKeydownHandlersExtension(outlineId, type, store, focusManager, viewStateStore),
     Collabolation.extend().configure({ fragment }),
     createUpdateNotifierExtension(outlineId, notifier),

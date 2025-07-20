@@ -6,9 +6,17 @@ import { useOutlineStore } from "src/stores/outline-store";
 import { InternalLinkNodeView } from "./extensions/internal-link";
 import { createRendererExtensions } from "./schema";
 
-export default function StaticRenderer({ type, doc }: { type: OutlineType; doc: JSONContent }) {
+export default function StaticRenderer({
+  id,
+  type,
+  doc,
+}: {
+  id: string;
+  type: OutlineType;
+  doc: JSONContent;
+}) {
   const store = useOutlineStore();
-  const extensions = useMemo(() => createRendererExtensions(type, store), [type, store]);
+  const extensions = useMemo(() => createRendererExtensions(id, type, store), [id, type, store]);
 
   return renderToReactElement({
     extensions,

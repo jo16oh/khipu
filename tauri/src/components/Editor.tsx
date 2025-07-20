@@ -95,7 +95,7 @@ const MockEditor = memo(function MockEditor({
 
   return (
     <EditorContainer type="mock" onMouseEnter={onMouseEnter}>
-      <StaticRenderer doc={doc as JSONContent} type={type} />
+      <StaticRenderer id={id} doc={doc as JSONContent} type={type} />
     </EditorContainer>
   );
 });
