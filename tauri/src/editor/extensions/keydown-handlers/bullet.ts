@@ -32,12 +32,12 @@ export function createBulletKeydownHandlers(
 
         editor.commands.deleteRange({ from: start, to: end });
 
-        const newOutlineId = store.reducer.create(
-          "bullet",
-          outline.parentId,
-          { after: outline },
-          doc,
-        );
+        const children = store.getOutlineChildren(outlineId);
+
+        const newOutlineId =
+          children && children.size
+            ? store.reducer.create("bullet", outlineId, "start", doc)
+            : store.reducer.create("bullet", outline.parentId, { after: outline }, doc);
 
         editor.commands.blur();
         focusManager.focus({ id: newOutlineId, position: "start" });
