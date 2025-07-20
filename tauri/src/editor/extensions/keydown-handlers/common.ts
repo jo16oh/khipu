@@ -176,10 +176,23 @@ export function createCommonKeydownHandlers(
         const siblings = store.getOutlineChildren(outline.parentId);
         if (!siblings) return true;
         const { index, found } = siblings.findIndex(outline) ?? {};
-        if (!found || index === 0) return true;
-        const { id: prevId } = siblings.at(index - 1) ?? {};
-        if (!prevId) return true;
-        store.reducer.move([prevId], outline.parentId, { after: outline });
+        if (!found) return true;
+        if (index !== 0) {
+          const { id: prevId } = siblings.at(index - 1) ?? {};
+          if (!prevId) return true;
+          store.reducer.move([prevId], outline.parentId, { after: outline });
+        } else {
+          if (outline.parentId === viewStateStore.getState().id) return true;
+          const parent = store.getOutline(outline.parentId);
+          if (!parent?.parentId) return true;
+          const parentsSiblings = store.getOutlineChildren(parent.parentId);
+          if (!parentsSiblings) return true;
+          const { index, found } = parentsSiblings?.findIndex(parent) ?? {};
+          if (!found || !index) return true;
+          const { id: parentsSiblingId } = parentsSiblings.at(index - 1) ?? {};
+          if (!parentsSiblingId) return true;
+          store.reducer.move([outlineId], parentsSiblingId, "end");
+        }
         return true;
       },
     },
@@ -192,12 +205,25 @@ export function createCommonKeydownHandlers(
         const siblings = store.getOutlineChildren(outline.parentId);
         if (!siblings) return true;
         const { index, found } = siblings.findIndex(outline) ?? {};
-        if (!found || index === siblings.size - 1) return true;
-        const { id: nextId } = siblings.at(index + 1) ?? {};
-        if (!nextId) return true;
-        const next = store.getOutline(nextId);
-        if (!next) return true;
-        store.reducer.move([outlineId], outline.parentId, { after: next });
+        if (!found) return true;
+        if (index !== siblings.size - 1) {
+          const { id: nextId } = siblings.at(index + 1) ?? {};
+          if (!nextId) return true;
+          const next = store.getOutline(nextId);
+          if (!next) return true;
+          store.reducer.move([outlineId], outline.parentId, { after: next });
+        } else {
+          if (outline.parentId === viewStateStore.getState().id) return true;
+          const parent = store.getOutline(outline.parentId);
+          if (!parent?.parentId) return true;
+          const parentsSiblings = store.getOutlineChildren(parent.parentId);
+          if (!parentsSiblings) return true;
+          const { index, found } = parentsSiblings?.findIndex(parent) ?? {};
+          if (!found || index === parentsSiblings.size - 1) return true;
+          const { id: parentsSiblingId } = parentsSiblings.at(index + 1) ?? {};
+          if (!parentsSiblingId) return true;
+          store.reducer.move([outlineId], parentsSiblingId, "start");
+        }
         return true;
       },
     },
