@@ -51,10 +51,15 @@ export class OutlineStoreReducer {
 
     const now = new Date();
 
+    const defaultDoc =
+      type === "heading"
+        ? { type: "doc", content: [{ type: "heading", attrs: { level: "1" } }] }
+        : doc;
+
     const o: Outline = {
       id: uuidv7bs58(),
       parentId,
-      doc: doc,
+      doc: defaultDoc,
       type,
       findex,
       completed: false,
