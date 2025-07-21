@@ -37,7 +37,13 @@ function Outline({ id }: { id: string }) {
         <StyledBulletButton data-is-bullet={attrs.type === "bullet"} isCollapsed={collapsed} />
         <Editor id={id} />
       </Container>
-      <Children>{!collapsed && children?.map(({ id }) => <Outline key={id} id={id} />)}</Children>
+      {children?.size && !collapsed && (
+        <Children>
+          {children.map(({ id }) => (
+            <Outline key={id} id={id} />
+          ))}
+        </Children>
+      )}
     </>
   ) : (
     <div>outline is deleted</div>
