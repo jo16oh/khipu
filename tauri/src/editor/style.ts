@@ -27,32 +27,32 @@ export const editorStyle: SystemStyleObject = {
   },
   "& h1": {
     minH: "[1lh]",
-    fontSize: "[1.75rem]",
+    fontSize: "h1",
     fontWeight: "bold",
   },
   "& h2": {
     minH: "[1lh]",
-    fontSize: "[1.6rem]",
+    fontSize: "h2",
     fontWeight: "bold",
   },
   "& h3": {
     minH: "[1lh]",
-    fontSize: "[1.45rem]",
+    fontSize: "h3",
     fontWeight: "bold",
   },
   "& h4": {
     minH: "[1lh]",
-    fontSize: "[1.3rem]",
+    fontSize: "h4",
     fontWeight: "bold",
   },
   "& h5": {
     minH: "[1lh]",
-    fontSize: "[1.15rem]",
+    fontSize: "h5",
     fontWeight: "bold",
   },
   "& h6": {
     minH: "[1lh]",
-    fontSize: "[1rem]",
+    fontSize: "h6",
     fontWeight: "bold",
   },
 };

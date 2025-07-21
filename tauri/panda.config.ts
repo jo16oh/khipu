@@ -15,7 +15,18 @@ export default defineConfig({
 
   // Useful for theme customization
   theme: {
-    extend: {},
+    extend: {
+      tokens: {
+        fontSizes: {
+          h1: { value: "1.75rem" },
+          h2: { value: "1.6rem" },
+          h3: { value: "1.45rem" },
+          h4: { value: "1.3rem" },
+          h5: { value: "1.15rem" },
+          h6: { value: "1rem" },
+        },
+      },
+    },
   },
 
   presets: [pandaPreset, pandaAnimate],
