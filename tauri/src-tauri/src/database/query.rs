@@ -297,7 +297,7 @@ pub async fn upsert_outline(tx: &mut SqliteTransaction<'_>, outline: &Outline) -
         outline.id,
         outline.parent_id,
         outline.findex,
-        outline.r#type,
+        outline.attrs,
         outline.doc,
         outline.created_at,
         outline.updated_at,

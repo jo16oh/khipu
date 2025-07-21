@@ -34,7 +34,7 @@ SELECT
   o.id,
   o.parent_id,
   o.findex,
-  o.type,
+  o.attrs,
   o.doc,
   o.created_at,
   o.updated_at,

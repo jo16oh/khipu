@@ -2,7 +2,7 @@ import { Plugin, PluginKey } from "@tiptap/pm/state";
 import { EditorView } from "@tiptap/pm/view";
 import { Editor, Extension } from "@tiptap/react";
 import { groupBy } from "es-toolkit";
-import { OutlineType } from "generated/tauri-commands";
+import { OutlineType } from "src/model";
 import { FocusManager } from "src/stores/focus-manager";
 import { OutlineStore } from "src/stores/outline-store";
 import { ViewStateStore } from "src/stores/view-state-store";

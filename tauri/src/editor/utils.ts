@@ -1,5 +1,5 @@
+import { JSONContent } from "@tiptap/core";
 import { Schema } from "@tiptap/pm/model";
-import { JSONContent } from "src/model";
 import { prosemirrorJSONToYXmlFragment } from "y-prosemirror";
 import * as Y from "yjs";
 

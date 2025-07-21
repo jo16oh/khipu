@@ -1,5 +1,5 @@
-import { OutlineType } from "generated/tauri-commands";
 import { getSchemaOf } from "src/editor/schema";
+import { OutlineType } from "src/model";
 import { yXmlFragmentToProseMirrorRootNode } from "y-prosemirror";
 import { DocUpdateNotifier } from "./doc-update-notifier";
 import { OutlineStore } from "./outline-store";
@@ -45,7 +45,7 @@ export class UndoManager {
       return { id: state.id, scrollPosition: state.currentScrollPosition() };
     })();
 
-    this.#undoStack.push({ id, unsubscribers, type: outline.type, viewState });
+    this.#undoStack.push({ id, unsubscribers, type: outline.attrs.type, viewState });
     this.#redoStack = [];
 
     while (this.#undoStack.length > 100) {

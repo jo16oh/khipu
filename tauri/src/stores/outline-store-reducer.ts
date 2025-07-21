@@ -1,6 +1,6 @@
 import type { JSONContent } from "@tiptap/react";
 import { generateKeyBetween } from "fractional-indexing-jittered";
-import { OutlineType } from "generated/tauri-commands";
+import { OutlineAttrs } from "generated/tauri-commands";
 import { getSchemaOf } from "src/editor/schema";
 import { Outline } from "src/model";
 import { uuidv7bs58 } from "src/utils";
@@ -37,7 +37,7 @@ export class OutlineStoreReducer {
   }
 
   create(
-    type: OutlineType,
+    attrs: OutlineAttrs,
     parentId: string | null = null,
     position: "start" | "end" | { after: Outline } = "start",
     doc: JSONContent = { type: "doc", content: [] },
@@ -52,7 +52,7 @@ export class OutlineStoreReducer {
     const now = new Date();
 
     const defaultDoc =
-      type === "heading"
+      attrs.type === "heading"
         ? { type: "doc", content: [{ type: "heading", attrs: { level: "1" } }] }
         : doc;
 
@@ -60,7 +60,7 @@ export class OutlineStoreReducer {
       id: uuidv7bs58(),
       parentId,
       doc: defaultDoc,
-      type,
+      attrs,
       findex,
       completed: false,
       collapsed: false,
@@ -76,9 +76,9 @@ export class OutlineStoreReducer {
     ydoc.transact(() => {
       const ymap = ydoc.getMap("props");
       const yxml = ydoc.getXmlFragment("doc");
-      prosemirrorJSONToYXmlFragment(getSchemaOf(type), doc, yxml);
+      prosemirrorJSONToYXmlFragment(getSchemaOf(attrs.type), doc, yxml);
       ymap.set("parentId", o.parentId);
-      ymap.set("type", o.type);
+      ymap.set("attrs", o.attrs);
       ymap.set("findex", o.findex);
       ymap.set("completed", o.completed);
       ymap.set("collapsed", o.collapsed);

@@ -1,6 +1,6 @@
 import { EditorView } from "@tiptap/pm/view";
 import { Editor, JSONContent } from "@tiptap/react";
-import { OutlineType } from "generated/tauri-commands";
+import { OutlineType } from "src/model";
 import { FocusManager } from "src/stores/focus-manager";
 import { OutlineStore } from "src/stores/outline-store";
 import { ViewStateStore } from "src/stores/view-state-store";
@@ -45,7 +45,7 @@ export function createCommonKeydownHandlers(
           const ydoc = await store.getYDoc(aboveOutlineId);
           const yxml = ydoc.getXmlFragment("doc");
 
-          if (type === aboveOutline.type) {
+          if (type === aboveOutline.attrs.type) {
             store.reducer.delete(outlineId);
             insertJSONContentsToYXMLFragment(docToInsert, getSchemaOf(type), yxml, ydoc, true);
             focusManager.focus({ id: aboveOutlineId, position: -docSize });

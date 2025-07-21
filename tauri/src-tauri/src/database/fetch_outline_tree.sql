@@ -4,7 +4,7 @@ WITH RECURSIVE
       parent.id,
       parent.parent_id,
       parent.findex,
-      parent.type,
+      parent.attrs,
       parent.doc,
       parent.created_at,
       parent.updated_at,
@@ -22,7 +22,7 @@ WITH RECURSIVE
       parent.id,
       parent.parent_id,
       parent.findex,
-      parent.type,
+      parent.attrs,
       parent.doc,
       parent.created_at,
       parent.updated_at,
@@ -38,7 +38,7 @@ WITH RECURSIVE
       id,
       parent_id,
       findex,
-      type,
+      attrs,
       doc,
       created_at,
       updated_at,
@@ -55,7 +55,7 @@ WITH RECURSIVE
       child.id,
       child.parent_id,
       child.findex,
-      child.type,
+      child.attrs,
       child.doc,
       child.created_at,
       child.updated_at,
@@ -77,7 +77,7 @@ WITH RECURSIVE
       `to`.id,
       `to`.parent_id,
       `to`.findex,
-      `to`.type,
+      `to`.attrs,
       `to`.doc,
       `to`.created_at,
       `to`.updated_at,
@@ -95,7 +95,7 @@ WITH RECURSIVE
       parent.id,
       parent.parent_id,
       parent.findex,
-      parent.type,
+      parent.attrs,
       parent.doc,
       parent.created_at,
       parent.updated_at,
@@ -104,9 +104,9 @@ WITH RECURSIVE
       parent.deleted
     FROM
       outlines parent
-      INNER JOIN linked_outlines links ON parent.id = links.parent_id
-      INNER JOIN outline_links l ON l.id_from = parent.id
-      AND links.type = "tag"
+      INNER JOIN linked_outlines ON parent.id = linked_outlines.parent_id
+      INNER JOIN outline_links link ON link.id_from = parent.id
+      AND link.type = "tag"
   )
 SELECT
   o.*

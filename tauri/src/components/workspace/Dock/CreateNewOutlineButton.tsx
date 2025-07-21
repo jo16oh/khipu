@@ -30,8 +30,8 @@ const HoverViewTrigger = () => {
   return (
     <StyledTriggerButton
       onPress={async (e) => {
-        const parentId = outlineStore.reducer.create("heading");
-        const childId = outlineStore.reducer.create("bullet", parentId);
+        const parentId = outlineStore.reducer.create({ type: "heading", level: 1 });
+        const childId = outlineStore.reducer.create({ type: "bullet" }, parentId);
         await outlineStore.save(parentId);
         await outlineStore.save(childId);
         viewState.jump({ id: parentId, scrollPosition: 0 });

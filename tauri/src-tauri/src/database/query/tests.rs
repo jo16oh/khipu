@@ -1,7 +1,7 @@
 use super::*;
 use crate::{
     database::test::open_connection_in_memory,
-    model::{Link, LinkType, OutlineType, SqliteBool},
+    model::{Link, LinkType, OutlineAttrs, SqliteBool},
 };
 use chrono::Duration;
 use serde::{Deserialize, Serialize};
@@ -56,7 +56,7 @@ async fn test_suggestion() {
 
     let mut o = Outline::new();
     o.doc = r#"{ "text": "終わりで草" }"#.to_string();
-    o.r#type = OutlineType::Heading;
+    o.attrs = OutlineAttrs::Heading { level: 1 };
     upsert_outline(&mut tx, &o).await.unwrap();
 
     tx.commit().await.unwrap();
@@ -76,18 +76,18 @@ async fn test_outbound_links() {
     let mut tx = pool.begin().await.unwrap();
 
     let mut o1 = Outline::new();
-    o1.r#type = OutlineType::Heading;
+    o1.attrs = OutlineAttrs::Heading { level: 0 };
     let mut o2 = Outline::new();
-    o2.r#type = OutlineType::Heading;
+    o2.attrs = OutlineAttrs::Heading { level: 0 };
     let mut o3 = Outline::new();
-    o3.r#type = OutlineType::Heading;
+    o3.attrs = OutlineAttrs::Heading { level: 0 };
     o3.parent_id = Some(o1.id.clone());
     upsert_outline(&mut tx, &o1).await.unwrap();
     upsert_outline(&mut tx, &o2).await.unwrap();
     upsert_outline(&mut tx, &o3).await.unwrap();
 
     let mut t1 = Outline::create_tree(2, 3);
-    t1[0].r#type = OutlineType::Heading;
+    t1[0].attrs = OutlineAttrs::Heading { level: 0 };
 
     for o in t1.iter() {
         upsert_outline(&mut tx, o).await.unwrap();
@@ -146,8 +146,8 @@ async fn test_fetch_inbound_links() {
     upsert_outline(&mut tx, &o).await.unwrap();
 
     let mut t1 = Outline::create_tree(1, 4);
-    t1[0].r#type = OutlineType::Heading;
-    t1[2].r#type = OutlineType::Heading;
+    t1[0].attrs = OutlineAttrs::Heading { level: 0 };
+    t1[2].attrs = OutlineAttrs::Heading { level: 0 };
 
     for o in t1.iter() {
         upsert_outline(&mut tx, o).await.unwrap();
@@ -187,7 +187,7 @@ async fn test_fetch_inbound_links() {
     .unwrap();
 
     let mut t2 = Outline::create_tree(1, 4);
-    t2[0].r#type = OutlineType::Heading;
+    t2[0].attrs = OutlineAttrs::Heading { level: 0 };
 
     for o in t2.iter() {
         upsert_outline(&mut tx, o).await.unwrap();

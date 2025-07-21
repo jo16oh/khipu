@@ -10,7 +10,7 @@ pub struct Outline {
     pub id: String,
     pub parent_id: Option<String>,
     pub findex: String,
-    pub r#type: OutlineType,
+    pub attrs: OutlineAttrs,
     pub doc: String,
     pub created_at: i64,
     pub updated_at: i64,
@@ -19,37 +19,36 @@ pub struct Outline {
     pub deleted: SqliteBool,
 }
 
-#[derive(Serialize, Deserialize, specta::Type, Display, EnumString, Clone, Debug)]
-#[serde(rename_all = "camelCase")]
-#[strum(serialize_all = "lowercase")]
-pub enum OutlineType {
-    Heading,
-    Bullet,
-    Card,
-    Code,
+#[derive(Serialize, Deserialize, specta::Type, Clone, Debug)]
+#[serde(tag = "type", rename_all = "camelCase")]
+pub enum OutlineAttrs {
+    Heading { level: u8 },
+    Bullet {},
+    Card {},
+    Code {},
 }
 
-impl sqlx::Type<Sqlite> for OutlineType {
+impl sqlx::Type<Sqlite> for OutlineAttrs {
     fn type_info() -> <Sqlite as Database>::TypeInfo {
         <&str as sqlx::Type<Sqlite>>::type_info()
     }
 }
 
-impl<'r> Decode<'r, Sqlite> for OutlineType {
+impl<'r> Decode<'r, Sqlite> for OutlineAttrs {
     fn decode(
         value: SqliteValueRef<'r>,
     ) -> Result<Self, Box<dyn std::error::Error + 'static + Send + Sync>> {
         let str = <&str as Decode<Sqlite>>::decode(value)?;
-        OutlineType::try_from(str).map_err(|e| e.into())
+        serde_json::from_str::<OutlineAttrs>(str).map_err(|e| e.into())
     }
 }
 
-impl<'r> Encode<'r, Sqlite> for OutlineType {
+impl<'r> Encode<'r, Sqlite> for OutlineAttrs {
     fn encode_by_ref(
         &self,
         buf: &mut <Sqlite as Database>::ArgumentBuffer<'r>,
     ) -> Result<sqlx::encode::IsNull, sqlx::error::BoxDynError> {
-        let string: String = self.to_string();
+        let string = serde_json::to_string(self)?;
         <String as Encode<Sqlite>>::encode(string, buf)
     }
 }
@@ -229,7 +228,7 @@ impl Outline {
             id: crate::util::uuidv7bs58(),
             parent_id: None,
             findex: "a0".to_string(),
-            r#type: OutlineType::Bullet,
+            attrs: OutlineAttrs::Bullet {},
             doc: SAMPLE_DOC.to_string(),
             created_at: now,
             updated_at: now,
@@ -246,7 +245,7 @@ impl Outline {
             id: crate::util::uuidv7bs58(),
             parent_id: Some(self.id.clone()),
             findex: "a0".to_string(),
-            r#type: OutlineType::Bullet,
+            attrs: OutlineAttrs::Bullet {},
             doc: SAMPLE_DOC.to_string(),
             created_at: now,
             updated_at: now,

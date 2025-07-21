@@ -3,7 +3,7 @@ INSERT INTO
     id,
     parent_id,
     findex,
-    type,
+    attrs,
     doc,
     created_at,
     updated_at,
@@ -17,7 +17,7 @@ ON CONFLICT DO UPDATE
 SET
   parent_id = excluded.parent_id,
   findex = excluded.findex,
-  type = excluded.type,
+  attrs = excluded.attrs,
   doc = excluded.doc,
   updated_at = excluded.updated_at,
   completed = excluded.completed,

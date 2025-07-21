@@ -3,7 +3,8 @@ import Document from "@tiptap/extension-document";
 import Paragraph from "@tiptap/extension-paragraph";
 import Text from "@tiptap/extension-text";
 import { Extensions, getSchema, Node } from "@tiptap/react";
-import { OutlineType } from "generated/tauri-commands";
+import { OutlineAttrs } from "generated/tauri-commands";
+import { OutlineType } from "src/model";
 import { DocUpdateNotifier } from "src/stores/doc-update-notifier";
 import { FocusManager } from "src/stores/focus-manager";
 import { OutlineStore } from "src/stores/outline-store";
@@ -49,7 +50,7 @@ export function createRendererExtensions(
 export function createEditorExtensions(
   outlineId: string,
   ydoc: Y.Doc,
-  type: OutlineType,
+  attrs: OutlineAttrs,
   store: OutlineStore,
   notifier: DocUpdateNotifier,
   focusManager: FocusManager,
@@ -58,8 +59,8 @@ export function createEditorExtensions(
   const fragment = ydoc.getXmlFragment("doc");
 
   return [
-    ...createRendererExtensions(outlineId, type, store),
-    createKeydownHandlersExtension(outlineId, type, store, focusManager, viewStateStore),
+    ...createRendererExtensions(outlineId, attrs.type, store),
+    createKeydownHandlersExtension(outlineId, attrs.type, store, focusManager, viewStateStore),
     Collabolation.extend().configure({ fragment }),
     createUpdateNotifierExtension(outlineId, notifier),
     createSyncFocusPositionExtension(outlineId, focusManager),

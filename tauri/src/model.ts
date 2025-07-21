@@ -1,6 +1,9 @@
 import type { JSONContent } from "@tiptap/react";
-import { Outline as GeneratedOutlineType, OutlineType } from "generated/tauri-commands";
+import { Outline as GeneratedOutlineType, OutlineAttrs } from "generated/tauri-commands";
+
 export type RawOutline = GeneratedOutlineType;
+
+export type OutlineType = OutlineAttrs["type"];
 
 export const RawOutline = {
   from(outline: Outline) {
@@ -17,7 +20,7 @@ export type Outline = Readonly<{
   id: string;
   parentId: string | null;
   findex: string;
-  type: OutlineType;
+  attrs: OutlineAttrs;
   doc: JSONContent;
   createdAt: Date;
   updatedAt: Date;

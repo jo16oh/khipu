@@ -43,9 +43,9 @@ function Path({ id }: { id: string }) {
 }
 
 function PathItem({ id }: { id: string }) {
-  const { type, doc } = useOutline(id, ({ type, doc }) => ({ type, doc }));
+  const { attrs, doc } = useOutline(id, ({ attrs, doc }) => ({ attrs, doc }));
   const text = useMemo(() => extractTextFromDoc(doc), [doc]);
-  return type === "heading" ? text : "...";
+  return attrs.type === "heading" ? text : "...";
 }
 
 const Header = styled("div", {

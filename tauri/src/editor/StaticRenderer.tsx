@@ -1,7 +1,7 @@
 import { JSONContent } from "@tiptap/core";
 import { renderToReactElement } from "@tiptap/static-renderer";
-import { OutlineType } from "generated/tauri-commands";
 import { useMemo } from "react";
+import { OutlineType } from "src/model";
 import { useOutlineStore } from "src/stores/outline-store";
 import { InternalLinkNodeView } from "./extensions/internal-link";
 import { createRendererExtensions } from "./schema";

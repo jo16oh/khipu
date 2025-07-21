@@ -53,7 +53,7 @@ const Title = () => {
   const [jump] = useViewState(useShallow(({ jump }) => [jump]));
 
   const createNewOutline = async () => {
-    const id = store.reducer.create("heading");
+    const id = store.reducer.create({ type: "heading", level: 1 });
     await store.save(id);
     jump({ id, scrollPosition: 0 });
   };

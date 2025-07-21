@@ -16,7 +16,7 @@ describe("OutlineStoreReducer", async () => {
       content: [{ type: "paragraph", content: [{ type: "text", text: "test" }] }],
     };
 
-    const id = store.reducer.create("bullet", null, "start", doc);
+    const id = store.reducer.create({type: "bullet" }, null, "start", doc);
 
     const ydoc = await store.getYDoc(id);
     const yxml = ydoc.getXmlFragment("doc");

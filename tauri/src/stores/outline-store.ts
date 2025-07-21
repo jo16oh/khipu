@@ -108,7 +108,7 @@ export class OutlineStore {
     ydoc.transact(() => {
       if (before.parentId !== after.parentId) ymap.set("parentId", after.parentId);
       if (before.findex !== after.findex) ymap.set("findex", after.findex);
-      if (before.type !== after.type) ymap.set("type", after.type);
+      if (!isEqual(before.attrs, after.attrs)) ymap.set("attrs", after.attrs);
       if (before.completed !== after.completed) ymap.set("completed", after.completed);
       if (before.collapsed !== after.collapsed) ymap.set("collapsed", after.collapsed);
       if (before.deleted !== after.deleted) ymap.set("deleted", after.deleted);

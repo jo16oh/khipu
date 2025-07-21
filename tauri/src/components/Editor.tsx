@@ -1,6 +1,6 @@
 import { EditorContent, FocusPosition, Editor as Tiptap } from "@tiptap/react";
 import { styled } from "generated/styled-system/jsx";
-import { OutlineType } from "generated/tauri-commands";
+import { OutlineAttrs } from "generated/tauri-commands";
 import {
   memo,
   Ref,
@@ -27,7 +27,7 @@ export type EditorHandle = {
 };
 
 export default function Editor({ ref, id }: { ref?: Ref<EditorHandle>; id: string }) {
-  const type = useOutline(id, ({ type }) => type);
+  const attrs = useOutline(id, ({ attrs }) => attrs);
   const focusManager = useFocusManager();
   const [focused, setFocused] = useState(false);
   const [isPending, startTransition] = useTransition();
@@ -71,7 +71,7 @@ export default function Editor({ ref, id }: { ref?: Ref<EditorHandle>; id: strin
         <ActiveEditor
           ref={editorRef}
           id={id}
-          type={type}
+          attrs={attrs}
           setFocused={setFocused}
           focusManager={focusManager}
         />
@@ -89,11 +89,11 @@ const MockEditor = memo(function MockEditor({
   id: string;
   onMouseEnter: () => void;
 }) {
-  const { type, doc } = useOutline(id, ({ type, doc }) => ({ type, doc }));
+  const { attrs, doc } = useOutline(id, ({ attrs, doc }) => ({ attrs, doc }));
 
   return (
     <EditorContainer className="tiptap ProseMirror" onMouseEnter={onMouseEnter}>
-      <StaticRenderer id={id} doc={doc} type={type} />
+      <StaticRenderer id={id} doc={doc} type={attrs.type} />
     </EditorContainer>
   );
 });
@@ -101,13 +101,13 @@ const MockEditor = memo(function MockEditor({
 const ActiveEditor = memo(function ActiveEditor({
   ref,
   id,
-  type,
+  attrs,
   setFocused,
   focusManager,
 }: {
   ref?: Ref<EditorHandle>;
   id: string;
-  type: OutlineType;
+  attrs: OutlineAttrs;
   setFocused: (value: boolean) => void;
   focusManager: FocusManager;
 }) {
@@ -121,7 +121,7 @@ const ActiveEditor = memo(function ActiveEditor({
       extensions: createEditorExtensions(
         id,
         ydoc,
-        type,
+        attrs,
         store,
         notifier,
         focusManager,

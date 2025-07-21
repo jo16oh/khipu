@@ -17,7 +17,7 @@ CREATE TABLE outlines (
   id TEXT PRIMARY KEY NOT NULL,
   parent_id TEXT REFERENCES outlines (id) ON DELETE CASCADE,
   findex TEXT NOT NULL, -- stores fractional-index
-  type TEXT NOT NULL,
+  attrs TEXT NOT NULL,
   doc TEXT NOT NULL,
   created_at INTEGER NOT NULL,
   updated_at INTEGER NOT NULL,
