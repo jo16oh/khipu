@@ -1,6 +1,7 @@
 import { defineConfig } from "@pandacss/dev";
 import pandaPreset from "@pandacss/preset-panda";
 import pandaAnimate from "pandacss-animate";
+import { defaultProseMirrorStyle, editorStyle } from "./src/editor/style";
 
 export default defineConfig({
   // Whether to use css reset
@@ -35,52 +36,7 @@ export default defineConfig({
       overscrollBehavior: "none",
       color: "stone.900",
     },
-    ".ProseMirror": {
-      position: "relative",
-      wordWrap: "break-word",
-      whiteSpace: "break-spaces",
-      WebkitFontVariantLigatures: "none",
-      fontVariantLigatures: "none",
-      fontFeatureSettings: '"liga" 0',
-    },
-    ".ProseMirror pre": {
-      whiteSpace: "pre-wrap",
-    },
-    ".ProseMirror li": {
-      position: "relative",
-    },
-    ".ProseMirror-hideselection *::selection": {
-      background: "transparent",
-    },
-    ".ProseMirror-hideselection *::-moz-selection": {
-      background: "transparent",
-    },
-    ".ProseMirror-hideselection": {
-      caretColor: "transparent",
-    },
-    ".ProseMirror [draggable][contenteditable=false]": {
-      userSelect: "text",
-    },
-    ".ProseMirror-selectednode": {
-      outline: "2px solid #8cf",
-    },
-    "li.ProseMirror-selectednode": {
-      outline: "none",
-    },
-    "li.ProseMirror-selectednode:after": {
-      content: '""',
-      position: "absolute",
-      left: "-32px",
-      right: "-2px",
-      top: "-2px",
-      bottom: "-2px",
-      border: "2px solid #8cf",
-      pointerEvents: "none",
-    },
-    "img.ProseMirror-separator": {
-      display: "inline !important",
-      border: "none !important",
-      margin: "0 !important",
-    },
+    ...defaultProseMirrorStyle,
+    ...editorStyle,
   },
 });

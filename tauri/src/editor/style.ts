@@ -1,53 +1,108 @@
-import { cva } from "generated/styled-system/css";
+import { GlobalStyleObject } from "@pandacss/dev";
+import { SystemStyleObject } from "generated/styled-system/types";
 
-export const editorStyleRecipe = cva({
-  base: {
-    cursor: "text",
-    ring: "none",
-    w: "full",
-    minH: "[1lh]",
-    "& .suggestion": {
-      rounded: "md",
-      p: "1",
-      bg: "stone.200",
-    },
-    "& [data-is-empty='true']:first-child::before": {
-      float: "start",
-      h: "0",
-      color: "stone.400",
-      content: '"Untitled"',
-      pointerEvents: "none",
-    },
-    "& *": {
-      minH: "[1lh]",
-      wordBreak: "break-word",
-      textWrap: "wrap",
-      userSelect: "text",
-      whiteSpace: "pre-wrap",
-    },
-    "& h1": {
-      fontSize: "[1.75rem]",
-      fontWeight: "bold",
-    },
-    "& h2": {
-      fontSize: "[1.6rem]",
-      fontWeight: "bold",
-    },
-    "& h3": {
-      fontSize: "[1.45rem]",
-      fontWeight: "bold",
-    },
-    "& h4": {
-      fontSize: "[1.3rem]",
-      fontWeight: "bold",
-    },
-    "& h5": {
-      fontSize: "[1.15rem]",
-      fontWeight: "bold",
-    },
-    "& h6": {
-      fontSize: "[1rem]",
-      fontWeight: "bold",
-    },
+export const editorStyle: SystemStyleObject = {
+  "& .suggestion": {
+    rounded: "md",
+    p: "1",
+    bg: "stone.200",
   },
-});
+  "& [data-is-empty='true']:first-child::before": {
+    float: "start",
+    h: "0",
+    color: "stone.400",
+    content: '"Untitled"',
+    pointerEvents: "none",
+  },
+  "& .tiptap": {
+    ring: "none",
+    cursor: "text",
+  },
+  "& .tiptap *": {
+    minH: "[1lh]",
+    wordBreak: "break-word",
+    textWrap: "wrap",
+    userSelect: "text",
+    whiteSpace: "pre-wrap",
+  },
+  "& h1": {
+    minH: "[1lh]",
+    fontSize: "[1.75rem]",
+    fontWeight: "bold",
+  },
+  "& h2": {
+    minH: "[1lh]",
+    fontSize: "[1.6rem]",
+    fontWeight: "bold",
+  },
+  "& h3": {
+    minH: "[1lh]",
+    fontSize: "[1.45rem]",
+    fontWeight: "bold",
+  },
+  "& h4": {
+    minH: "[1lh]",
+    fontSize: "[1.3rem]",
+    fontWeight: "bold",
+  },
+  "& h5": {
+    minH: "[1lh]",
+    fontSize: "[1.15rem]",
+    fontWeight: "bold",
+  },
+  "& h6": {
+    minH: "[1lh]",
+    fontSize: "[1rem]",
+    fontWeight: "bold",
+  },
+};
+
+export const defaultProseMirrorStyle: GlobalStyleObject = {
+  ".ProseMirror": {
+    WebkitFontVariantLigatures: "none",
+    position: "relative",
+    fontFeatureSettings: '"liga" 0',
+    wordWrap: "break-word",
+    whiteSpace: "break-spaces",
+    fontVariantLigatures: "none",
+  },
+  ".ProseMirror pre": {
+    whiteSpace: "pre-wrap",
+  },
+  ".ProseMirror li": {
+    position: "relative",
+  },
+  ".ProseMirror-hideselection *::selection": {
+    background: "transparent",
+  },
+  ".ProseMirror-hideselection *::-moz-selection": {
+    background: "transparent",
+  },
+  ".ProseMirror-hideselection": {
+    caretColor: "transparent",
+  },
+  ".ProseMirror [draggable][contenteditable=false]": {
+    userSelect: "text",
+  },
+  ".ProseMirror-selectednode": {
+    outline: "2px solid #8cf",
+  },
+  "li.ProseMirror-selectednode": {
+    outline: "none",
+  },
+  "li.ProseMirror-selectednode:after": {
+    position: "absolute",
+    top: "-2px",
+    left: "-32px",
+    right: "-2px",
+    bottom: "-2px",
+    border: "2px solid #8cf",
+    content: '""',
+    pointerEvents: "none",
+  },
+  "img.ProseMirror-separator": {
+    display: "inline !important",
+    border: "none !important",
+    margin: "0 !important",
+  },
+};

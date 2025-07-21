@@ -1,5 +1,4 @@
 import { EditorContent, FocusPosition, JSONContent, Editor as Tiptap } from "@tiptap/react";
-import { css } from "generated/styled-system/css";
 import { styled } from "generated/styled-system/jsx";
 import { OutlineType } from "generated/tauri-commands";
 import {
@@ -16,7 +15,6 @@ import {
 } from "react";
 import StaticRenderer from "src/editor/StaticRenderer";
 import { createEditorExtensions } from "src/editor/schema";
-import { editorStyleRecipe } from "src/editor/style";
 import { useObservableRef } from "src/hooks/useObservableRef";
 import { useOutline } from "src/hooks/useOutline";
 import { useDocUpdateNotifier } from "src/stores/doc-update-notifier";
@@ -94,7 +92,7 @@ const MockEditor = memo(function MockEditor({
   const { type, doc } = useOutline(id, ({ type, doc }) => ({ type, doc }));
 
   return (
-    <EditorContainer type="mock" onMouseEnter={onMouseEnter}>
+    <EditorContainer className="tiptap ProseMirror" onMouseEnter={onMouseEnter}>
       <StaticRenderer id={id} doc={doc as JSONContent} type={type} />
     </EditorContainer>
   );
@@ -129,11 +127,6 @@ const ActiveEditor = memo(function ActiveEditor({
         focusManager,
         viewStateStore,
       ),
-      editorProps: {
-        attributes: {
-          class: editorStyle,
-        },
-      },
       onBlur: ({ editor }) => {
         setFocused(false);
         setTimeout(() => editor.destroy());
@@ -169,32 +162,15 @@ const ActiveEditor = memo(function ActiveEditor({
   );
 
   return (
-    <EditorContainer type="active" onMouseLeave={onMouseLeave}>
+    <EditorContainer onMouseLeave={onMouseLeave}>
       <EditorContent editor={editor.current} />
     </EditorContainer>
   );
 });
 
-const rawEditorStyle = css.raw({
-  cursor: "text",
-  ring: "none",
-  wordBreak: "break-word",
-  userSelect: "text",
-  whiteSpace: "pre-wrap",
-});
-
-const editorStyle = css(rawEditorStyle);
-
 const EditorContainer = styled("div", {
-  variants: {
-    type: {
-      active: {},
-      mock: {
-        ...rawEditorStyle,
-      },
-    },
-  },
   base: {
-    ...editorStyleRecipe.raw(),
+    w: "full",
+    minH: "[1lh]",
   },
 });
