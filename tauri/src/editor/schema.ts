@@ -1,6 +1,5 @@
 import Collabolation from "@tiptap/extension-collaboration";
 import Document from "@tiptap/extension-document";
-import Heading from "@tiptap/extension-heading";
 import Paragraph from "@tiptap/extension-paragraph";
 import Text from "@tiptap/extension-text";
 import { Extensions, getSchema, Node } from "@tiptap/react";
@@ -10,6 +9,7 @@ import { FocusManager } from "src/stores/focus-manager";
 import { OutlineStore } from "src/stores/outline-store";
 import { ViewStateStore } from "src/stores/view-state-store";
 import * as Y from "yjs";
+import { createHeadingExtension } from "./extensions/heading";
 import {
   createInternalLinkExtensionWithSuggestion,
   InternalLink,
@@ -17,7 +17,6 @@ import {
 import { createKeydownHandlersExtension } from "./extensions/keydown-handlers";
 import { createSyncFocusPositionExtension } from "./extensions/sync-focus-position";
 import { createUpdateNotifierExtension } from "./extensions/update-notifier";
-import { extractTextFromDoc } from "./utils";
 
 const SingleBlockDocument = Node.create({
   name: "doc",
@@ -32,32 +31,7 @@ export function createRendererExtensions(
 ): Extensions {
   switch (type) {
     case "heading":
-      return [
-        SingleBlockDocument,
-        Heading.extend({
-          addAttributes() {
-            const isEmpty = this.editor
-              ? String(this.editor.isEmpty)
-              : (() => {
-                  const outline = store.getOutline(id);
-                  const text = outline ? extractTextFromDoc(outline.doc) : null;
-                  return text?.length ? "false" : "true";
-                })();
-
-            return {
-              "data-is-empty": {
-                default: isEmpty,
-              },
-            };
-          },
-          onUpdate() {
-            this.editor.commands.updateAttributes("heading", {
-              "data-is-empty": String(this.editor.isEmpty),
-            });
-          },
-        }),
-        Text,
-      ];
+      return [SingleBlockDocument, createHeadingExtension(id, store), Text];
     case "bullet":
       return [
         SingleBlockDocument,
