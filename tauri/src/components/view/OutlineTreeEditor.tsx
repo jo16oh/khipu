@@ -15,7 +15,7 @@ export default function OutlineTreeEditor({ id }: { id: string }) {
   return !deleted ? (
     <ErrorBoundary resetKeys={[id]} fallback="outline not found">
       <Editor id={id} />
-      {children?.map(({ id }) => <Outline key={id} id={id} />)}
+      <Children level="top">{children?.map(({ id }) => <Outline key={id} id={id} />)}</Children>
     </ErrorBoundary>
   ) : (
     <div>outline is deleted</div>
@@ -67,7 +67,17 @@ const StyledBulletButton = styled(BulletButton, {
 });
 
 const Children = styled("div", {
+  variants: {
+    level: {
+      top: {
+        pl: "0",
+      },
+    },
+  },
   base: {
+    display: "flex",
+    gap: "0.5",
+    flexDir: "column",
     w: "full",
     pl: "8",
   },
