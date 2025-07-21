@@ -24,15 +24,17 @@ export default function OutlineTreeEditor({ id }: { id: string }) {
 
 function Outline({ id }: { id: string }) {
   const children = useOutlineChildren(id);
-  const { collapsed, deleted } = useOutline(id, ({ collapsed, deleted }) => ({
+
+  const { type, collapsed, deleted } = useOutline(id, ({ type, collapsed, deleted }) => ({
+    type,
     collapsed,
     deleted,
   }));
 
   return !deleted ? (
     <>
-      <Container key={id}>
-        <BulletButton isCollapsed={collapsed} />
+      <Container className="group" key={id}>
+        <StyledBulletButton data-is-bullet={type === "bullet"} isCollapsed={collapsed} />
         <Editor id={id} />
       </Container>
       <Children>{!collapsed && children?.map(({ id }) => <Outline key={id} id={id} />)}</Children>
@@ -45,7 +47,22 @@ function Outline({ id }: { id: string }) {
 const Container = styled("div", {
   base: {
     display: "flex",
+    gap: "1.5",
+    alignItems: "start",
     w: "full",
+  },
+});
+
+const StyledBulletButton = styled(BulletButton, {
+  base: {
+    h: "[1lh]",
+    opacity: "0",
+    _groupHover: {
+      opacity: "100",
+    },
+    "&[data-is-bullet=true]": {
+      opacity: "100",
+    },
   },
 });
 
