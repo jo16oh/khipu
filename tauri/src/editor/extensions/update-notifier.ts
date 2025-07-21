@@ -5,8 +5,8 @@ export function createUpdateNotifierExtension(outlineId: string, notifier: DocUp
   return Extension.create({
     name: "doc-update-notifier",
     onUpdate({ editor }) {
-      const doc = editor.getJSON();
-      notifier.notify(outlineId, doc as JSONContent);
+      const doc = editor.getJSON() as JSONContent;
+      notifier.notify(outlineId, doc);
     },
   });
 }

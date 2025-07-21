@@ -1,4 +1,3 @@
-import { JSONContent } from "@tiptap/core";
 import { renderToReactElement } from "@tiptap/static-renderer";
 import { SuggestionProps } from "@tiptap/suggestion";
 import { css } from "generated/styled-system/css";
@@ -66,9 +65,7 @@ function Candidate({ id, selected }: { id: string; selected: boolean }) {
 
   return (
     <ListItem data-selected={selected}>
-      <div className={editorStyle}>
-        {renderToReactElement({ extensions, content: doc as JSONContent })}
-      </div>
+      <div className={editorStyle}>{renderToReactElement({ extensions, content: doc })}</div>
     </ListItem>
   );
 }

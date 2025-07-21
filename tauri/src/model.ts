@@ -1,10 +1,6 @@
-import type { JSONContent as PmJSONContent } from "@tiptap/react";
+import type { JSONContent } from "@tiptap/react";
 import { Outline as GeneratedOutlineType, OutlineType } from "generated/tauri-commands";
-import type { DeepReadonly } from "ts-essentials";
-
 export type RawOutline = GeneratedOutlineType;
-
-export type JSONContent = DeepReadonly<PmJSONContent>;
 
 export const RawOutline = {
   from(outline: Outline) {
@@ -17,7 +13,7 @@ export const RawOutline = {
   },
 } as const;
 
-export type Outline = DeepReadonly<{
+export type Outline = Readonly<{
   id: string;
   parentId: string | null;
   findex: string;

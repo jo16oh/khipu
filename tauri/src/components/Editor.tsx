@@ -1,4 +1,4 @@
-import { EditorContent, FocusPosition, JSONContent, Editor as Tiptap } from "@tiptap/react";
+import { EditorContent, FocusPosition, Editor as Tiptap } from "@tiptap/react";
 import { styled } from "generated/styled-system/jsx";
 import { OutlineType } from "generated/tauri-commands";
 import {
@@ -93,7 +93,7 @@ const MockEditor = memo(function MockEditor({
 
   return (
     <EditorContainer className="tiptap ProseMirror" onMouseEnter={onMouseEnter}>
-      <StaticRenderer id={id} doc={doc as JSONContent} type={type} />
+      <StaticRenderer id={id} doc={doc} type={type} />
     </EditorContainer>
   );
 });
