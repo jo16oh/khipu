@@ -19,7 +19,6 @@ export const editorStyle: SystemStyleObject = {
     cursor: "text",
   },
   "& .tiptap *": {
-    minH: "[1lh]",
     wordBreak: "break-word",
     textWrap: "wrap",
     userSelect: "text",
