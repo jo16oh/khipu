@@ -57,6 +57,9 @@ export const editorStyle: SystemStyleObject = {
   },
   "& .internal-link": {
     color: "blue.500",
+    "&[data-is-empty='true']": {
+      opacity: "50",
+    },
   },
 };
 

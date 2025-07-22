@@ -27,6 +27,10 @@ export function InternalLinkNodeView({ node }: NodeViewProps) {
 
 function Link({ id }: { id: string }) {
   const doc = useOutline(id, (o) => o.doc);
-  const text = useMemo(() => extractTextFromDoc(doc), [doc]);
-  return <span className="internal-link">{text}</span>;
+  const text = useMemo(() => extractTextFromDoc(doc).trim(), [doc]);
+  return (
+    <span className="internal-link" data-is-empty={!text.length}>
+      {text.length ? text : "[Untitled]"}
+    </span>
+  );
 }
