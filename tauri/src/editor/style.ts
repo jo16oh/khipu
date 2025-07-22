@@ -54,6 +54,8 @@ export const editorStyle: SystemStyleObject = {
     minH: "[1lh]",
     fontSize: "h6",
     fontWeight: "bold",
+  "& .internal-link": {
+    color: "blue.500",
   },
 };
 

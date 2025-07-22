@@ -1,6 +1,5 @@
 import { NodeViewProps } from "@tiptap/core";
 import { NodeViewWrapper } from "@tiptap/react";
-import { styled } from "generated/styled-system/jsx";
 import { useMemo } from "react";
 import { ErrorBoundary } from "react-error-boundary";
 import { extractTextFromDoc } from "src/editor/utils";
@@ -29,5 +28,5 @@ export function InternalLinkNodeView({ node }: NodeViewProps) {
 function Link({ id }: { id: string }) {
   const doc = useOutline(id, (o) => o.doc);
   const text = useMemo(() => extractTextFromDoc(doc), [doc]);
-  return <styled.span color="blue.500">{text}</styled.span>;
+  return <span className="internal-link">{text}</span>;
 }
