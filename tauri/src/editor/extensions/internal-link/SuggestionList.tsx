@@ -1,11 +1,8 @@
-import { renderToReactElement } from "@tiptap/static-renderer";
 import { SuggestionProps } from "@tiptap/suggestion";
-import { css } from "generated/styled-system/css";
 import { styled } from "generated/styled-system/jsx";
 import { Ref, useEffect, useImperativeHandle, useMemo, useState } from "react";
-import { createRendererExtensions } from "src/editor/schema";
+import { extractTextFromDoc } from "src/editor/utils";
 import { useOutline } from "src/hooks/useOutline";
-import { useOutlineStore } from "src/stores/outline-store";
 
 export type SuggestionListHandler = {
   goDown: () => void;
@@ -60,14 +57,9 @@ export default function SuggestionList({
 
 function Candidate({ id, selected }: { id: string; selected: boolean }) {
   const doc = useOutline(id, ({ doc }) => doc);
-  const store = useOutlineStore();
-  const extensions = useMemo(() => createRendererExtensions(id, "heading", store), [id, store]);
+  const text = useMemo(() => extractTextFromDoc(doc), [doc]);
 
-  return (
-    <ListItem data-selected={selected}>
-      <div className={editorStyle}>{renderToReactElement({ extensions, content: doc })}</div>
-    </ListItem>
-  );
+  return <ListItem data-selected={selected}>{text}</ListItem>;
 }
 
 const List = styled("div", {
@@ -86,14 +78,5 @@ const ListItem = styled("div", {
       rounded: "md",
       bg: "stone.200",
     },
-  },
-});
-
-const editorStyle = css({
-  "& *": {
-    wordBreak: "break-word",
-    textWrap: "wrap",
-    userSelect: "text",
-    whiteSpace: "pre-wrap",
   },
 });
