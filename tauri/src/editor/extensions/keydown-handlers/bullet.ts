@@ -35,7 +35,7 @@ export function createBulletKeydownHandlers(
         const children = store.getOutlineChildren(outlineId);
 
         const newOutlineId =
-          children && children.size
+          !outline.collapsed && children && children.size
             ? store.reducer.create({ type: "bullet" }, outlineId, "start", doc)
             : store.reducer.create({ type: "bullet" }, outline.parentId, { after: outline }, doc);
 
