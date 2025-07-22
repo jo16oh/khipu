@@ -78,6 +78,7 @@ function Outline({ id }: { id: string }) {
           {children.map(({ id }) => (
             <Outline key={id} id={id} />
           ))}
+          <VerticalLine />
         </ChildrenContainer>
       ) : (
         <></>
@@ -171,5 +172,12 @@ const ChildrenContainer = styled("div", {
   },
 });
 
+const VerticalLine = styled("div", {
+  base: {
+    pos: "absolute",
+    left: "2",
+    w: "[0.0625rem]",
+    h: "full",
+    bg: "stone.200",
   },
 });
