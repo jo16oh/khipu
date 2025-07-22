@@ -1,13 +1,11 @@
-import { StyledComponent, styled } from "generated/styled-system/jsx";
-import { ComponentProps, PropsWithChildren, Ref } from "react";
+import { styled } from "generated/styled-system/jsx";
+import { PropsWithChildren, Ref } from "react";
 
-type StyleProps = Omit<ComponentProps<StyledComponent<"div">>, "ref">;
-type ScrollAreaProps = PropsWithChildren &
-  StyleProps & {
-    ref?: Ref<HTMLDivElement>;
-    orientation?: "vertical" | "horizontal";
-    type?: "auto" | "always";
-  };
+type ScrollAreaProps = PropsWithChildren & {
+  ref?: Ref<HTMLDivElement>;
+  orientation?: "vertical" | "horizontal";
+  type?: "auto" | "always";
+};
 
 export default function ScrollArea({
   ref,
