@@ -108,7 +108,11 @@ export class OutlineStoreReducer {
     }
   }
 
-  convertType() {}
+  updateAttributes(id: string, attrs: OutlineAttrs) {
+    this.#updateOutline(id, (draft) => {
+      draft.attrs = attrs;
+    });
+  }
 
   toggleCompleted(...ids: string[]) {
     for (const id of ids) {
