@@ -7,6 +7,7 @@ import { useOutlineChildren } from "src/hooks/useOutlineChildren";
 import Triangle from "src/icons/triangle";
 import { useOutlineStore } from "src/stores/outline-store";
 import BulletButton from "../common/BulletButton";
+import EllipsisMenu from "../common/EllipsisMenu";
 import Editor from "../Editor";
 
 export default function OutlineTreeEditor({ id }: { id: string }) {
@@ -45,16 +46,19 @@ function Outline({ id }: { id: string }) {
         key={id}
         data-heading-level={attrs.type === "heading" ? attrs.level : undefined}
       >
-        {(collapsed || children?.size) && (
-          <Button
-            onClick={async () => {
-              await store.loader.fetchTree(id);
-              store.reducer.toggleCollapsed(id);
-            }}
-          >
-            <StyledTriangle data-collapsed={collapsed} />
-          </Button>
-        )}
+        <Buttons>
+          <EllipsisMenu content={() => "content"} />
+          {(collapsed || children?.size) && (
+            <Button
+              onClick={async () => {
+                await store.loader.fetchTree(id);
+                store.reducer.toggleCollapsed(id);
+              }}
+            >
+              <StyledTriangle data-collapsed={collapsed} />
+            </Button>
+          )}
+        </Buttons>
         <StyledBulletButton data-is-bullet={attrs.type === "bullet"} isCollapsed={collapsed} />
         <Editor id={id} />
       </Container>
@@ -98,12 +102,22 @@ const Container = styled("div", {
   },
 });
 
+const Buttons = styled("div", {
+  base: {
+    display: "flex",
+    pos: "absolute",
+    right: "full",
+    gap: "1",
+    alignItems: "center",
+    h: "[1lh]",
+    pr: "1.5",
+  },
+});
+
 const StyledTriangle = styled(Triangle, {
   base: {
-    pos: "absolute",
-    left: "-5",
     w: "4",
-    h: "[1lh]",
+    h: "4",
     color: "stone.300",
     "&[data-collapsed='false']": {
       transform: "[rotate(90deg)]",

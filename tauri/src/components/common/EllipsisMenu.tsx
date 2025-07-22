@@ -25,7 +25,7 @@ const StyledButton = styled(Button, {
     fontSize: "md",
     placeContent: "center",
     _hover: { bg: "stone.200" },
-    _groupHover: { color: "stone.900" },
+    _groupHover: { color: "stone.500" },
   }),
 });
 

@@ -35,9 +35,7 @@ export default function Stage() {
               <ViewHeader data-tauri-drag-region />
             </TitlebarHandler>
             <ViewContainer>
-              <View>
-                <OutlineView id={defferedId} />
-              </View>
+              <OutlineView id={defferedId} />
             </ViewContainer>
           </LazySuspense>
         </>
@@ -132,16 +130,6 @@ const ViewContainer = styled(ScrollArea, {
     alignItems: "center",
     w: "full",
     h: "full",
-  },
-});
-
-const View = styled("div", {
-  base: {
-    w: "full",
-    maxW: "[46rem]",
-    px: "4",
-    pt: "12",
-    pb: "[50%]",
   },
 });
 
