@@ -7,7 +7,6 @@ import { Button } from "react-aria-components";
 import KhipuAppName from "src/icons/khipu-app-name";
 import KhipuIcon from "src/icons/khipu-icon";
 import Bullet from "./common/Bullet";
-import TitlebarHandler from "./common/TitlebarHandler";
 import CreateOrRenameGraphModal from "./modal/CreateOrRenameGraphModal";
 import OpenGraphModal from "./modal/OpenGraphModal";
 import SettingModal from "./modal/SettingModal";
@@ -28,7 +27,7 @@ function Entry() {
 
   return (
     <>
-      <TitlebarHandler />
+      <Titlebar />
       <Container>
         <AppIconContainer>
           <KhipuIcon className={khipuIconStyle} />
@@ -49,6 +48,13 @@ function Entry() {
     </>
   );
 }
+
+const Titlebar = styled("div", {
+  base: {
+    w: "full",
+    h: "9",
+  },
+});
 
 const Container = styled("div", {
   base: {

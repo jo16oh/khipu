@@ -9,7 +9,6 @@ import {
   ModalOverlay,
   OverlayTriggerState,
 } from "react-aria-components";
-import TitlebarHandler from "./TitlebarHandler";
 
 const Dialog = ({
   trigger,
@@ -44,6 +43,7 @@ const Dialog = ({
         {...overlayProps}
       >
         <TitlebarHandler
+          data-tauri-drag-region
           onMouseDown={(e) => {
             draggingWindow.current = true;
             const startTime = Date.now();
@@ -65,11 +65,6 @@ const Dialog = ({
 
             window.addEventListener("mouseup", cb);
           }}
-          zIndex="[9999]"
-          position="fixed"
-          top="0"
-          left="0"
-          bg="transparent"
         />
         <StyledModal isDismissable>
           {({ state }) => {
@@ -109,6 +104,16 @@ const StyledModalOverlay = styled(ModalOverlay, {
     "&[data-exiting]": {
       fadeOut: "0",
     },
+  },
+});
+
+const TitlebarHandler = styled("div", {
+  base: {
+    zIndex: "[9999]",
+    pos: "fixed",
+    top: "0",
+    left: "0",
+    bg: "transparent",
   },
 });
 

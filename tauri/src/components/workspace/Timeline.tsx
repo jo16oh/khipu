@@ -1,9 +1,9 @@
-import TitlebarHandler from "../common/TitlebarHandler";
+import Titlebar from "./TitleBar";
 
 export default function Timeline() {
   return (
     <>
-      <TitlebarHandler />
+      <Titlebar />
       <div>Timeline</div>
     </>
   );
