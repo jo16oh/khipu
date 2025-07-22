@@ -13,7 +13,7 @@ const View = styled("div", {
   base: {
     w: "full",
     maxW: "[46rem]",
-    pl: "11",
+    pl: "12",
     pr: "6",
     pt: "12",
     pb: "56",

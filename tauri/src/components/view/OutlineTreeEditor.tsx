@@ -18,16 +18,16 @@ export default function OutlineTreeEditor({ id }: { id: string }) {
 
   return !deleted ? (
     <ErrorBoundary resetKeys={[id]} fallback="outline not found">
-      <Container
+      <EditorContainer
         className="group"
         key={id}
         data-heading-level={attrs.type === "heading" ? attrs.level : undefined}
       >
-        <Buttons pr="3">
+        <EditorButtons>
           <EllipsisMenu content={() => "content"} />
-        </Buttons>
+        </EditorButtons>
         <Editor id={id} />
-      </Container>
+      </EditorContainer>
       <ChildrenContainer level="top">
         {children?.map(({ id }) => <Outline key={id} id={id} />)}
       </ChildrenContainer>
@@ -50,14 +50,14 @@ function Outline({ id }: { id: string }) {
 
   return !deleted ? (
     <>
-      <Container
+      <EditorContainer
         className="group"
         key={id}
         data-heading-level={attrs.type === "heading" ? attrs.level : undefined}
       >
-        <Buttons>
+        <EditorButtons>
           <EllipsisMenu content={() => "content"} />
-          {(collapsed || children?.size) && (
+          {collapsed || children?.size ? (
             <Button
               onClick={async () => {
                 await store.loader.fetchTree(id);
@@ -66,17 +66,21 @@ function Outline({ id }: { id: string }) {
             >
               <StyledTriangle data-collapsed={collapsed} />
             </Button>
+          ) : (
+            <></>
           )}
-        </Buttons>
+        </EditorButtons>
         <StyledBulletButton data-is-bullet={attrs.type === "bullet"} isCollapsed={collapsed} />
         <Editor id={id} />
-      </Container>
-      {children?.size && !collapsed && (
+      </EditorContainer>
+      {children?.size && !collapsed ? (
         <ChildrenContainer>
           {children.map(({ id }) => (
             <Outline key={id} id={id} />
           ))}
         </ChildrenContainer>
+      ) : (
+        <></>
       )}
     </>
   ) : (
@@ -84,7 +88,7 @@ function Outline({ id }: { id: string }) {
   );
 }
 
-const Container = styled("div", {
+const EditorContainer = styled("div", {
   base: {
     display: "flex",
     pos: "relative",
@@ -111,12 +115,12 @@ const Container = styled("div", {
   },
 });
 
-const Buttons = styled("div", {
+const EditorButtons = styled("div", {
   base: {
     display: "flex",
     pos: "absolute",
     right: "full",
-    gap: "1",
+    gap: "2.5",
     alignItems: "center",
     h: "[1lh]",
     pr: "1.5",
@@ -159,9 +163,13 @@ const ChildrenContainer = styled("div", {
   },
   base: {
     display: "flex",
+    pos: "relative",
     gap: "0.5",
     flexDir: "column",
     w: "full",
-    pl: "8",
+    pl: "9",
+  },
+});
+
   },
 });
