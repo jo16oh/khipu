@@ -11,10 +11,11 @@ export default function OutlineView({ id }: { id: string }) {
 
 const View = styled("div", {
   base: {
+    w: "full",
     maxW: "[46rem]",
     pl: "11",
     pr: "6",
     pt: "12",
-    pb: "[50%]",
+    pb: "56",
   },
 });
