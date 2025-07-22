@@ -20,7 +20,7 @@ const StyledButton = styled(Button, {
   base: circle.raw({
     display: "grid",
     rounded: "full",
-    size: "5",
+    size: "6",
     color: "transparent",
     fontSize: "md",
     placeContent: "center",
@@ -31,7 +31,7 @@ const StyledButton = styled(Button, {
 
 const EllipsisIcon = styled(Ellipsis, {
   base: square.raw({
-    size: "4",
+    size: "5",
   }),
 });
 

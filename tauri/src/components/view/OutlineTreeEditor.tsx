@@ -6,13 +6,24 @@ import { useOutline } from "src/hooks/useOutline";
 import { useOutlineChildren } from "src/hooks/useOutlineChildren";
 import Triangle from "src/icons/triangle";
 import { useOutlineStore } from "src/stores/outline-store";
+import { useViewState } from "src/stores/view-state-store";
 import BulletButton from "../common/BulletButton";
 import EllipsisMenu from "../common/EllipsisMenu";
 import Editor from "../Editor";
 
 export default function OutlineTreeEditor({ id }: { id: string }) {
   useFetchOutlineTree(id);
-  const { deleted, attrs } = useOutline(id, ({ deleted, attrs }) => ({ deleted, attrs }));
+
+  const { parentId, attrs, collapsed, deleted } = useOutline(
+    id,
+    ({ parentId, attrs, collapsed, deleted }) => ({
+      parentId,
+      attrs,
+      collapsed,
+      deleted,
+    }),
+  );
+
   if (deleted) throw new Error("outline is deleted");
   const children = useOutlineChildren(id);
 
@@ -23,9 +34,12 @@ export default function OutlineTreeEditor({ id }: { id: string }) {
         key={id}
         data-heading-level={attrs.type === "heading" ? attrs.level : undefined}
       >
-        <EditorButtons>
-          <EllipsisMenu content={() => "content"} />
-        </EditorButtons>
+        <OutlineControlButtons
+          id={id}
+          parentId={parentId}
+          collapsed={collapsed}
+          hasChildren={true}
+        />
         <Editor id={id} />
       </EditorContainer>
       <ChildrenContainer level="top">
@@ -40,13 +54,15 @@ export default function OutlineTreeEditor({ id }: { id: string }) {
 function Outline({ id }: { id: string }) {
   const children = useOutlineChildren(id);
 
-  const store = useOutlineStore();
-
-  const { attrs, collapsed, deleted } = useOutline(id, ({ attrs, collapsed, deleted }) => ({
-    attrs,
-    collapsed,
-    deleted,
-  }));
+  const { parentId, attrs, collapsed, deleted } = useOutline(
+    id,
+    ({ parentId, attrs, collapsed, deleted }) => ({
+      parentId,
+      attrs,
+      collapsed,
+      deleted,
+    }),
+  );
 
   return !deleted ? (
     <>
@@ -55,21 +71,12 @@ function Outline({ id }: { id: string }) {
         key={id}
         data-heading-level={attrs.type === "heading" ? attrs.level : undefined}
       >
-        <EditorButtons>
-          <EllipsisMenu content={() => "content"} />
-          {collapsed || children?.size ? (
-            <Button
-              onClick={async () => {
-                await store.loader.fetchTree(id);
-                store.reducer.toggleCollapsed(id);
-              }}
-            >
-              <StyledTriangle data-collapsed={collapsed} />
-            </Button>
-          ) : (
-            <></>
-          )}
-        </EditorButtons>
+        <OutlineControlButtons
+          id={id}
+          parentId={parentId}
+          collapsed={collapsed}
+          hasChildren={Boolean(children?.size)}
+        />
         <StyledBulletButton data-is-bullet={attrs.type === "bullet"} isCollapsed={collapsed} />
         <Editor id={id} />
       </EditorContainer>
@@ -88,6 +95,57 @@ function Outline({ id }: { id: string }) {
     <div>outline is deleted</div>
   );
 }
+
+function OutlineControlButtons({
+  id,
+  parentId,
+  collapsed,
+  hasChildren,
+}: {
+  id: string;
+  parentId: string | null;
+  collapsed: boolean;
+  hasChildren: boolean;
+}) {
+  const viewId = useViewState(({ id }) => id);
+  const store = useOutlineStore();
+
+  const isRoot = id === viewId;
+
+  return (
+    <Buttons data-is-root={isRoot} data-is-top={parentId === viewId}>
+      <EllipsisMenu content={() => "content"} />
+      {!isRoot && (collapsed || hasChildren) ? (
+        <ToggleCollapsedButton
+          onClick={async () => {
+            await store.loader.fetchTree(id);
+            store.reducer.toggleCollapsed(id);
+          }}
+        >
+          <StyledTriangle data-collapsed={collapsed} />
+        </ToggleCollapsedButton>
+      ) : (
+        <></>
+      )}
+    </Buttons>
+  );
+}
+
+const Buttons = styled("div", {
+  base: {
+    display: "flex",
+    pos: "absolute",
+    right: "full",
+    alignItems: "center",
+    h: "[1lh]",
+    "&[data-is-root='true']": {
+      pr: "4",
+    },
+    "&[data-is-top='false']": {
+      gap: "2.5",
+    },
+  },
+});
 
 const EditorContainer = styled("div", {
   base: {
@@ -116,15 +174,12 @@ const EditorContainer = styled("div", {
   },
 });
 
-const EditorButtons = styled("div", {
+const ToggleCollapsedButton = styled(Button, {
   base: {
-    display: "flex",
-    pos: "absolute",
-    right: "full",
-    gap: "2.5",
-    alignItems: "center",
-    h: "[1lh]",
-    pr: "1.5",
+    display: "grid",
+    w: "6",
+    h: "6",
+    placeContent: "center",
   },
 });
 
