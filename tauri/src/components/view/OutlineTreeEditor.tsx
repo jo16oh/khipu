@@ -1,8 +1,11 @@
 import { styled } from "generated/styled-system/jsx";
+import { Button } from "react-aria-components";
 import { ErrorBoundary } from "react-error-boundary";
 import { useFetchOutlineTree } from "src/hooks/useFetchOutlineTree";
 import { useOutline } from "src/hooks/useOutline";
 import { useOutlineChildren } from "src/hooks/useOutlineChildren";
+import Triangle from "src/icons/triangle";
+import { useOutlineStore } from "src/stores/outline-store";
 import BulletButton from "../common/BulletButton";
 import Editor from "../Editor";
 
@@ -15,7 +18,9 @@ export default function OutlineTreeEditor({ id }: { id: string }) {
   return !deleted ? (
     <ErrorBoundary resetKeys={[id]} fallback="outline not found">
       <Editor id={id} />
-      <Children level="top">{children?.map(({ id }) => <Outline key={id} id={id} />)}</Children>
+      <ChildrenContainer level="top">
+        {children?.map(({ id }) => <Outline key={id} id={id} />)}
+      </ChildrenContainer>
     </ErrorBoundary>
   ) : (
     <div>outline is deleted</div>
@@ -24,6 +29,8 @@ export default function OutlineTreeEditor({ id }: { id: string }) {
 
 function Outline({ id }: { id: string }) {
   const children = useOutlineChildren(id);
+
+  const store = useOutlineStore();
 
   const { attrs, collapsed, deleted } = useOutline(id, ({ attrs, collapsed, deleted }) => ({
     attrs,
@@ -38,15 +45,25 @@ function Outline({ id }: { id: string }) {
         key={id}
         data-heading-level={attrs.type === "heading" ? attrs.level : undefined}
       >
+        {(collapsed || children?.size) && (
+          <Button
+            onClick={async () => {
+              await store.loader.fetchTree(id);
+              store.reducer.toggleCollapsed(id);
+            }}
+          >
+            <StyledTriangle data-collapsed={collapsed} />
+          </Button>
+        )}
         <StyledBulletButton data-is-bullet={attrs.type === "bullet"} isCollapsed={collapsed} />
         <Editor id={id} />
       </Container>
       {children?.size && !collapsed && (
-        <Children>
+        <ChildrenContainer>
           {children.map(({ id }) => (
             <Outline key={id} id={id} />
           ))}
-        </Children>
+        </ChildrenContainer>
       )}
     </>
   ) : (
@@ -57,7 +74,7 @@ function Outline({ id }: { id: string }) {
 const Container = styled("div", {
   base: {
     display: "flex",
-    gap: "1.5",
+    pos: "relative",
     alignItems: "start",
     w: "full",
     "&[data-heading-level='1']": {
@@ -81,9 +98,23 @@ const Container = styled("div", {
   },
 });
 
+const StyledTriangle = styled(Triangle, {
+  base: {
+    pos: "absolute",
+    left: "-5",
+    w: "4",
+    h: "[1lh]",
+    color: "stone.300",
+    "&[data-collapsed='false']": {
+      transform: "[rotate(90deg)]",
+    },
+  },
+});
+
 const StyledBulletButton = styled(BulletButton, {
   base: {
     h: "[1lh]",
+    pr: "1.5",
     opacity: "0",
     _groupHover: {
       opacity: "100",
@@ -94,7 +125,7 @@ const StyledBulletButton = styled(BulletButton, {
   },
 });
 
-const Children = styled("div", {
+const ChildrenContainer = styled("div", {
   variants: {
     level: {
       top: {
