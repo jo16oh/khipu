@@ -79,6 +79,7 @@ const Header = styled("div", {
     borderBottomColor: "stone.200",
     w: "full",
     h: "8",
+    p: "1",
   },
 });
 
