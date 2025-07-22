@@ -33,7 +33,11 @@ function Outline({ id }: { id: string }) {
 
   return !deleted ? (
     <>
-      <Container className="group" key={id}>
+      <Container
+        className="group"
+        key={id}
+        data-heading-level={attrs.type === "heading" ? attrs.level : undefined}
+      >
         <StyledBulletButton data-is-bullet={attrs.type === "bullet"} isCollapsed={collapsed} />
         <Editor id={id} />
       </Container>
@@ -56,6 +60,24 @@ const Container = styled("div", {
     gap: "1.5",
     alignItems: "start",
     w: "full",
+    "&[data-heading-level='1']": {
+      fontSize: "h1",
+    },
+    "&[data-heading-level='2']": {
+      fontSize: "h2",
+    },
+    "&[data-heading-level='3']": {
+      fontSize: "h3",
+    },
+    "&[data-heading-level='4']": {
+      fontSize: "h4",
+    },
+    "&[data-heading-level='5']": {
+      fontSize: "h5",
+    },
+    "&[data-heading-level='6']": {
+      fontSize: "h6",
+    },
   },
 });
 

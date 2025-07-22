@@ -21,26 +21,32 @@ export const editorStyle: SystemStyleObject = {
   "& .heading[data-heading-level='1']": {
     minH: "[1lh]",
     fontSize: "h1",
+    fontWeight: "bold",
   },
   "& .heading[data-heading-level='2']": {
     minH: "[1lh]",
     fontSize: "h2",
+    fontWeight: "bold",
   },
   "& .heading[data-heading-level='3']": {
     minH: "[1lh]",
     fontSize: "h3",
+    fontWeight: "bold",
   },
   "& .heading[data-heading-level='4']": {
     minH: "[1lh]",
     fontSize: "h4",
+    fontWeight: "bold",
   },
   "& .heading[data-heading-level='5']": {
     minH: "[1lh]",
     fontSize: "h5",
+    fontWeight: "bold",
   },
   "& .heading[data-heading-level='6']": {
     minH: "[1lh]",
     fontSize: "h6",
+    fontWeight: "bold",
   },
   "& .heading [data-is-empty='true']:first-child::before": {
     float: "start",
