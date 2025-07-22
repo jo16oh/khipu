@@ -1,5 +1,5 @@
 import { EditorContent, FocusPosition, Editor as Tiptap } from "@tiptap/react";
-import { styled } from "generated/styled-system/jsx";
+import { css } from "generated/styled-system/css";
 import { OutlineAttrs } from "generated/tauri-commands";
 import {
   memo,
@@ -92,9 +92,13 @@ const MockEditor = memo(function MockEditor({
   const { attrs, doc } = useOutline(id, ({ attrs, doc }) => ({ attrs, doc }));
 
   return (
-    <EditorContainer className="tiptap ProseMirror" onMouseEnter={onMouseEnter}>
+    <div
+      className={`tiptap ProseMirror ${attrs.type} ${editorContainerStyle} `}
+      data-heading-level={attrs.type === "heading" ? attrs.level : undefined}
+      onMouseEnter={onMouseEnter}
+    >
       <StaticRenderer id={id} doc={doc} type={attrs.type} />
-    </EditorContainer>
+    </div>
   );
 });
 
@@ -162,15 +166,16 @@ const ActiveEditor = memo(function ActiveEditor({
   );
 
   return (
-    <EditorContainer onMouseLeave={onMouseLeave}>
-      <EditorContent editor={editor.current} />
-    </EditorContainer>
+    <EditorContent
+      className={`${attrs.type} ${editorContainerStyle}`}
+      data-heading-level={attrs.type === "heading" ? attrs.level : undefined}
+      editor={editor.current}
+      onMouseLeave={onMouseLeave}
+    />
   );
 });
 
-const EditorContainer = styled("div", {
-  base: {
-    w: "full",
-    minH: "[1lh]",
-  },
+const editorContainerStyle = css({
+  w: "full",
+  minH: "[1lh]",
 });

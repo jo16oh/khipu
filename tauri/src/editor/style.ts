@@ -7,13 +7,7 @@ export const editorStyle: SystemStyleObject = {
     p: "1",
     bg: "stone.200",
   },
-  "& [data-is-empty='true']:first-child::before": {
-    float: "start",
-    h: "0",
-    color: "stone.400",
-    content: '"Untitled"',
-    pointerEvents: "none",
-  },
+
   "& .tiptap": {
     ring: "none",
     cursor: "text",
@@ -24,35 +18,37 @@ export const editorStyle: SystemStyleObject = {
     userSelect: "text",
     whiteSpace: "pre-wrap",
   },
-  "& h1": {
+  "& .heading[data-heading-level='1']": {
     minH: "[1lh]",
     fontSize: "h1",
-    fontWeight: "bold",
   },
-  "& h2": {
+  "& .heading[data-heading-level='2']": {
     minH: "[1lh]",
     fontSize: "h2",
-    fontWeight: "bold",
   },
-  "& h3": {
+  "& .heading[data-heading-level='3']": {
     minH: "[1lh]",
     fontSize: "h3",
-    fontWeight: "bold",
   },
-  "& h4": {
+  "& .heading[data-heading-level='4']": {
     minH: "[1lh]",
     fontSize: "h4",
-    fontWeight: "bold",
   },
-  "& h5": {
+  "& .heading[data-heading-level='5']": {
     minH: "[1lh]",
     fontSize: "h5",
-    fontWeight: "bold",
   },
-  "& h6": {
+  "& .heading[data-heading-level='6']": {
     minH: "[1lh]",
     fontSize: "h6",
-    fontWeight: "bold",
+  },
+  "& .heading [data-is-empty='true']:first-child::before": {
+    float: "start",
+    h: "0",
+    color: "stone.400",
+    content: '"Untitled"',
+    pointerEvents: "none",
+  },
   "& .internal-link": {
     color: "blue.500",
   },
