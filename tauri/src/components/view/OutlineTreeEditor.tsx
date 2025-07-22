@@ -12,13 +12,22 @@ import Editor from "../Editor";
 
 export default function OutlineTreeEditor({ id }: { id: string }) {
   useFetchOutlineTree(id);
-  const deleted = useOutline(id, ({ deleted }) => deleted);
+  const { deleted, attrs } = useOutline(id, ({ deleted, attrs }) => ({ deleted, attrs }));
   if (deleted) throw new Error("outline is deleted");
   const children = useOutlineChildren(id);
 
   return !deleted ? (
     <ErrorBoundary resetKeys={[id]} fallback="outline not found">
-      <Editor id={id} />
+      <Container
+        className="group"
+        key={id}
+        data-heading-level={attrs.type === "heading" ? attrs.level : undefined}
+      >
+        <Buttons pr="3">
+          <EllipsisMenu content={() => "content"} />
+        </Buttons>
+        <Editor id={id} />
+      </Container>
       <ChildrenContainer level="top">
         {children?.map(({ id }) => <Outline key={id} id={id} />)}
       </ChildrenContainer>
