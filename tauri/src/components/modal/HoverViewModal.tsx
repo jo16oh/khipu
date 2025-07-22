@@ -78,7 +78,7 @@ const Header = styled("div", {
     borderBottomWidth: "thin",
     borderBottomColor: "stone.200",
     w: "full",
-    h: "8",
+    minH: "9",
     p: "1",
   },
 });
