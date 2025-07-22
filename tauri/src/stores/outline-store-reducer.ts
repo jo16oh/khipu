@@ -122,6 +122,14 @@ export class OutlineStoreReducer {
     }
   }
 
+  toggleCollapsed(...ids: string[]) {
+    for (const id of ids) {
+      this.#updateOutline(id, (draft) => {
+        draft.collapsed = !draft.collapsed;
+      });
+    }
+  }
+
   collapse(...ids: string[]) {
     for (const id of ids) {
       this.#updateOutline(id, (draft) => {
