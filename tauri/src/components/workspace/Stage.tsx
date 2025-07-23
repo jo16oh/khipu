@@ -9,12 +9,11 @@ import { useWorkspaceState } from "src/stores/workspace-state-store";
 import { useStore } from "zustand";
 import { useShallow } from "zustand/react/shallow";
 import Bullet from "../common/Bullet";
-import EllipsisMenu from "../common/EllipsisMenu";
 import LazySuspense from "../common/LazySuspense";
 import ScrollArea from "../common/ScrollArea";
 import OutlineView from "../view/OutlineView";
 import ViewHeader from "../view/ViewHeader";
-import Titlebar from "./TitleBar";
+import Titlebar from "./Titlebar";
 
 export default function Stage() {
   const viewStateStore = useWorkspaceState(useShallow((state) => state.stage));
@@ -33,9 +32,6 @@ export default function Stage() {
           <LazySuspense>
             <Titlebar>
               <ViewHeader data-tauri-drag-region />
-              <HeaderRightButtons data-tauri-drag-region>
-                <EllipsisMenu content={() => "content"} />
-              </HeaderRightButtons>
             </Titlebar>
             <ViewContainer>
               <OutlineView id={defferedId} />
@@ -75,16 +71,6 @@ const Title = () => {
     </Container>
   );
 };
-
-const HeaderRightButtons = styled("div", {
-  base: {
-    display: "flex",
-    flex: "1",
-    justifyContent: "end",
-    alignItems: "center",
-    h: "full",
-  },
-});
 
 const Container = styled("div", {
   base: {

@@ -5,11 +5,20 @@ import { ComponentProps } from "react";
 import { Button } from "react-aria-components";
 import Popover from "./Popover";
 
-const EllipsisMenu = (props: Omit<ComponentProps<typeof Popover>, "trigger">) => (
+type Props = Omit<ComponentProps<typeof Popover>, "trigger"> & {
+  orientation?: "horizontal" | "vertical";
+  visibility?: "groupHover" | "hover" | "always";
+};
+
+const EllipsisMenu = ({
+  orientation = "horizontal",
+  visibility = "groupHover",
+  ...props
+}: Props) => (
   <Popover
     trigger={
-      <StyledButton>
-        <EllipsisIcon />
+      <StyledButton data-visibility={visibility}>
+        <EllipsisIcon data-orientation={orientation} />
       </StyledButton>
     }
     {...props}
@@ -25,13 +34,24 @@ const StyledButton = styled(Button, {
     fontSize: "md",
     placeContent: "center",
     _hover: { bg: "stone.200" },
-    _groupHover: { color: "stone.500" },
+    "&[data-visibility='groupHover']": {
+      _groupHover: { color: "stone.500" },
+    },
+    "&[data-visibility='hover']": {
+      _hover: { color: "stone.500" },
+    },
+    "&[data-visibility='always']": {
+      color: "stone.500",
+    },
   }),
 });
 
 const EllipsisIcon = styled(Ellipsis, {
   base: square.raw({
     size: "5",
+    "&[data-orientation=vertical]": {
+      transform: "rotate(90deg)",
+    },
   }),
 });
 

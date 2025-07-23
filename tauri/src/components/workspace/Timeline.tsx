@@ -1,4 +1,4 @@
-import Titlebar from "./TitleBar";
+import Titlebar from "./Titlebar";
 
 export default function Timeline() {
   return (
