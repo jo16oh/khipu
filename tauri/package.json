@@ -30,6 +30,7 @@
     "@tiptap/react": "^3.0.7",
     "@tiptap/static-renderer": "^3.0.7",
     "@tiptap/suggestion": "^3.0.7",
+    "@viselect/vanilla": "github:jo16oh/viselect#fix-drag-to-scroll-build&path:/packages/vanilla",
     "bs58": "^6.0.0",
     "date-fns": "^4.1.0",
     "es-toolkit": "^1.39.7",
