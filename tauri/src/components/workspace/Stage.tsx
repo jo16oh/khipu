@@ -33,9 +33,9 @@ export default function Stage() {
             <Titlebar>
               <ViewHeader data-tauri-drag-region />
             </Titlebar>
-            <ViewContainer>
+            <ScrollArea styleObject={viewContainerStyle}>
               <OutlineView id={defferedId} />
-            </ViewContainer>
+            </ScrollArea>
           </LazySuspense>
         </>
       ) : (
@@ -122,14 +122,13 @@ const Operation = styled("div", {
   },
 });
 
-const ViewContainer = styled(ScrollArea, {
-  base: {
+const viewContainerStyle = css.raw({
     display: "flex",
     flexDir: "column",
     alignItems: "center",
     w: "full",
     h: "full",
-  },
+    userSelect: "nkne"
 });
 
 const CreateNewOutlineButton = styled(Button, {

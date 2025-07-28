@@ -1,10 +1,12 @@
-import { styled } from "generated/styled-system/jsx";
+import { css } from "generated/styled-system/css";
+import { SystemStyleObject } from "generated/styled-system/types";
 import { PropsWithChildren, Ref } from "react";
 
 type ScrollAreaProps = PropsWithChildren & {
   ref?: Ref<HTMLDivElement>;
   orientation?: "vertical" | "horizontal";
   type?: "auto" | "always";
+  styleObject?: SystemStyleObject;
 };
 
 export default function ScrollArea({
@@ -12,51 +14,54 @@ export default function ScrollArea({
   children,
   orientation = "vertical",
   type = "auto",
-  ...props
+  styleObject
 }: ScrollAreaProps) {
   return (
-    <Area ref={ref!} data-orientation={orientation} data-scroll-type={type} {...props}>
+    <div
+      ref={ref!}
+      className={`scroll-area ${css(areaStyle, styleObject)}`}
+      data-orientation={orientation}
+      data-scroll-type={type}
+    >
       {children}
-    </Area>
+    </div>
   );
 }
 
-const Area = styled("div", {
-  base: {
-    w: "full",
-    h: "full",
-    _scrollbar: {
-      rounded: "md",
-      w: "[10px]",
-      h: "[10px]",
-      p: "[1px]",
-      bg: "stone.300",
+const areaStyle = css.raw({
+  w: "full",
+  h: "full",
+  _scrollbar: {
+    rounded: "md",
+    w: "[10px]",
+    h: "[10px]",
+    p: "[1px]",
+    bg: "stone.300",
+  },
+  _scrollbarThumb: {
+    border: "[2px solid transparent]",
+    rounded: "[16px]",
+    bg: "stone.500",
+    bgClip: "padding-box",
+  },
+  _scrollbarTrack: {
+    // eslint-disable-next-line @pandacss/no-margin-properties
+    m: "[4px]",
+  },
+  "&[data-orientation=horizontal]": {
+    "&[data-scroll-type=auto]": {
+      overflowX: "auto",
     },
-    _scrollbarThumb: {
-      border: "[2px solid transparent]",
-      rounded: "[16px]",
-      bg: "stone.500",
-      bgClip: "padding-box",
+    "&[data-scroll-type=always]": {
+      overflowX: "scroll",
     },
-    _scrollbarTrack: {
-      // eslint-disable-next-line @pandacss/no-margin-properties
-      m: "[4px]",
+  },
+  "&[data-orientation=vertical]": {
+    "&[data-scroll-type=auto]": {
+      overflowY: "auto",
     },
-    "&[data-orientation=horizontal]": {
-      "&[data-scroll-type=auto]": {
-        overflowX: "auto",
-      },
-      "&[data-scroll-type=always]": {
-        overflowX: "scroll",
-      },
-    },
-    "&[data-orientation=vertical]": {
-      "&[data-scroll-type=auto]": {
-        overflowY: "auto",
-      },
-      "&[data-scroll-type=always]": {
-        overflowY: "scroll",
-      },
+    "&[data-scroll-type=always]": {
+      overflowY: "scroll",
     },
   },
 });
