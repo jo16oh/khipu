@@ -2,6 +2,7 @@ import { EditorContent, FocusPosition, Editor as Tiptap } from "@tiptap/react";
 import { css } from "generated/styled-system/css";
 import { OutlineAttrs } from "generated/tauri-commands";
 import {
+  MouseEventHandler,
   memo,
   Ref,
   Suspense,
@@ -32,7 +33,9 @@ export default function Editor({ ref, id }: { ref?: Ref<EditorHandle>; id: strin
   const [focused, setFocused] = useState(false);
   const [isPending, startTransition] = useTransition();
 
-  const onMouseEnter = useCallback(() => startTransition(() => setFocused(true)), []);
+  const onMouseEnter: MouseEventHandler<HTMLDivElement> = useCallback((e) => {
+    if (e.buttons === 0) startTransition(() => setFocused(true));
+  }, []);
 
   const editorRef = useObservableRef<EditorHandle | null>(null);
 
@@ -87,7 +90,7 @@ const MockEditor = memo(function MockEditor({
   onMouseEnter,
 }: {
   id: string;
-  onMouseEnter: () => void;
+  onMouseEnter: MouseEventHandler<HTMLDivElement>;
 }) {
   const { attrs, doc } = useOutline(id, ({ attrs, doc }) => ({ attrs, doc }));
 
