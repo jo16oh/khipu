@@ -123,12 +123,12 @@ const Operation = styled("div", {
 });
 
 const viewContainerStyle = css.raw({
-    display: "flex",
-    flexDir: "column",
-    alignItems: "center",
-    w: "full",
-    h: "full",
-    userSelect: "nkne"
+  display: "flex",
+  flexDir: "column",
+  alignItems: "center",
+  w: "full",
+  h: "full",
+  userSelect: "none",
 });
 
 const CreateNewOutlineButton = styled(Button, {

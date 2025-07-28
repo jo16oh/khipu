@@ -14,7 +14,7 @@ export default function ScrollArea({
   children,
   orientation = "vertical",
   type = "auto",
-  styleObject
+  styleObject,
 }: ScrollAreaProps) {
   return (
     <div
