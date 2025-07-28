@@ -1,5 +1,4 @@
 import { styled } from "generated/styled-system/jsx";
-import { Button } from "react-aria-components";
 import { ErrorBoundary } from "react-error-boundary";
 import { useFetchOutlineTree } from "src/hooks/useFetchOutlineTree";
 import { useOutline } from "src/hooks/useOutline";
@@ -10,6 +9,7 @@ import { useViewState } from "src/stores/view-state-store";
 import BulletButton from "../common/BulletButton";
 import EllipsisMenu from "../common/EllipsisMenu";
 import Editor from "../Editor";
+import { SelectableContainer, SelectionArea } from "./selection";
 
 export default function OutlineTreeEditor({ id }: { id: string }) {
   useFetchOutlineTree(id);
@@ -29,22 +29,24 @@ export default function OutlineTreeEditor({ id }: { id: string }) {
 
   return !deleted ? (
     <ErrorBoundary resetKeys={[id]} fallback="outline not found">
-      <EditorContainer
-        className="group"
-        key={id}
-        data-heading-level={attrs.type === "heading" ? attrs.level : undefined}
-      >
-        <OutlineControlButtons
-          id={id}
-          parentId={parentId}
-          collapsed={collapsed}
-          hasChildren={true}
-        />
-        <Editor id={id} />
-      </EditorContainer>
-      <ChildrenContainer level="top">
-        {children?.map(({ id }) => <Outline key={id} id={id} />)}
-      </ChildrenContainer>
+      <SelectionArea boundaries=".scroll-area">
+        <EditorContainer
+          className="group view-root"
+          key={id}
+          data-heading-level={attrs.type === "heading" ? attrs.level : undefined}
+        >
+          <OutlineControlButtons
+            id={id}
+            parentId={parentId}
+            collapsed={collapsed}
+            hasChildren={true}
+          />
+          <Editor id={id} />
+        </EditorContainer>
+        <ChildrenContainer level="top">
+          {children?.map(({ id }) => <Outline key={id} id={id} />)}
+        </ChildrenContainer>
+      </SelectionArea>
     </ErrorBoundary>
   ) : (
     <div>outline is deleted</div>
@@ -66,20 +68,22 @@ function Outline({ id }: { id: string }) {
 
   return !deleted ? (
     <>
-      <EditorContainer
-        className="group"
-        key={id}
-        data-heading-level={attrs.type === "heading" ? attrs.level : undefined}
-      >
-        <OutlineControlButtons
-          id={id}
-          parentId={parentId}
-          collapsed={collapsed}
-          hasChildren={Boolean(children?.size)}
-        />
-        <StyledBulletButton data-is-bullet={attrs.type === "bullet"} isCollapsed={collapsed} />
-        <Editor id={id} />
-      </EditorContainer>
+      <SelectableContainer id={id}>
+        <EditorContainer
+          className="group"
+          key={id}
+          data-heading-level={attrs.type === "heading" ? attrs.level : undefined}
+        >
+          <OutlineControlButtons
+            id={id}
+            parentId={parentId}
+            collapsed={collapsed}
+            hasChildren={Boolean(children?.size)}
+          />
+          <StyledBulletButton data-is-bullet={attrs.type === "bullet"} isCollapsed={collapsed} />
+          <Editor id={id} />
+        </EditorContainer>
+      </SelectableContainer>
       {children?.size && !collapsed ? (
         <ChildrenContainer>
           {children.map(({ id }) => (
@@ -174,7 +178,7 @@ const EditorContainer = styled("div", {
   },
 });
 
-const ToggleCollapsedButton = styled(Button, {
+const ToggleCollapsedButton = styled("button", {
   base: {
     display: "grid",
     w: "6",
@@ -224,6 +228,7 @@ const ChildrenContainer = styled("div", {
     flexDir: "column",
     w: "full",
     pl: "9",
+    pr: "1",
   },
 });
 
