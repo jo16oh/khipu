@@ -93,7 +93,7 @@ const MockEditor = memo(function MockEditor({
 
   return (
     <div
-      className={`tiptap ProseMirror ${attrs.type} ${editorContainerStyle} `}
+      className={`${attrs.type} ${editorContainerStyle}`}
       data-heading-level={attrs.type === "heading" ? attrs.level : undefined}
       onMouseEnter={onMouseEnter}
     >

@@ -18,14 +18,18 @@ export default function StaticRenderer({
   const store = useOutlineStore();
   const extensions = useMemo(() => createRendererExtensions(id, type, store), [id, type, store]);
 
-  return renderToReactElement({
-    extensions,
-    content: doc,
-    options: {
-      nodeMapping: {
-        // @ts-expect-error NodeViewProps is incompatible with NodeProps from static renderer
-        "internal-link": InternalLinkNodeView,
-      },
-    },
-  });
+  return (
+    <div className="static-renderer tiptap ProseMirror">
+      {renderToReactElement({
+        extensions,
+        content: doc,
+        options: {
+          nodeMapping: {
+            // @ts-expect-error NodeViewProps is incompatible with NodeProps from static renderer
+            "internal-link": InternalLinkNodeView,
+          },
+        },
+      })}
+    </div>
+  );
 }

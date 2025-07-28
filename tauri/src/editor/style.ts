@@ -18,6 +18,9 @@ export const editorStyle: SystemStyleObject = {
     userSelect: "text",
     whiteSpace: "pre-wrap",
   },
+  "& .static-renderer .tiptap .ProseMirror *": {
+    userSelect: "none",
+  },
   "& .heading[data-heading-level='1']": {
     minH: "[1lh]",
     fontSize: "h1",
@@ -86,9 +89,6 @@ export const defaultProseMirrorStyle: GlobalStyleObject = {
   },
   ".ProseMirror-hideselection": {
     caretColor: "transparent",
-  },
-  ".ProseMirror [draggable][contenteditable=false]": {
-    userSelect: "text",
   },
   "li.ProseMirror-selectednode:after": {
     position: "absolute",
