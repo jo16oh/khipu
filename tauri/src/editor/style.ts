@@ -90,12 +90,6 @@ export const defaultProseMirrorStyle: GlobalStyleObject = {
   ".ProseMirror [draggable][contenteditable=false]": {
     userSelect: "text",
   },
-  ".ProseMirror-selectednode": {
-    outline: "2px solid #8cf",
-  },
-  "li.ProseMirror-selectednode": {
-    outline: "none",
-  },
   "li.ProseMirror-selectednode:after": {
     position: "absolute",
     top: "-2px",
