@@ -1,10 +1,10 @@
 import { styled } from "generated/styled-system/jsx";
-import OutlineTreeEditor from "./OutlineTreeEditor";
+import OutlineEditorTree from "./OutlineEditorTree";
 
 export default function OutlineView({ id }: { id: string }) {
   return (
     <View>
-      <OutlineTreeEditor id={id} />
+      <OutlineEditorTree id={id} />
     </View>
   );
 }

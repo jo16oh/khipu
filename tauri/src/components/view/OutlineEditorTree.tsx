@@ -1,4 +1,6 @@
+import { css } from "generated/styled-system/css";
 import { styled } from "generated/styled-system/jsx";
+import { useSyncExternalStore } from "react";
 import { ErrorBoundary } from "react-error-boundary";
 import { useFetchOutlineTree } from "src/hooks/useFetchOutlineTree";
 import { useOutline } from "src/hooks/useOutline";
@@ -9,9 +11,19 @@ import { useViewState } from "src/stores/view-state-store";
 import BulletButton from "../common/BulletButton";
 import EllipsisMenu from "../common/EllipsisMenu";
 import Editor from "../Editor";
-import { SelectableContainer, SelectionArea } from "./selection";
+import { SelectableItem, SelectionArea, useSelectionManager } from "./selection";
 
-export default function OutlineTreeEditor({ id }: { id: string }) {
+export default function OutlineEditorTree({ id }: { id: string }) {
+  return (
+    <ErrorBoundary resetKeys={[id]} fallback="outline not found">
+      <SelectionArea boundaries=".scroll-area">
+        <RootOutlineEditor id={id} />
+      </SelectionArea>
+    </ErrorBoundary>
+  );
+}
+
+function RootOutlineEditor({ id }: { id: string }) {
   useFetchOutlineTree(id);
 
   const { parentId, attrs, collapsed, deleted } = useOutline(
@@ -26,6 +38,18 @@ export default function OutlineTreeEditor({ id }: { id: string }) {
 
   if (deleted) throw new Error("outline is deleted");
   const children = useOutlineChildren(id);
+
+  const selectionManager = useSelectionManager();
+
+  const displayAsSelected = useSyncExternalStore(
+    (cb) => selectionManager.subscribe(id, cb),
+    () => {
+      const isSelected = selectionManager.isSelected(id);
+      const isOnly = isSelected && selectionManager.selectionSize === 1;
+      const { meta, shift, alt, ctrl } = selectionManager.getCurrentModifiers();
+      return isSelected && (isOnly ? meta || shift || alt || ctrl : true);
+    },
+  );
 
   return !deleted ? (
     <ErrorBoundary resetKeys={[id]} fallback="outline not found">
@@ -43,8 +67,8 @@ export default function OutlineTreeEditor({ id }: { id: string }) {
           />
           <Editor id={id} />
         </EditorContainer>
-        <ChildrenContainer level="top">
-          {children?.map(({ id }) => <Outline key={id} id={id} />)}
+        <ChildrenContainer level="top" data-is-selected={displayAsSelected}>
+          {children?.map(({ id }) => <OutlineEditor key={id} id={id} />)}
         </ChildrenContainer>
       </SelectionArea>
     </ErrorBoundary>
@@ -53,7 +77,7 @@ export default function OutlineTreeEditor({ id }: { id: string }) {
   );
 }
 
-function Outline({ id }: { id: string }) {
+function OutlineEditor({ id }: { id: string }) {
   const children = useOutlineChildren(id);
 
   const { parentId, attrs, collapsed, deleted } = useOutline(
@@ -66,9 +90,21 @@ function Outline({ id }: { id: string }) {
     }),
   );
 
+  const selectionManager = useSelectionManager();
+
+  const displayAsSelected = useSyncExternalStore(
+    (cb) => selectionManager.subscribe(id, cb),
+    () => {
+      const isSelected = selectionManager.isSelected(id);
+      const isOnly = isSelected && selectionManager.selectionSize === 1;
+      const { meta, shift, alt, ctrl } = selectionManager.getCurrentModifiers();
+      return isSelected && (isOnly ? meta || shift || alt || ctrl : true);
+    },
+  );
+
   return !deleted ? (
     <>
-      <SelectableContainer id={id}>
+      <SelectableItem className={selectableItemStyle} id={id}>
         <EditorContainer
           className="group"
           key={id}
@@ -83,11 +119,11 @@ function Outline({ id }: { id: string }) {
           <StyledBulletButton data-is-bullet={attrs.type === "bullet"} isCollapsed={collapsed} />
           <Editor id={id} />
         </EditorContainer>
-      </SelectableContainer>
+      </SelectableItem>
       {children?.size && !collapsed ? (
-        <ChildrenContainer>
+        <ChildrenContainer data-is-selected={displayAsSelected}>
           {children.map(({ id }) => (
-            <Outline key={id} id={id} />
+            <OutlineEditor key={id} id={id} />
           ))}
           <VerticalLine />
         </ChildrenContainer>
@@ -117,7 +153,7 @@ function OutlineControlButtons({
   const isRoot = id === viewId;
 
   return (
-    <Buttons data-is-root={isRoot} data-is-top={parentId === viewId}>
+    <Buttons data-is-root={isRoot} data-is-top-level-child={parentId === viewId}>
       <EllipsisMenu content={() => "content"} />
       {!isRoot && (collapsed || hasChildren) ? (
         <ToggleCollapsedButton
@@ -145,7 +181,7 @@ const Buttons = styled("div", {
     "&[data-is-root='true']": {
       pr: "4",
     },
-    "&[data-is-top='false']": {
+    "&[data-is-top-level-child='false']": {
       gap: "2.5",
     },
   },
@@ -201,7 +237,7 @@ const StyledTriangle = styled(Triangle, {
 const StyledBulletButton = styled(BulletButton, {
   base: {
     h: "[1lh]",
-    pr: "1.5",
+    pr: "1",
     opacity: "0",
     _groupHover: {
       opacity: "100",
@@ -224,18 +260,25 @@ const ChildrenContainer = styled("div", {
   base: {
     display: "flex",
     pos: "relative",
-    gap: "0.5",
     flexDir: "column",
     w: "full",
     pl: "9",
     pr: "1",
+    "&[data-is-selected='true']": {
+      bg: "blue.200",
+    },
   },
+});
+
+const selectableItemStyle = css({
+  py: "0.5",
+  pl: "1",
 });
 
 const VerticalLine = styled("div", {
   base: {
     pos: "absolute",
-    left: "2",
+    left: "3",
     w: "[0.0625rem]",
     h: "full",
     bg: "stone.200",

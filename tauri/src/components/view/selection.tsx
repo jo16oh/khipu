@@ -149,7 +149,7 @@ class SelectionManager {
 
 const OutlineSelectionContext = createContext<SelectionManager | null>(null);
 
-function useSelectionManager() {
+export function useSelectionManager() {
   const state = use(OutlineSelectionContext);
   if (!state) throw new Error("OutlineSelectionContext is not set");
   return state;
@@ -178,7 +178,7 @@ export function SelectionArea({
   );
 }
 
-export function SelectableContainer({
+export function SelectableItem({
   id,
   children,
   className,
