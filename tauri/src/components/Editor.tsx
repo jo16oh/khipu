@@ -123,8 +123,10 @@ const ActiveEditor = memo(function ActiveEditor({
   const notifier = useDocUpdateNotifier();
   const viewStateStore = use(ViewStateStoreContext)!;
 
-  const editor = useRef(
-    new Tiptap({
+  const editor = useRef<Tiptap | null>(null);
+
+  if (!editor.current) {
+    editor.current = new Tiptap({
       extensions: createEditorExtensions(
         id,
         ydoc,
@@ -138,8 +140,8 @@ const ActiveEditor = memo(function ActiveEditor({
         setFocused(false);
         setTimeout(() => editor.destroy());
       },
-    }),
-  );
+    });
+  }
 
   useEffect(() => {
     return () => {
@@ -158,10 +160,10 @@ const ActiveEditor = memo(function ActiveEditor({
     () => ({
       focus: (pos) => {
         if (typeof pos === "number" && pos < 0) {
-          const size = editor.current.state.doc.nodeSize - 1;
-          setTimeout(() => editor.current.commands.focus(size - Math.abs(pos)), 0);
+          const size = editor.current ? editor.current?.state.doc.nodeSize - 1 : 0;
+          setTimeout(() => editor.current?.commands.focus(size - Math.abs(pos)), 0);
         } else {
-          setTimeout(() => editor.current.commands.focus(pos));
+          setTimeout(() => editor.current?.commands.focus(pos));
         }
       },
     }),
