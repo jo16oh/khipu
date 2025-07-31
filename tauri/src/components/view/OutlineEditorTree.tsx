@@ -1,6 +1,5 @@
 import { css } from "generated/styled-system/css";
 import { styled } from "generated/styled-system/jsx";
-import { useSyncExternalStore } from "react";
 import { ErrorBoundary } from "react-error-boundary";
 import { useFetchOutlineTree } from "src/hooks/useFetchOutlineTree";
 import { useOutline } from "src/hooks/useOutline";
@@ -11,7 +10,7 @@ import { useViewState } from "src/stores/view-state-store";
 import BulletButton from "../common/BulletButton";
 import EllipsisMenu from "../common/EllipsisMenu";
 import Editor from "../Editor";
-import { SelectableItem, SelectionArea, useSelectionManager } from "./selection";
+import { SelectableItem, SelectionArea, useSelectionState } from "./selection";
 
 export default function OutlineEditorTree({ id }: { id: string }) {
   return (
@@ -39,17 +38,7 @@ function RootOutlineEditor({ id }: { id: string }) {
   if (deleted) throw new Error("outline is deleted");
   const children = useOutlineChildren(id);
 
-  const selectionManager = useSelectionManager();
-
-  const displayAsSelected = useSyncExternalStore(
-    (cb) => selectionManager.subscribe(id, cb),
-    () => {
-      const isSelected = selectionManager.isSelected(id);
-      const isOnly = isSelected && selectionManager.selectionSize === 1;
-      const { meta, shift, alt, ctrl } = selectionManager.getCurrentModifiers();
-      return isSelected && (isOnly ? meta || shift || alt || ctrl : true);
-    },
-  );
+  const { shouldDisplayAsSelected } = useSelectionState(id);
 
   return !deleted ? (
     <ErrorBoundary resetKeys={[id]} fallback="outline not found">
@@ -67,7 +56,7 @@ function RootOutlineEditor({ id }: { id: string }) {
           />
           <Editor id={id} />
         </EditorContainer>
-        <ChildrenContainer level="top" data-is-selected={displayAsSelected}>
+        <ChildrenContainer level="top" data-is-selected={shouldDisplayAsSelected}>
           {children?.map(({ id }) => <OutlineEditor key={id} id={id} />)}
         </ChildrenContainer>
       </SelectionArea>
@@ -90,17 +79,7 @@ function OutlineEditor({ id }: { id: string }) {
     }),
   );
 
-  const selectionManager = useSelectionManager();
-
-  const displayAsSelected = useSyncExternalStore(
-    (cb) => selectionManager.subscribe(id, cb),
-    () => {
-      const isSelected = selectionManager.isSelected(id);
-      const isOnly = isSelected && selectionManager.selectionSize === 1;
-      const { meta, shift, alt, ctrl } = selectionManager.getCurrentModifiers();
-      return isSelected && (isOnly ? meta || shift || alt || ctrl : true);
-    },
-  );
+  const { shouldDisplayAsSelected } = useSelectionState(id);
 
   return !deleted ? (
     <>
@@ -121,7 +100,7 @@ function OutlineEditor({ id }: { id: string }) {
         </EditorContainer>
       </SelectableItem>
       {children?.size && !collapsed ? (
-        <ChildrenContainer data-is-selected={displayAsSelected}>
+        <ChildrenContainer data-is-selected={shouldDisplayAsSelected}>
           {children.map(({ id }) => (
             <OutlineEditor key={id} id={id} />
           ))}

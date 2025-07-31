@@ -155,6 +155,28 @@ export function useSelectionManager() {
   return state;
 }
 
+export function useSelectionState(id: string) {
+  const selectionManager = useSelectionManager();
+
+  const isSelected = selectionManager.isSelected(id);
+
+  const shouldDisplayAsSelected = useSyncExternalStore(
+    (cb) => selectionManager.subscribe(id, cb),
+    () => {
+      const isSelected = selectionManager.isSelected(id);
+      const isOnly = isSelected && selectionManager.selectionSize === 1;
+      const { meta, shift, alt, ctrl } = selectionManager.getCurrentModifiers();
+      return isSelected && (isOnly ? meta || shift || alt || ctrl : true);
+    },
+  );
+
+  return {
+    isSelected,
+    shouldDisplayAsSelected,
+    selectionManager,
+  };
+}
+
 export function SelectionArea({
   boundaries,
   children,
@@ -184,23 +206,13 @@ export function SelectableItem({
   className,
   ...rest
 }: ComponentPropsWithoutRef<"div"> & { id: string }) {
-  const selectionManager = useSelectionManager();
-
-  const displayAsSelected = useSyncExternalStore(
-    (cb) => selectionManager.subscribe(id, cb),
-    () => {
-      const isSelected = selectionManager.isSelected(id);
-      const isOnly = isSelected && selectionManager.selectionSize === 1;
-      const { meta, shift, alt, ctrl } = selectionManager.getCurrentModifiers();
-      return isSelected && (isOnly ? meta || shift || alt || ctrl : true);
-    },
-  );
+  const { shouldDisplayAsSelected } = useSelectionState(id);
 
   return (
     <div
       className={`selection-item ${selectionItemStyle} ${className ?? ""}`}
       data-id={id}
-      data-selected={displayAsSelected}
+      data-selected={shouldDisplayAsSelected}
       {...rest}
     >
       {children}
