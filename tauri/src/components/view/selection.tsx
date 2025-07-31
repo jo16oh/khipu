@@ -9,6 +9,7 @@ import {
   useRef,
   useSyncExternalStore,
 } from "react";
+import { OutlineStore, useOutlineStore } from "src/stores/outline-store";
 
 type Modifiers = { ctrl: boolean; shift: boolean; alt: boolean; meta: boolean };
 
@@ -23,8 +24,9 @@ class SelectionManager {
     shift: false,
   };
   private _cleanup: () => void;
+  private _store: OutlineStore;
 
-  constructor(boundaries: Quantify<string | HTMLElement>) {
+  constructor(boundaries: Quantify<string | HTMLElement>, store: OutlineStore) {
     this._area = new Viselect({
       boundaries,
       selectables: ".selection-item",
@@ -47,6 +49,8 @@ class SelectionManager {
       window.removeEventListener("mousedown", mousedown);
       window.removeEventListener("mouseup", mouseup);
     };
+
+    this._store = store;
   }
 
   private _syncSelection(e: SelectionEvent) {
@@ -112,8 +116,23 @@ class SelectionManager {
     return this._startModifiers;
   }
 
-  getAllSelectedItems() {
-    return Array.from(this._selected);
+  getSelectedIds() {
+    const result: string[] = [];
+
+    for (const id of this._selected) {
+      const path = this._store.getOutlinePath(id);
+
+      const isAnscestorSelected = (path ?? []).reduce(
+        (prev, curr) => prev || this._selected.has(curr),
+        false,
+      );
+
+      if (!isAnscestorSelected) {
+        result.push(id);
+      }
+    }
+
+    return result;
   }
 
   addItem(id: string) {
@@ -182,9 +201,10 @@ export function SelectionArea({
   children,
 }: PropsWithChildren<{ boundaries: Quantify<string | HTMLElement> }>) {
   const selectionManager = useRef<SelectionManager | null>(null);
+  const store = useOutlineStore();
 
   if (selectionManager.current === null) {
-    selectionManager.current = new SelectionManager(boundaries);
+    selectionManager.current = new SelectionManager(boundaries, store);
   }
 
   useEffect(() => {
