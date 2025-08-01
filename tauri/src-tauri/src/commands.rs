@@ -16,7 +16,7 @@ pub fn commands() -> tauri_specta::Commands<tauri::Wry> {
         excerpt,
         tree,
         is_conflicting,
-        upsert_outline,
+        upsert_outlines,
         fetch_deleted_outline_trees,
         clear_unreferenced_deleted_assets,
         clear_deleted_outline,

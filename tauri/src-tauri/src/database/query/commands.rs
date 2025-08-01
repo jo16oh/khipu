@@ -102,26 +102,43 @@ pub async fn is_conflicting(
     super::is_conflicting(&pool, &id, &doc).await
 }
 
-#[tauri::command]
-#[specta::specta]
-#[macros::eyre_to_any]
-#[macros::log_err]
-pub async fn upsert_outline(
-    conn: State<'_, ConnectionState>,
+#[derive(Serialize, Deserialize, specta::Type, Clone, Debug)]
+#[serde(rename_all = "camelCase")]
+pub struct OutlineUpdateData {
     outline: Outline,
     y_updates: Vec<Base64Bytes>,
     link_list: HashSet<Link>,
     asset_list: HashSet<Asset>,
-    new_asset_data: HashMap<String, Base64Bytes>,
+    new_assets_data: HashMap<String, Base64Bytes>,
+}
+
+#[tauri::command]
+#[specta::specta]
+#[macros::eyre_to_any]
+#[macros::log_err]
+pub async fn upsert_outlines(
+    conn: State<'_, ConnectionState>,
+    updates: Vec<OutlineUpdateData>,
 ) -> eyre::Result<()> {
     let pool = conn.pool().await?;
     let mut tx = pool.begin_with("BEGIN IMMEDIATE").await?;
 
-    if outline.deleted == SqliteBool(false) || super::outline_exists(&mut *tx, &outline.id).await? {
-        super::upsert_outline(&mut tx, &outline).await?;
-        super::insert_y_updates(&mut *tx, &y_updates, &outline.id, outline.updated_at).await?;
-        super::sync_links(&mut tx, &outline.id, link_list).await?;
-        super::sync_assets(&mut tx, &outline.id, asset_list, new_asset_data).await?;
+    for OutlineUpdateData {
+        outline,
+        y_updates,
+        link_list,
+        asset_list,
+        new_assets_data,
+    } in updates.into_iter()
+    {
+        if outline.deleted == SqliteBool(false)
+            || super::outline_exists(&mut *tx, &outline.id).await?
+        {
+            super::upsert_outline(&mut tx, &outline).await?;
+            super::insert_y_updates(&mut *tx, &y_updates, &outline.id, outline.updated_at).await?;
+            super::sync_links(&mut tx, &outline.id, link_list).await?;
+            super::sync_assets(&mut tx, &outline.id, asset_list, new_assets_data).await?;
+        }
     }
 
     tx.commit().await?;
