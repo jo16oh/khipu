@@ -36,8 +36,18 @@ export function createBulletKeydownHandlers(
 
         const newOutlineId =
           !outline.collapsed && children && children.size
-            ? store.reducer.create({ type: "bullet" }, outlineId, "start", doc)
-            : store.reducer.create({ type: "bullet" }, outline.parentId, { after: outline }, doc);
+            ? store.reducer.create({
+                attrs: { type: "bullet" },
+                parentId: outlineId,
+                position: "start",
+                doc,
+              })
+            : store.reducer.create({
+                attrs: { type: "bullet" },
+                parentId: outline.parentId,
+                position: { after: outline },
+                doc,
+              });
 
         editor.commands.blur();
         focusManager.focus({ id: newOutlineId, position: "start" });

@@ -20,7 +20,11 @@ export function createHeadingKeydownHandlers(
 
         if (viewStateStore.getState().id === outlineId) {
           editor.commands.blur();
-          const childId = store.reducer.create({ type: "bullet" }, outlineId, "start");
+          const childId = store.reducer.create({
+            attrs: { type: "bullet" },
+            parentId: outlineId,
+            position: "start",
+          });
           focusManager.focus({ id: childId, position: "start" });
         } else {
           const start = view.state.selection.from;
@@ -35,7 +39,12 @@ export function createHeadingKeydownHandlers(
 
           editor.commands.deleteRange({ from: start, to: end });
 
-          const childId = store.reducer.create({ type: "bullet" }, outlineId, "start", doc);
+          const childId = store.reducer.create({
+            attrs: { type: "bullet" },
+            parentId: outlineId,
+            position: "start",
+            doc,
+          });
 
           editor.commands.blur();
           focusManager.focus({ id: childId, position: "start" });

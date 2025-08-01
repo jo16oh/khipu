@@ -15,7 +15,7 @@ test("timeline-index", async () => {
   function createTree(depth: number) {
     function createTreeImpl(parentId: string, maxDepth: number, currentDepth: number) {
       if (currentDepth <= maxDepth) {
-        const id = store.reducer.create({ type: "bullet" }, parentId, undefined);
+        const id = store.reducer.create({ attrs: { type: "bullet" }, parentId });
         ids.push(id);
 
         // Without subscribing, outlines will be discarded if store size is over 100
@@ -25,7 +25,7 @@ test("timeline-index", async () => {
       }
     }
 
-    const rootId = store.reducer.create({ type: "bullet" }, null, undefined);
+    const rootId = store.reducer.create({ attrs: { type: "bullet" }, parentId: null });
     ids.push(rootId);
     subscribers.push(store.subscribeToOutline(rootId, () => {}));
     createTreeImpl(rootId, depth, 0);

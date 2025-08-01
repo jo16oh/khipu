@@ -1,4 +1,3 @@
-import type { JSONContent } from "@tiptap/react";
 import { generateKeyBetween } from "fractional-indexing-jittered";
 import { OutlineAttrs } from "generated/tauri-commands";
 import { getSchemaOf } from "src/editor/schema";
@@ -11,6 +10,11 @@ import { OutlineStoreUpdater, RegisterToStore } from "./outline-store";
 import { UndoManager } from "./undo-manager";
 
 type Id = string;
+
+type OutlineBlueprint = Pick<Outline, "parentId" | "attrs"> &
+  Partial<Omit<Outline, "id" | "findex" | "updatedAt">> & {
+    position?: "start" | "end" | { after: Outline };
+  };
 
 export class OutlineStoreReducer {
   #registerToStore: RegisterToStore;
@@ -36,12 +40,16 @@ export class OutlineStoreReducer {
     this.#updateOutline = updateOutline;
   }
 
-  create(
-    attrs: OutlineAttrs,
-    parentId: string | null = null,
-    position: "start" | "end" | { after: Outline } = "start",
-    doc: JSONContent = { type: "doc", content: [] },
-  ) {
+  create({
+    attrs,
+    parentId,
+    position = "start",
+    doc = { type: "doc", content: [] },
+    completed = false,
+    collapsed = false,
+    deleted = false,
+    createdAt,
+  }: OutlineBlueprint) {
     const findex = (() => {
       if (!parentId) return generateKeyBetween(null, null);
       const list = this.#childrenStore.get(parentId);
@@ -62,10 +70,10 @@ export class OutlineStoreReducer {
       doc: defaultDoc,
       attrs,
       findex,
-      completed: false,
-      collapsed: false,
-      deleted: false,
-      createdAt: now,
+      completed,
+      collapsed,
+      deleted,
+      createdAt: createdAt ?? now,
       updatedAt: now,
     };
 
