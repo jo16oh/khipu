@@ -140,6 +140,18 @@ const ActiveEditor = memo(function ActiveEditor({
         setFocused(false);
         setTimeout(() => editor.destroy());
       },
+      editorProps: {
+        handlePaste(_, e) {
+          const html = e.clipboardData?.getData("text/html");
+          if (html) {
+            const parser = new DOMParser();
+            const doc = parser.parseFromString(html, "text/html");
+            const khipuData = doc.querySelector('[data-source="khipu"]');
+            if (khipuData) return true;
+          }
+          return false;
+        },
+      },
     });
   }
 

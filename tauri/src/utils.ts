@@ -23,3 +23,15 @@ export function uint8ArrayToBase64Async(blobPart: BlobPart): Promise<string> {
     reader.readAsDataURL(blob);
   });
 }
+
+export function serialize<A extends unknown[], R>(
+  asyncFn: (...args: A) => Promise<R>,
+): (...args: A) => Promise<R> {
+  let lastPromise: Promise<unknown> = Promise.resolve();
+
+  return (...args: A): Promise<R> => {
+    const result = lastPromise.then(() => asyncFn(...args));
+    lastPromise = result.catch((e) => console.error(e));
+    return result;
+  };
+}

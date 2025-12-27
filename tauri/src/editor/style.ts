@@ -1,5 +1,5 @@
-import { GlobalStyleObject } from "@pandacss/dev";
-import { SystemStyleObject } from "generated/styled-system/types";
+import type { GlobalStyleObject } from "@pandacss/dev";
+import type { SystemStyleObject } from "generated/styled-system/types";
 
 export const editorStyle: SystemStyleObject = {
   "& .suggestion": {

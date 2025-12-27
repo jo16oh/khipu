@@ -1,11 +1,11 @@
 import { isEqual } from "es-toolkit";
-import { commands, Link } from "generated/tauri-commands";
+import { commands, Link, OutlineUpdateData } from "generated/tauri-commands";
 import { produce, WritableDraft } from "immer";
 import { createContext, use } from "react";
 import { fetchYUpdates } from "src/custom-protocol";
 import { findNodesByTypeName } from "src/editor/utils";
 import { Outline, RawOutline } from "src/model";
-import { uint8ArrayToBase64Async as uint8ArrayToBase64Async } from "src/utils";
+import { serialize, uint8ArrayToBase64Async as uint8ArrayToBase64Async } from "src/utils";
 import * as Y from "yjs";
 import { AssetStore } from "./asset-store";
 import { DocUpdateNotifier } from "./doc-update-notifier";
@@ -27,7 +27,7 @@ export type RegisterToStore = (...outlines: Outline[]) => void;
 
 type Commands = Pick<
   typeof commands,
-  | "upsertOutline"
+  | "upsertOutlines"
   | "tree"
   | "timeline"
   | "search"
@@ -238,55 +238,70 @@ export class OutlineStore {
     return this.#assets.subscribe(hash, cb);
   }
 
-  async save(id: string) {
-    const outline = this.#outlines.get(id);
-    if (!outline) throw new Error("outline not found");
+  save = serialize(async (...ids: string[]) => {
+    const cleanups: (() => void)[] = [];
 
-    const pendingYUpdates = this.#pendingYUpdates.get(id);
-    if (!pendingYUpdates || pendingYUpdates.length === 0) return;
+    const updates: OutlineUpdateData[] = await Promise.all(
+      ids.map(async (id) => {
+        const outline = this.#outlines.get(id);
+        if (!outline) throw new Error("outline not found");
 
-    const encodedPendingYUpdates = await Promise.all(pendingYUpdates.map(uint8ArrayToBase64Async));
+        const pendingYUpdates = this.#pendingYUpdates.get(id);
+        if (!pendingYUpdates || pendingYUpdates.length === 0) return;
 
-    const newAssetsData = await Promise.all(
-      this.#assets.getNewAssetHashes([]).map(async (hash) => {
-        const bytes = this.#assets.getBlob(hash);
-        if (!bytes) throw new Error("asset is not found");
-        const base64bytes = await uint8ArrayToBase64Async(await bytes.arrayBuffer());
-        return [hash, base64bytes] as [string, string];
+        const encodedPendingYUpdates = await Promise.all(
+          pendingYUpdates.map(uint8ArrayToBase64Async),
+        );
+
+        const newAssetsData = await Promise.all(
+          this.#assets.getNewAssetHashes([]).map(async (hash) => {
+            const bytes = this.#assets.getBlob(hash);
+            if (!bytes) throw new Error("asset is not found");
+            const base64bytes = await uint8ArrayToBase64Async(await bytes.arrayBuffer());
+            return [hash, base64bytes] as [string, string];
+          }),
+        ).then((arr) =>
+          arr.reduce((acc: { [key in string]: string }, [hash, bytes]) => {
+            acc[hash] = bytes;
+            return acc;
+          }, {}),
+        );
+
+        const linkList: Link[] = (
+          findNodesByTypeName(outline.doc, ["internal-link"])["internal-link"] ?? []
+        )
+          .map((node) => {
+            const id = node?.attrs?.["id"] as string | undefined;
+            return id ? ({ id, type: "link" } as Link) : undefined;
+          })
+          .filter((e) => e !== undefined);
+
+        cleanups.push(() => {
+          pendingYUpdates.splice(0, encodedPendingYUpdates.length);
+          this.#onSaveInPathSubscribers.notify(outline.id);
+          let parent = outline.parentId ? this.#outlines.get(outline.parentId) : null;
+          while (parent) {
+            this.#onSaveInPathSubscribers.notify(parent.id);
+            parent = parent.parentId ? this.#outlines.get(parent.parentId) : null;
+          }
+        });
+
+        return {
+          outline: RawOutline.from(outline),
+          yUpdates: encodedPendingYUpdates,
+          linkList,
+          assetList: [],
+          newAssetsData,
+        };
       }),
-    ).then((arr) =>
-      arr.reduce((acc: { [key in string]: string }, [hash, bytes]) => {
-        acc[hash] = bytes;
-        return acc;
-      }, {}),
-    );
+    ).then((updates) => updates.filter((e) => e !== undefined));
 
-    const links: Link[] = (
-      findNodesByTypeName(outline.doc, ["internal-link"])["internal-link"] ?? []
-    )
-      .map((node) => {
-        const id = node?.attrs?.["id"] as string | undefined;
-        return id ? ({ id, type: "link" } as Link) : undefined;
-      })
-      .filter((e) => e !== undefined);
+    await this.#commands.upsertOutlines(updates);
 
-    await this.#commands.upsertOutline(
-      RawOutline.from(outline),
-      encodedPendingYUpdates,
-      links,
-      [],
-      newAssetsData,
-    );
-
-    pendingYUpdates.splice(0, encodedPendingYUpdates.length);
-
-    this.#onSaveInPathSubscribers.notify(outline.id);
-    let parent = outline.parentId ? this.#outlines.get(outline.parentId) : null;
-    while (parent) {
-      this.#onSaveInPathSubscribers.notify(parent.id);
-      parent = parent.parentId ? this.#outlines.get(parent.parentId) : null;
+    for (const cleanup of cleanups) {
+      cleanup();
     }
-  }
+  });
 
   has(id: string) {
     return this.#outlines.has(id);

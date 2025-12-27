@@ -9,7 +9,15 @@ import {
   useRef,
   useSyncExternalStore,
 } from "react";
+import { FocusManager, useFocusManager } from "src/stores/focus-manager";
 import { OutlineStore, useOutlineStore } from "src/stores/outline-store";
+import {
+  copyOutlinesIntoClipboard,
+  getOutlinesFromClipboard,
+  InsertionPoint,
+  insertOutlineNode,
+} from "src/utils/clipboard";
+import { Key } from "ts-keycode-enum";
 
 type Modifiers = { ctrl: boolean; shift: boolean; alt: boolean; meta: boolean };
 
@@ -160,6 +168,11 @@ class SelectionManager {
     return this._selected.size;
   }
 
+  clearSelection() {
+    this._selected.clear();
+    this._area.clearSelection();
+  }
+
   destroy() {
     this._area.destroy();
     this._cleanup();
@@ -200,22 +213,30 @@ export function SelectionArea({
   boundaries,
   children,
 }: PropsWithChildren<{ boundaries: Quantify<string | HTMLElement> }>) {
-  const selectionManager = useRef<SelectionManager | null>(null);
   const store = useOutlineStore();
+  const focusManager = useFocusManager();
+  const selectionManagerRef = useRef<SelectionManager | null>(null);
 
-  if (selectionManager.current === null) {
-    selectionManager.current = new SelectionManager(boundaries, store);
+  if (selectionManagerRef.current === null) {
+    selectionManagerRef.current = new SelectionManager(boundaries, store);
   }
 
   useEffect(() => {
-    const manager = selectionManager.current;
+    const manager = selectionManagerRef.current;
+
     return () => {
-      selectionManager.current = null;
+      selectionManagerRef.current = null;
       manager?.destroy();
     };
-  }, []);
+  }, [focusManager, store]);
 
-  return <SelectionContext value={selectionManager.current}>{children}</SelectionContext>;
+  return (
+    <SelectionContext value={selectionManagerRef.current}>
+      <div onKeyDown={(e) => keydownHandler(e, selectionManagerRef.current!, focusManager, store)}>
+        {children}
+      </div>
+    </SelectionContext>
+  );
 }
 
 export function SelectableItem({
@@ -237,6 +258,114 @@ export function SelectableItem({
     </div>
   );
 }
+
+async function keydownHandler(
+  e: KeyboardEvent,
+  selectionManager: SelectionManager,
+  focusManager: FocusManager,
+  store: OutlineStore,
+) {
+  const mods = selectionManager?.getCurrentModifiers();
+  const selectionSize = selectionManager?.selectionSize ?? 0;
+  const isSelected =
+    selectionSize > 1 ||
+    (selectionSize === 1 && (mods?.alt || mods?.ctrl || mods?.meta || mods?.shift));
+
+  if (e.keyCode === Key.V && (e.metaKey || e.ctrlKey)) {
+    const tree = await getOutlinesFromClipboard();
+    if (tree) {
+      if (isSelected) {
+        // selectionがある場合は、置き換え
+        // const selectedIds = selectionManager?.getSelectedIds();
+        // if (!selectedIds) return;
+        //
+        // const insertionPoint = findInsertionPoint(selectedIds, store);
+        // if (!insertionPoint) return;
+        // store.reducer.delete(...selectedIds);
+        // await insertOutlineNode(tree, insertionPoint, store);
+      } else {
+        const insertionPoint = (() => {
+          const id = focusManager.current()?.id;
+          if (!id) return null;
+          const outline = store.getOutline(id);
+          if (!outline) return null;
+          return { parentId: outline.parentId, position: { after: outline } };
+        })();
+
+        if (!insertionPoint) return;
+
+        insertOutlineNode(tree, insertionPoint, store);
+      }
+    }
+  }
+
+  if (!isSelected) return;
+
+  if (e.keyCode === Key.X && (e.metaKey || e.ctrlKey)) {
+    e.preventDefault();
+    e.stopPropagation();
+
+    const selectedIds = selectionManager?.getSelectedIds();
+    if (!selectedIds) return;
+    await copyOutlinesIntoClipboard(selectedIds, store);
+    store.reducer.delete(...selectedIds);
+  } else if (e.keyCode === Key.C && (e.metaKey || e.ctrlKey)) {
+    e.preventDefault();
+    e.stopPropagation();
+
+    const selectedIds = selectionManager?.getSelectedIds();
+    if (!selectedIds) return;
+    await copyOutlinesIntoClipboard(selectedIds, store);
+  } else if (e.keyCode === Key.Backspace) {
+    e.preventDefault();
+    e.stopPropagation();
+
+    const selectedIds = selectionManager?.getSelectedIds();
+    if (!selectedIds) return;
+    store.reducer.delete(...selectedIds);
+    for (const id of selectedIds) {
+      await store.save(id);
+    }
+  } else if (
+    e.keyCode !== Key.Ctrl &&
+    e.keyCode !== Key.LeftWindowKey &&
+    e.keyCode !== Key.RightWindowKey &&
+    e.keyCode !== Key.Shift &&
+    e.keyCode !== Key.Alt
+  ) {
+    selectionManager.clearSelection();
+  }
+
+  return;
+}
+
+// function findInsertionPoint(
+//   selectedIds: Array<string>,
+//   store: OutlineStore,
+// ): InsertionPoint | null {
+//   const sortedIds = Array.from(selectedIds).toSorted((idA, idB) => {
+//     const pathA = [...(store.getOutlinePath(idA) ?? []), idA];
+//     const pathB = [...(store.getOutlinePath(idB) ?? []), idB];
+//
+//     const fullFindexA = pathA.reduce((prev, id) => prev + (store.getOutline(id)?.findex ?? ""), "");
+//     const fullFindexB = pathB.reduce((prev, id) => prev + (store.getOutline(id)?.findex ?? ""), "");
+//
+//     return fullFindexA.localeCompare(fullFindexB);
+//   });
+//
+//   const topId = sortedIds[0];
+//   if (!topId) return null;
+//   const outline = store.getOutline(topId);
+//   if (!outline || !outline.parentId) return null;
+//   const siblings = store.getOutlineChildren(outline.parentId);
+//   if (!siblings) return null;
+//   const { found, index } = siblings.findIndex(outline);
+//   if (!found) return null;
+//   if (index === 0) return { parentId: outline.parentId, position: "start" };
+//   const above = store.getOutline(siblings.at(index - 1)!.id);
+//   if (!above) return null;
+//   return { parentId: outline.parentId, position: { after: above } };
+// }
 
 const selectionItemStyle = css({
   "&[data-selected='true']": {

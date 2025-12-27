@@ -15,9 +15,7 @@ import { SelectableItem, SelectionArea, useSelectionState } from "./selection";
 export default function OutlineEditorTree({ id }: { id: string }) {
   return (
     <ErrorBoundary resetKeys={[id]} fallback="outline not found">
-      <SelectionArea boundaries=".scroll-area">
-        <RootOutlineEditor id={id} />
-      </SelectionArea>
+      <RootOutlineEditor id={id} />
     </ErrorBoundary>
   );
 }
@@ -38,8 +36,6 @@ function RootOutlineEditor({ id }: { id: string }) {
   if (deleted) throw new Error("outline is deleted");
   const children = useOutlineChildren(id);
 
-  const { shouldDisplayAsSelected } = useSelectionState(id);
-
   return !deleted ? (
     <ErrorBoundary resetKeys={[id]} fallback="outline not found">
       <SelectionArea boundaries=".scroll-area">
@@ -56,7 +52,7 @@ function RootOutlineEditor({ id }: { id: string }) {
           />
           <Editor id={id} />
         </EditorContainer>
-        <ChildrenContainer level="top" data-is-selected={shouldDisplayAsSelected}>
+        <ChildrenContainer level="top">
           {children?.map(({ id }) => <OutlineEditor key={id} id={id} />)}
         </ChildrenContainer>
       </SelectionArea>
