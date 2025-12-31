@@ -3,7 +3,3 @@ node = "latest"
 pnpm = "latest"
 rust = "latest"
 "cargo:bacon" = "latest"
-
-[settings]
-lockfile = true
-experimental = true
