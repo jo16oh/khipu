@@ -3,7 +3,9 @@
 	"version": "0.0.0",
 	"description": "",
 	"private": true,
-	"scripts": {},
+	"scripts": {
+		"format": "biome check --write"
+	},
 	"author": "jo16oh",
 	"license": "AGPL-3.0-or-later",
 	"packageManager": "pnpm@10.27.0",
