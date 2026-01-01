@@ -1,12 +1,18 @@
 import preact from "@preact/preset-vite";
+import path from "path";
 import { defineConfig } from "vite";
 
-// @ts-expect-error process is a nodejs global
 const host = process.env.TAURI_DEV_HOST;
 
 // https://vite.dev/config/
-export default defineConfig(async () => ({
+export default defineConfig({
 	plugins: [preact()],
+
+	resolve: {
+		alias: {
+			"@styles": path.resolve(__dirname, "src/styles/"),
+		},
+	},
 
 	// CSS Modules configuration
 	css: {
@@ -14,6 +20,11 @@ export default defineConfig(async () => ({
 			localsConvention: "camelCaseOnly",
 			scopeBehaviour: "local",
 			generateScopedName: "[name]__[local]___[hash:base64:5]",
+		},
+		preprocessorOptions: {
+			scss: {
+				syntax: "scss",
+			},
 		},
 	},
 
@@ -38,4 +49,4 @@ export default defineConfig(async () => ({
 			ignored: ["**/src-tauri/**"],
 		},
 	},
-}));
+});
