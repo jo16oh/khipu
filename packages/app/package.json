@@ -10,7 +10,9 @@
 		"preview": "vite preview",
 		"tauri": "tauri",
 		"format": "biome check --write",
-		"lint": "biome lint"
+		"format:css": "stylelint \"**/*.css\" --fix",
+		"lint": "biome lint",
+		"lint:css": "stylelint \"**/*.css\""
 	},
 	"dependencies": {
 		"@tauri-apps/api": "^2",
@@ -19,7 +21,13 @@
 	},
 	"devDependencies": {
 		"@preact/preset-vite": "^2.9.3",
+		"@stylistic/stylelint-config": "^3.0.1",
 		"@tauri-apps/cli": "^2",
+		"stylelint-config-recess-order": "^7.4.0",
+		"stylelint-config-standard": "^39.0.1",
+		"stylelint-declaration-block-no-ignored-properties": "^2.8.0",
+		"stylelint-declaration-strict-value": "^1.10.11",
+		"stylelint-order": "^7.0.1",
 		"typescript-plugin-css-modules": "^5.2.0"
 	}
 }
