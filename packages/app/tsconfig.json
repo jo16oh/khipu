@@ -1,35 +1,27 @@
 {
-	"extends": "../../tsconfig.json",
-	"compilerOptions": {
-		"target": "ES2022",
-		"lib": [
-			"ES2022",
-			"DOM",
-			"DOM.Iterable"
-		],
-		"jsx": "react-jsx",
-		"jsxImportSource": "preact",
-		"baseUrl": ".",
-		"paths": {
-			"@styles/*": [
-				"./src/styles/*"
-			]
-		},
-		"plugins": [
-			{
-				"name": "typescript-plugin-css-modules",
-				"options": {
-					"classnameTransform": "camelCaseOnly"
-				}
-			}
-		]
-	},
-	"include": [
-		"src"
-	],
-	"references": [
-		{
-			"path": "./tsconfig.node.json"
-		}
-	]
+  "extends": "../../tsconfig.json",
+  "compilerOptions": {
+    "target": "ES2022",
+    "lib": ["ES2022", "DOM", "DOM.Iterable"],
+    "jsx": "react-jsx",
+    "jsxImportSource": "preact",
+    "baseUrl": ".",
+    "paths": {
+      "@styles/*": ["./src/styles/*"]
+    },
+    "plugins": [
+      {
+        "name": "typescript-plugin-css-modules",
+        "options": {
+          "classnameTransform": "camelCaseOnly"
+        }
+      }
+    ]
+  },
+  "include": ["src"],
+  "references": [
+    {
+      "path": "./tsconfig.node.json"
+    }
+  ]
 }

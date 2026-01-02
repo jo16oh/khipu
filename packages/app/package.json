@@ -1,36 +1,36 @@
 {
-	"name": "@khipu/app",
-	"private": true,
-	"version": "0.0.0",
-	"type": "module",
-	"license": "AGPL-3.0-or-later",
-	"scripts": {
-		"dev": "vite",
-		"build": "tsc && vite build",
-		"preview": "vite preview",
-		"tauri": "tauri",
-		"format": "biome check --write",
-		"format:css": "stylelint \"**/*.{css,scss,sass}\" --fix",
-		"lint": "biome lint",
-		"lint:css": "stylelint \"**/*.{css,scss,sass}\""
-	},
-	"dependencies": {
-		"@tauri-apps/api": "^2",
-		"@tauri-apps/plugin-opener": "^2",
-		"preact": "^10.25.1"
-	},
-	"devDependencies": {
-		"@preact/preset-vite": "^2.9.3",
-		"@stylistic/stylelint-config": "^3.0.1",
-		"@tauri-apps/cli": "^2",
-		"@types/node": "^25.0.3",
-		"postcss-scss": "^4.0.9",
-		"sass": "^1.97.1",
-		"stylelint-config-recess-order": "^7.4.0",
-		"stylelint-config-standard-scss": "^16.0.0",
-		"stylelint-declaration-block-no-ignored-properties": "^2.8.0",
-		"stylelint-declaration-strict-value": "^1.10.11",
-		"stylelint-order": "^7.0.1",
-		"typescript-plugin-css-modules": "^5.2.0"
-	}
+  "name": "@khipu/app",
+  "private": true,
+  "version": "0.0.0",
+  "type": "module",
+  "license": "AGPL-3.0-or-later",
+  "scripts": {
+    "dev": "vite",
+    "build": "tsc && vite build",
+    "preview": "vite preview",
+    "tauri": "tauri",
+    "format": "biome check --write",
+    "format:css": "stylelint \"**/*.{css,scss,sass}\" --fix",
+    "lint": "biome lint",
+    "lint:css": "stylelint \"**/*.{css,scss,sass}\""
+  },
+  "dependencies": {
+    "@tauri-apps/api": "^2",
+    "@tauri-apps/plugin-opener": "^2",
+    "preact": "^10.25.1"
+  },
+  "devDependencies": {
+    "@preact/preset-vite": "^2.9.3",
+    "@stylistic/stylelint-config": "^3.0.1",
+    "@tauri-apps/cli": "^2",
+    "@types/node": "^25.0.3",
+    "postcss-scss": "^4.0.9",
+    "sass": "^1.97.1",
+    "stylelint-config-recess-order": "^7.4.0",
+    "stylelint-config-standard-scss": "^16.0.0",
+    "stylelint-declaration-block-no-ignored-properties": "^2.8.0",
+    "stylelint-declaration-strict-value": "^1.10.11",
+    "stylelint-order": "^7.0.1",
+    "typescript-plugin-css-modules": "^5.2.0"
+  }
 }
