@@ -28,6 +28,6 @@ export default {
       },
     ],
   },
-  ignoreFiles: ["src/generated/**/*"],
+  ignoreFiles: ["**/src/generated/**/*"],
   customSyntax: "postcss-scss",
 };

@@ -7,5 +7,5 @@ pre-commit:
       stage_fixed: true
     stylelint:
       glob: "*.{css,scss,sass}"
-      run: pnpm -F @khipu/app stylelint --fix {staged_files}
+      run: pnpm stylelint --fix {staged_files}
       stage_fixed: true

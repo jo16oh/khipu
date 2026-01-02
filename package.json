@@ -4,14 +4,24 @@
   "description": "",
   "private": true,
   "scripts": {
-    "format": "biome check --write"
+    "format": "biome check --write",
+    "format:css": "stylelint \"**/*.{css,scss,sass}\" --fix",
+    "lint:css": "stylelint \"**/*.{css,scss,sass}\""
   },
   "author": "jo16oh",
   "license": "AGPL-3.0-or-later",
   "packageManager": "pnpm@10.27.0",
   "devDependencies": {
     "@biomejs/biome": "^2.3.10",
+    "@stylistic/stylelint-config": "^3.0.1",
     "lefthook": "^2.0.13",
+    "postcss-scss": "^4.0.9",
+    "stylelint": "^16.26.1",
+    "stylelint-config-recess-order": "^7.4.0",
+    "stylelint-config-standard-scss": "^16.0.0",
+    "stylelint-declaration-block-no-ignored-properties": "^2.8.0",
+    "stylelint-declaration-strict-value": "^1.10.11",
+    "stylelint-order": "^7.0.1",
     "ts-essentials": "^10.1.1",
     "typescript": "^5.9.3",
     "vite": "^7.3.0",
