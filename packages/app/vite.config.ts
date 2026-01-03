@@ -1,6 +1,6 @@
 import path from "node:path";
 import preact from "@preact/preset-vite";
-import { defineConfig } from "vite";
+import { defineConfig } from "vitest/config";
 
 const host = process.env.TAURI_DEV_HOST;
 
@@ -26,6 +26,12 @@ export default defineConfig({
         syntax: "scss",
       },
     },
+  },
+
+  // Vitest configuration
+  test: {
+    globals: true,
+    environment: "jsdom",
   },
 
   // Vite options tailored for Tauri development and only applied in `tauri dev` or `tauri build`

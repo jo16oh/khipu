@@ -24,7 +24,8 @@
     "paths": {
       "*": ["./*"],
       "@khipu/*": ["./libs/*/src"]
-    }
+    },
+    "types": ["vitest/globals"]
   },
   "files": [],
   "references": []
