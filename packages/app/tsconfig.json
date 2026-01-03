@@ -5,8 +5,8 @@
     "lib": ["ES2022", "DOM", "DOM.Iterable"],
     "jsx": "react-jsx",
     "jsxImportSource": "preact",
-    "baseUrl": ".",
     "paths": {
+      "*": ["./*"],
       "@styles/*": ["./src/styles/*"]
     },
     "plugins": [

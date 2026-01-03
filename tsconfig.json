@@ -21,8 +21,8 @@
     "noImplicitReturns": true,
     "noImplicitOverride": true,
     /* Path aliases */
-    "baseUrl": ".",
     "paths": {
+      "*": ["./*"],
       "@khipu/*": ["./libs/*/src"]
     }
   },
