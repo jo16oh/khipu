@@ -15,3 +15,18 @@ pre-commit:
     vitest:
       glob: "packages/app/src/**/*.{ts,tsx}"
       run: pnpm vitest related {staged_files} --run
+    cargo-fmt:
+      glob: "packages/app/src-tauri/**/*.rs"
+      root: "packages/app/src-tauri/"
+      run: cargo fmt -- {staged_files}
+      stage_fixed: true
+    cargo-clippy:
+      glob: "packages/app/src-tauri/**/*.rs"
+      run: cd packages/app/src-tauri && cargo clippy --all-features --all-targets --locked -- -D warnings
+
+pre-push:
+  parallel: true
+  commands:
+    cargo-test:
+      glob: "packages/app/src-tauri/**/*.rs"
+      run: cd packages/app/src-tauri && cargo test --all-features --all-targets --locked
