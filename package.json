@@ -6,6 +6,7 @@
   "scripts": {
     "format": "biome check --write",
     "format:css": "stylelint \"**/*.{css,scss,sass}\" --fix",
+    "lint": "biome lint",
     "lint:css": "stylelint \"**/*.{css,scss,sass}\""
   },
   "author": "jo16oh",
