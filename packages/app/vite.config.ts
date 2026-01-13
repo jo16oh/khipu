@@ -5,8 +5,18 @@ import { defineConfig } from "vitest/config";
 const host = process.env.TAURI_DEV_HOST;
 
 // https://vite.dev/config/
-export default defineConfig({
-  plugins: [react()],
+export default defineConfig(({ mode }) => ({
+  plugins: [
+    react(),
+    {
+      name: "inject-react-devtools",
+      transformIndexHtml(html) {
+        const script =
+          mode === "development" ? '<script src="http://localhost:8097"></script>' : "";
+        return html.replace("<!-- DEVTOOLS -->", script);
+      },
+    },
+  ],
 
   resolve: {
     alias: {
@@ -55,4 +65,4 @@ export default defineConfig({
       ignored: ["**/src-tauri/**"],
     },
   },
-});
+}));
