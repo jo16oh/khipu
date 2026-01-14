@@ -12,6 +12,7 @@ export default defineConfig(({ mode }) => ({
         plugins: ["babel-plugin-react-compiler"],
       },
     }),
+    // inject react-devtools in development mode
     {
       name: "inject-react-devtools",
       transformIndexHtml(html) {
