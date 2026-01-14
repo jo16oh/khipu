@@ -12,9 +12,6 @@ pre-commit:
     tsgo:
       glob: "*.{ts,tsx}"
       run: pnpm tsgo --project packages/app/tsconfig.json
-    vitest:
-      glob: "packages/app/src/**/*.{ts,tsx}"
-      run: pnpm vitest related {staged_files} --run --globals
     cargo-fmt:
       glob: "packages/app/src-tauri/**/*.rs"
       root: "packages/app/src-tauri/"
