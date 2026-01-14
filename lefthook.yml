@@ -14,7 +14,7 @@ pre-commit:
       run: pnpm tsgo --project packages/app/tsconfig.json
     vitest:
       glob: "packages/app/src/**/*.{ts,tsx}"
-      run: pnpm vitest related {staged_files} --run
+      run: pnpm vitest related {staged_files} --run --globals
     cargo-fmt:
       glob: "packages/app/src-tauri/**/*.rs"
       root: "packages/app/src-tauri/"
@@ -30,3 +30,6 @@ pre-push:
     cargo-test:
       glob: "packages/app/src-tauri/**/*.rs"
       run: cd packages/app/src-tauri && cargo test --all-features --all-targets --locked
+    vitest:
+      glob: "packages/app/src/**/*.{ts,tsx}"
+      run: pnpm vitest --run
