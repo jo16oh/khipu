@@ -4,10 +4,12 @@
   "description": "",
   "private": true,
   "scripts": {
-    "format": "biome check --write",
-    "format:css": "stylelint \"**/*.{css,scss,sass}\" --fix",
-    "lint": "biome lint",
-    "lint:css": "stylelint \"**/*.{css,scss,sass}\""
+    "format": "run-p format:*",
+    "format:biome": "biome check --write",
+    "format:stylelint": "stylelint \"**/*.{css,scss,sass}\" --fix",
+    "lint": "run-p lint:*",
+    "lint:biome": "biome lint",
+    "lint:stylelint": "stylelint \"**/*.{css,scss,sass}\""
   },
   "author": "jo16oh",
   "license": "AGPL-3.0-or-later",
@@ -17,6 +19,7 @@
     "@stylistic/stylelint-config": "^3.0.1",
     "@typescript/native-preview": "7.0.0-dev.20260102.1",
     "lefthook": "^2.0.13",
+    "npm-run-all2": "^8.0.4",
     "postcss-scss": "^4.0.9",
     "stylelint": "^16.26.1",
     "stylelint-config-recess-order": "^7.4.0",
