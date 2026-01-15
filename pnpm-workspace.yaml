@@ -1,3 +1,6 @@
 packages:
-  - 'packages/app'
-  - 'packages/libs/*'
+  - packages/app
+  - packages/libs/*
+
+onlyBuiltDependencies:
+  - lefthook
