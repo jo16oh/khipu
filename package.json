@@ -13,11 +13,17 @@
   },
   "author": "jo16oh",
   "license": "AGPL-3.0-or-later",
+  "pnpm": {
+    "overrides": {
+      "stylus": "-",
+      "less": "-"
+    }
+  },
   "packageManager": "pnpm@10.27.0",
   "devDependencies": {
     "@biomejs/biome": "^2.3.11",
     "@stylistic/stylelint-config": "^3.0.1",
-    "@typescript/native-preview": "7.0.0-dev.20260102.1",
+    "@typescript/native-preview": "7.0.0-dev.20260115.1",
     "lefthook": "^2.0.15",
     "npm-run-all2": "^8.0.4",
     "postcss-scss": "^4.0.9",

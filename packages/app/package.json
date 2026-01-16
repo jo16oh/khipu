@@ -13,20 +13,20 @@
     "lint": "biome lint"
   },
   "dependencies": {
-    "@tauri-apps/api": "^2",
-    "@tauri-apps/plugin-opener": "^2",
+    "@tauri-apps/api": "^2.9.1",
+    "@tauri-apps/plugin-opener": "^2.5.3",
     "react": "^19.2.3",
     "react-dom": "^19.2.3"
   },
   "devDependencies": {
-    "@tauri-apps/cli": "^2",
-    "@types/node": "^25.0.3",
-    "@types/react": "^19.2.3",
+    "@tauri-apps/cli": "^2.9.6",
+    "@types/node": "^25.0.9",
+    "@types/react": "^19.2.8",
     "@types/react-dom": "^19.2.3",
-    "@vitejs/plugin-react": "^4.7.0",
+    "@vitejs/plugin-react": "^5.1.2",
     "babel-plugin-react-compiler": "^1.0.0",
     "jsdom": "^27.4.0",
-    "sass": "^1.97.1",
+    "sass": "^1.97.2",
     "typescript-plugin-css-modules": "^5.2.0"
   }
 }

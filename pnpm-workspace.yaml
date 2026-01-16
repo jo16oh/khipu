@@ -4,3 +4,7 @@ packages:
 
 onlyBuiltDependencies:
   - lefthook
+
+ignoredBuiltDependencies:
+  - "@parcel/watcher"
+  - esbuild
