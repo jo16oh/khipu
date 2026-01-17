@@ -28,15 +28,13 @@
         "noUnusedImports": {
           "level": "error",
           "fix": "safe"
+        },
+        "noPrivateImports": {
+          "level": "error",
+          "options": {
+            "defaultVisibility": "private"
+          }
         }
-        /*
-				"noPrivateImports": {
-					"level": "error",
-					"options": {
-						"defaultVisibility": "private"
-					}
-				}
-				*/
       }
     }
   },
