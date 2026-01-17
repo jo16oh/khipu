@@ -9,8 +9,15 @@
     "build": "tsc && vite build",
     "preview": "vite preview",
     "tauri": "tauri",
-    "format": "biome check --write",
-    "lint": "biome lint"
+    "format": "run-p --aggregate-output format:biome format:stylelint",
+    "format:biome": "biome check --write",
+    "format:stylelint": "stylelint \"**/*.{css,scss,sass}\" --fix",
+    "lint": "run-p --aggregate-output lint:biome lint:stylelint",
+    "lint:biome": "biome lint",
+    "lint:stylelint": "stylelint \"**/*.{css,scss,sass}\"",
+    "test": "run-p --aggregate-output test:vitest test:cargo",
+    "test:vitest": "vitest --run",
+    "test:cargo": "cargo test --manifest-path src-tauri/Cargo.toml"
   },
   "dependencies": {
     "@tauri-apps/api": "^2.9.1",

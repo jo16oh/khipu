@@ -4,12 +4,13 @@
   "description": "",
   "private": true,
   "scripts": {
-    "format": "run-p format:*",
-    "format:biome": "biome check --write",
-    "format:stylelint": "stylelint \"**/*.{css,scss,sass}\" --fix",
-    "lint": "run-p lint:*",
-    "lint:biome": "biome lint",
-    "lint:stylelint": "stylelint \"**/*.{css,scss,sass}\""
+    "format": "run-p format:biome format:recursive",
+    "format:biome": "biome check --write ./*.{json,jsonc,ts,js,mjs,yml}",
+    "format:recursive": "pnpm -r run format",
+    "lint": "run-p lint:biome lint:recursive",
+    "lint:biome": "biome lint ./*.{json,jsonc,ts,js,mjs,yml}",
+    "lint:recursive": "pnpm -r run lint",
+    "test": "pnpm -r run test"
   },
   "author": "jo16oh",
   "license": "AGPL-3.0-or-later",
