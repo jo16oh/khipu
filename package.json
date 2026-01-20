@@ -24,7 +24,7 @@
   "devDependencies": {
     "@biomejs/biome": "^2.3.11",
     "@stylistic/stylelint-config": "^3.0.1",
-    "@typescript/native-preview": "7.0.0-dev.20260115.1",
+    "@typescript/native-preview": "7.0.0-dev.20260120.1",
     "lefthook": "^2.0.15",
     "npm-run-all2": "^8.0.4",
     "postcss-scss": "^4.0.9",
