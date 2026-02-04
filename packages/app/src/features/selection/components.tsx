@@ -26,11 +26,17 @@ function useSelectionManager() {
 }
 
 type SelectionAreaProps = {
-  children: ReactNode;
   threshold?: number;
-};
+} & React.ComponentPropsWithoutRef<"div">;
 
-function SelectionArea({ children, threshold = 16 }: SelectionAreaProps) {
+function SelectionArea({
+  children,
+  threshold = 16,
+  style,
+  onScroll,
+  onMouseDown,
+  ...restProps
+}: SelectionAreaProps) {
   const manager = useMemo(() => new SelectionManager(threshold), [threshold]);
   const containerRef = useRef<HTMLDivElement | null>(null);
 
@@ -58,22 +64,32 @@ function SelectionArea({ children, threshold = 16 }: SelectionAreaProps) {
     };
   }, [manager]);
 
-  // Clear selection when clicking on container background
-  const handleContainerMouseDown = useCallback(
-    (event: React.MouseEvent) => {
+  const handleMouseDown = useCallback(
+    (event: React.MouseEvent<HTMLDivElement>) => {
       if (event.target === event.currentTarget) {
         manager.clearSelection();
       }
+      onMouseDown?.(event);
     },
-    [manager],
+    [manager, onMouseDown],
+  );
+
+  const handleScroll = useCallback(
+    (event: React.UIEvent<HTMLDivElement>) => {
+      manager.recalculate();
+      onScroll?.(event);
+    },
+    [manager, onScroll],
   );
 
   return (
     <SelectionContext.Provider value={manager}>
       <div
         ref={containerRef}
-        style={{ position: "relative" }}
-        onMouseDown={handleContainerMouseDown}
+        style={{ position: "relative", ...style }}
+        onMouseDown={handleMouseDown}
+        onScroll={handleScroll}
+        {...restProps}
       >
         {children}
       </div>
@@ -100,14 +116,13 @@ function SelectionGroup({ id, children }: SelectionGroupProps) {
 
 type SelectionItemProps = {
   id: string;
-  children: ReactNode;
-};
+} & React.ComponentPropsWithoutRef<"div">;
 
-function SelectionItem({ id, children }: SelectionItemProps) {
+function SelectionItem({ id, children, onMouseDown, ...restProps }: SelectionItemProps) {
   const elementRef = useRef<HTMLDivElement>(null);
   const manager = useSelectionManager();
 
-  // Register element on mount (using offsetTop for scroll-independent positioning)
+  // Register element on mount
   useLayoutEffect(() => {
     if (elementRef.current) {
       manager.registerItem(id, elementRef.current);
@@ -117,16 +132,18 @@ function SelectionItem({ id, children }: SelectionItemProps) {
     };
   }, [id, manager]);
 
-  const onMouseDown = useCallback(
-    (event: React.MouseEvent) => {
-      if (event.button !== 0) return;
-      manager.startDrag(id, event.clientY);
+  const handleMouseDown = useCallback(
+    (event: React.MouseEvent<HTMLDivElement>) => {
+      if (event.button === 0) {
+        manager.startDrag(id, event.clientY);
+      }
+      onMouseDown?.(event);
     },
-    [id, manager],
+    [id, manager, onMouseDown],
   );
 
   return (
-    <div ref={elementRef} onMouseDown={onMouseDown}>
+    <div ref={elementRef} onMouseDown={handleMouseDown} {...restProps}>
       {children}
     </div>
   );

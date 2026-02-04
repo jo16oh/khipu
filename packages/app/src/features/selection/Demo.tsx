@@ -163,7 +163,6 @@ export default function Demo() {
   return (
     <div
       style={{
-        minHeight: "100vh",
         background: "linear-gradient(135deg, #667eea 0%, #764ba2 100%)",
         padding: "40px 20px",
         fontFamily: "-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif",
@@ -195,12 +194,13 @@ export default function Demo() {
             overflow: "hidden",
           }}
         >
-          <Selection.Area threshold={16}>
-            <div style={{ padding: "12px 0", maxHeight: 400, overflowY: "auto" }}>
-              {initialItems.map((item) => (
-                <OutlineItem key={item.id} item={item} />
-              ))}
-            </div>
+          <Selection.Area
+            threshold={16}
+            style={{ padding: "12px 0", maxHeight: 400, overflowY: "auto" }}
+          >
+            {initialItems.map((item) => (
+              <OutlineItem key={item.id} item={item} />
+            ))}
           </Selection.Area>
         </div>
 

@@ -16,8 +16,10 @@ export class SelectionManager {
   #hasLeftAnchor = false;
   #isInsideAnchor = false;
   #selectionRange: YRange | null = null;
+  #lastClientY: number | null = null;
 
   // Item registry
+  #itemElements = new Map<string, HTMLElement>();
   #itemRanges = new Map<string, YRange>();
   #anchorRange: YRange | null = null;
 
@@ -49,13 +51,11 @@ export class SelectionManager {
   }
 
   registerItem(id: string, element: HTMLElement): void {
-    this.#itemRanges.set(id, {
-      top: element.offsetTop,
-      bottom: element.offsetTop + element.offsetHeight,
-    });
+    this.#itemElements.set(id, element);
   }
 
   unregisterItem(id: string): void {
+    this.#itemElements.delete(id);
     this.#itemRanges.delete(id);
   }
 
@@ -68,6 +68,21 @@ export class SelectionManager {
     if (!container) return clientY;
     const containerRect = container.getBoundingClientRect();
     return clientY - containerRect.top + container.scrollTop;
+  }
+
+  #refreshItemRanges(): void {
+    const container = this.#containerElement;
+    if (!container) return;
+
+    const containerRect = container.getBoundingClientRect();
+
+    for (const [id, element] of this.#itemElements) {
+      const elementRect = element.getBoundingClientRect();
+      // Convert to container-relative coordinates (accounting for scroll)
+      const top = elementRect.top - containerRect.top + container.scrollTop;
+      const bottom = top + elementRect.height;
+      this.#itemRanges.set(id, { top, bottom });
+    }
   }
 
   // ============================================================================
@@ -114,6 +129,8 @@ export class SelectionManager {
   // ============================================================================
 
   startDrag(id: string, clientY: number): void {
+    this.#refreshItemRanges();
+
     const mouseY = this.#getRelativeY(clientY);
     const range = this.#itemRanges.get(id);
 
@@ -123,23 +140,31 @@ export class SelectionManager {
     this.#isInsideAnchor = true;
     this.#selectionRange = { top: mouseY, bottom: mouseY };
     this.#isDragging = true;
+    this.#lastClientY = clientY;
     this.#setSelectedIds(new Set());
   }
 
   moveDrag(clientY: number): void {
     if (!this.#isDragging) return;
+    this.#lastClientY = clientY;
+    this.recalculate();
+  }
 
-    const mouseY = this.#getRelativeY(clientY);
+  recalculate(): void {
+    if (!this.#isDragging || this.#lastClientY === null) return;
+
+    // Recalculate item ranges and anchor range
+    this.#refreshItemRanges();
+    if (this.#anchorId) {
+      this.#anchorRange = this.#itemRanges.get(this.#anchorId) ?? null;
+    }
+
+    const mouseY = this.#getRelativeY(this.#lastClientY);
     const anchorRange = this.#anchorRange;
 
     // Update selection range
-    if (this.#selectionRange) {
-      const originalAnchorY = anchorRange
-        ? mouseY < anchorRange.top
-          ? anchorRange.bottom
-          : anchorRange.top
-        : this.#selectionRange.top;
-
+    if (anchorRange) {
+      const originalAnchorY = mouseY < anchorRange.top ? anchorRange.bottom : anchorRange.top;
       this.#selectionRange = {
         top: Math.min(originalAnchorY, mouseY),
         bottom: Math.max(originalAnchorY, mouseY),
@@ -168,6 +193,7 @@ export class SelectionManager {
     this.#isDragging = false;
     this.#selectionRange = null;
     this.#anchorRange = null;
+    this.#lastClientY = null;
   }
 
   clearSelection(): void {
