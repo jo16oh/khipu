@@ -228,7 +228,7 @@ export class SelectionManager {
     }
   }
 
-  listenToSelectionChange = (id: string, listener: Listener): (() => void) => {
+  listenToSelectionChange(id: string, listener: Listener): () => void {
     let idListenerSet = this.#idListeners.get(id);
     if (!idListenerSet) {
       idListenerSet = new Set();
@@ -245,7 +245,7 @@ export class SelectionManager {
         }
       }
     };
-  };
+  }
 }
 
 function setsEqual<T>(a: Set<T>, b: Set<T>): boolean {
