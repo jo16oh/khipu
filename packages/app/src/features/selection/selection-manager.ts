@@ -3,6 +3,12 @@ type YRange = {
   bottom: number;
 };
 
+type SortedItem = {
+  id: string;
+  top: number;
+  bottom: number;
+};
+
 type Listener = () => void;
 
 /**
@@ -21,6 +27,8 @@ export class SelectionManager {
   // Item registry
   #itemElements = new Map<string, HTMLElement>();
   #itemRanges = new Map<string, YRange>();
+  #sortedItems: SortedItem[] = [];
+  #maxItemHeight = 0;
   #anchorRange: YRange | null = null;
 
   // Configuration
@@ -75,6 +83,8 @@ export class SelectionManager {
     if (!container) return;
 
     const containerRect = container.getBoundingClientRect();
+    const items: SortedItem[] = [];
+    let maxHeight = 0;
 
     for (const [id, element] of this.#itemElements) {
       const elementRect = element.getBoundingClientRect();
@@ -82,40 +92,76 @@ export class SelectionManager {
       const top = elementRect.top - containerRect.top + container.scrollTop;
       const bottom = top + elementRect.height;
       this.#itemRanges.set(id, { top, bottom });
+
+      items.push({ id, top, bottom });
+      const height = bottom - top;
+      if (height > maxHeight) maxHeight = height;
     }
+
+    // Sort by top coordinate for binary search
+    items.sort((a, b) => a.top - b.top);
+    this.#sortedItems = items;
+    this.#maxItemHeight = maxHeight;
   }
 
   // ============================================================================
   // Selection Logic
   // ============================================================================
 
+  /**
+   * Binary search to find the first index where item.top >= target
+   */
+  #lowerBoundByTop(target: number): number {
+    const items = this.#sortedItems;
+    let left = 0;
+    let right = items.length;
+    while (left < right) {
+      const mid = (left + right) >> 1;
+      // biome-ignore lint/style/noNonNullAssertion: mid is always within bounds
+      if (items[mid]!.top >= target) {
+        right = mid;
+      } else {
+        left = mid + 1;
+      }
+    }
+    return left;
+  }
+
   #updateSelection(): void {
     if (!this.#selectionRange) return;
 
     const newSelectedIds = new Set<string>();
+    const { top: selTop, bottom: selBottom } = this.#selectionRange;
 
-    for (const [id, range] of this.#itemRanges) {
-      const isAnchor = id === this.#anchorId;
+    // Use binary search to narrow down the range of items to check
+    // Item intersects if: top < selBottom AND bottom > selTop
+    // bottom > selTop => top + height > selTop => top > selTop - height
+    // We use maxItemHeight as an upper bound for height
+    const startIndex = this.#lowerBoundByTop(selTop - this.#maxItemHeight);
+    const stopIndex = this.#lowerBoundByTop(selBottom);
+    const items = this.#sortedItems;
+
+    for (let i = startIndex; i < stopIndex; i++) {
+      // biome-ignore lint/style/noNonNullAssertion: i is within [startIndex, stopIndex) bounds
+      const item = items[i]!;
+      const isAnchor = item.id === this.#anchorId;
 
       // For anchor element: don't apply threshold
       // For other elements: apply threshold to shrink effective area
-      const effectiveTop = isAnchor ? range.top : range.top + this.#threshold;
-      const effectiveBottom = isAnchor ? range.bottom : range.bottom - this.#threshold;
+      const effectiveTop = isAnchor ? item.top : item.top + this.#threshold;
+      const effectiveBottom = isAnchor ? item.bottom : item.bottom - this.#threshold;
 
       // Check intersection
-      const intersects =
-        this.#selectionRange.top < effectiveBottom && this.#selectionRange.bottom > effectiveTop;
+      const intersects = selTop < effectiveBottom && selBottom > effectiveTop;
+
+      if (!intersects) continue;
 
       // For anchor element: don't select until cursor has left, deselect when cursor returns
-      if (isAnchor) {
-        if (!this.#hasLeftAnchor || this.#isInsideAnchor) {
-          continue;
-        }
+      if (isAnchor && (!this.#hasLeftAnchor || this.#isInsideAnchor)) {
+        continue;
       }
 
-      if (intersects) {
-        newSelectedIds.add(id);
-      }
+      newSelectedIds.add(item.id);
     }
 
     // Only update if changed
@@ -152,12 +198,6 @@ export class SelectionManager {
 
   recalculate(): void {
     if (!this.#isDragging || this.#lastClientY === null) return;
-
-    // Recalculate item ranges and anchor range
-    this.#refreshItemRanges();
-    if (this.#anchorId) {
-      this.#anchorRange = this.#itemRanges.get(this.#anchorId) ?? null;
-    }
 
     const mouseY = this.#getRelativeY(this.#lastClientY);
     const anchorRange = this.#anchorRange;
