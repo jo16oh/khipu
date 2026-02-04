@@ -36,7 +36,7 @@ export class SelectionManager {
   #containerElement: HTMLElement | null = null;
 
   // Listeners
-  #idListeners = new Map<string, Set<Listener>>();
+  #listeners = new Map<string, Set<Listener>>();
 
   constructor(threshold: number) {
     this.#threshold = threshold;
@@ -248,20 +248,13 @@ export class SelectionManager {
     const prevSelectedIds = this.#selectedIds;
     this.#selectedIds = newSelectedIds;
 
-    // Find ids whose selection state changed
-    const changedIds = new Set<string>();
-    for (const id of prevSelectedIds) {
-      if (!newSelectedIds.has(id)) changedIds.add(id);
-    }
-    for (const id of newSelectedIds) {
-      if (!prevSelectedIds.has(id)) changedIds.add(id);
-    }
+    const changedIds = symmetricDifference(prevSelectedIds, newSelectedIds);
 
     // Notify id-specific listeners
     for (const id of changedIds) {
-      const idListenerSet = this.#idListeners.get(id);
-      if (idListenerSet) {
-        for (const listener of idListenerSet) {
+      const listenerSet = this.#listeners.get(id);
+      if (listenerSet) {
+        for (const listener of listenerSet) {
           listener();
         }
       }
@@ -269,19 +262,19 @@ export class SelectionManager {
   }
 
   listenToSelectionChange(id: string, listener: Listener): () => void {
-    let idListenerSet = this.#idListeners.get(id);
-    if (!idListenerSet) {
-      idListenerSet = new Set();
-      this.#idListeners.set(id, idListenerSet);
+    let listenerSet = this.#listeners.get(id);
+    if (!listenerSet) {
+      listenerSet = new Set();
+      this.#listeners.set(id, listenerSet);
     }
-    idListenerSet.add(listener);
+    listenerSet.add(listener);
 
     return () => {
-      const listeners = this.#idListeners.get(id);
+      const listeners = this.#listeners.get(id);
       if (listeners) {
         listeners.delete(listener);
         if (listeners.size === 0) {
-          this.#idListeners.delete(id);
+          this.#listeners.delete(id);
         }
       }
     };
@@ -294,4 +287,11 @@ function setsEqual<T>(a: Set<T>, b: Set<T>): boolean {
     if (!b.has(item)) return false;
   }
   return true;
+}
+
+function symmetricDifference<T>(a: Set<T>, b: Set<T>): Set<T> {
+  const result = new Set<T>();
+  for (const item of a) if (!b.has(item)) result.add(item);
+  for (const item of b) if (!a.has(item)) result.add(item);
+  return result;
 }
