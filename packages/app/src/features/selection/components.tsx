@@ -103,10 +103,21 @@ function SelectionArea({
 type SelectionGroupProps = {
   id: string;
   children: ReactNode | ((props: { isSelected: boolean }) => ReactNode);
-};
+} & Omit<React.ComponentPropsWithoutRef<"div">, "children">;
 
-function SelectionGroup({ id, children }: SelectionGroupProps) {
+function SelectionGroup({ id, children, ...restProps }: SelectionGroupProps) {
   const manager = useSelectionManager();
+  const groupRef = useRef<HTMLDivElement>(null);
+
+  // Register group element on mount
+  useLayoutEffect(() => {
+    if (groupRef.current) {
+      manager.registerGroup(id, groupRef.current);
+    }
+    return () => {
+      manager.unregisterGroup(id);
+    };
+  }, [id, manager]);
 
   // Subscribe to selection state for this specific id
   const isSelected = useSyncExternalStore(
@@ -114,7 +125,11 @@ function SelectionGroup({ id, children }: SelectionGroupProps) {
     () => manager.selectedIds.has(id),
   );
 
-  return <>{typeof children === "function" ? children({ isSelected }) : children}</>;
+  return (
+    <div ref={groupRef} {...restProps}>
+      {typeof children === "function" ? children({ isSelected }) : children}
+    </div>
+  );
 }
 
 type SelectionItemProps = {
@@ -138,7 +153,9 @@ function SelectionItem({ id, children, onMouseDown, ...restProps }: SelectionIte
   const handleMouseDown = useCallback(
     (event: React.MouseEvent<HTMLDivElement>) => {
       if (event.button === 0) {
-        if (event.shiftKey) {
+        if (event.metaKey) {
+          manager.toggleSelection(id);
+        } else if (event.shiftKey) {
           manager.selectRangeTo(id);
         } else {
           manager.startDrag(id, event.clientY);

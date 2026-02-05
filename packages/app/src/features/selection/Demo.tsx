@@ -1,4 +1,4 @@
-import { Selection } from ".";
+import { Selection, useSelectionManager } from ".";
 
 type TreeItem = {
   id: string;
@@ -83,6 +83,35 @@ const initialItems: TreeItem[] = [
     ],
   },
 ];
+
+function TestButton() {
+  const manager = useSelectionManager();
+
+  const handleClick = () => {
+    const topLevel = manager.getTopLevelSelectedIds();
+    console.log("Top-level selected IDs:", [...topLevel]);
+    alert(`Top-level: ${[...topLevel].join(", ") || "(none)"}`);
+  };
+
+  return (
+    <button
+      type="button"
+      onClick={handleClick}
+      style={{
+        margin: "12px 20px",
+        padding: "8px 16px",
+        background: "#667eea",
+        color: "white",
+        border: "none",
+        borderRadius: 8,
+        cursor: "pointer",
+        fontSize: 13,
+      }}
+    >
+      Get Top-Level Selected
+    </button>
+  );
+}
 
 function OutlineItem({
   item,
@@ -198,6 +227,7 @@ export default function Demo() {
             threshold={16}
             style={{ padding: "12px 0", maxHeight: 400, overflowY: "auto" }}
           >
+            <TestButton />
             {initialItems.map((item) => (
               <OutlineItem key={item.id} item={item} />
             ))}

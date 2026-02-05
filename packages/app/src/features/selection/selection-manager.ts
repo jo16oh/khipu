@@ -28,6 +28,8 @@ export class SelectionManager {
   // Item registry
   #itemElements = new Map<string, HTMLElement>();
   #itemRanges = new Map<string, YRange>();
+  #groupElements = new Map<string, HTMLElement>();
+  #groupRanges = new Map<string, YRange>();
   #sortedItems: SortedItem[] = [];
   #maxItemHeight = 0;
   #anchorRange: YRange | null = null;
@@ -68,6 +70,15 @@ export class SelectionManager {
     this.#itemRanges.delete(id);
   }
 
+  registerGroup(id: string, element: HTMLElement): void {
+    this.#groupElements.set(id, element);
+  }
+
+  unregisterGroup(id: string): void {
+    this.#groupElements.delete(id);
+    this.#groupRanges.delete(id);
+  }
+
   // ============================================================================
   // Coordinate Calculation
   // ============================================================================
@@ -97,6 +108,14 @@ export class SelectionManager {
       items.push({ id, top, bottom });
       const height = bottom - top;
       if (height > maxHeight) maxHeight = height;
+    }
+
+    // Also refresh group ranges
+    for (const [id, element] of this.#groupElements) {
+      const elementRect = element.getBoundingClientRect();
+      const top = elementRect.top - containerRect.top + container.scrollTop;
+      const bottom = top + elementRect.height;
+      this.#groupRanges.set(id, { top, bottom });
     }
 
     // Sort by top coordinate for binary search
@@ -276,6 +295,75 @@ export class SelectionManager {
     }
 
     this.#setSelectedIds(newSelectedIds);
+  }
+
+  toggleSelection(id: string): void {
+    this.#refreshItemRanges();
+    this.#lastClickedId = id;
+
+    const itemRange = this.#itemRanges.get(id);
+    if (!itemRange) return;
+
+    const newSelectedIds = new Set(this.#selectedIds);
+
+    // Check if any selected group contains this item
+    for (const selectedId of this.#selectedIds) {
+      const groupRange = this.#groupRanges.get(selectedId);
+      if (!groupRange) continue;
+
+      // Check if the clicked item is inside this selected group
+      const isContained = itemRange.top >= groupRange.top && itemRange.bottom <= groupRange.bottom;
+      if (isContained) {
+        // Deselect all items within this group's range
+        for (const item of this.#sortedItems) {
+          if (item.top >= groupRange.top && item.bottom <= groupRange.bottom) {
+            newSelectedIds.delete(item.id);
+          }
+        }
+        this.#setSelectedIds(newSelectedIds);
+        return;
+      }
+    }
+
+    // No containing selected group found, just toggle the single item
+    if (newSelectedIds.has(id)) {
+      newSelectedIds.delete(id);
+    } else {
+      newSelectedIds.add(id);
+    }
+    this.#setSelectedIds(newSelectedIds);
+  }
+
+  getTopLevelSelectedIds(): Set<string> {
+    this.#refreshItemRanges();
+
+    // Sort selected items by top coordinate
+    const selectedItems: SortedItem[] = [];
+    for (const id of this.#selectedIds) {
+      const range = this.#itemRanges.get(id);
+      if (range) {
+        selectedItems.push({ id, top: range.top, bottom: range.bottom });
+      }
+    }
+    selectedItems.sort((a, b) => a.top - b.top);
+
+    const result = new Set<string>();
+    let skipBoundary = -Infinity;
+
+    for (const item of selectedItems) {
+      if (item.top >= skipBoundary) {
+        // This item is outside the previous group, so it's top-level
+        result.add(item.id);
+
+        // Update skip boundary to this group's bottom
+        const groupRange = this.#groupRanges.get(item.id);
+        if (groupRange) {
+          skipBoundary = groupRange.bottom;
+        }
+      }
+    }
+
+    return result;
   }
 
   clearSelection(): void {
