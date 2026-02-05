@@ -88,9 +88,9 @@ function TestButton() {
   const manager = useSelectionManager();
 
   const handleClick = () => {
-    const topLevel = manager.getTopLevelSelectedIds();
-    console.log("Top-level selected IDs:", [...topLevel]);
-    alert(`Top-level: ${[...topLevel].join(", ") || "(none)"}`);
+    const selection = manager.currentSelection();
+    console.log("Current selection:", selection);
+    alert(`Selection: ${selection.join(", ") || "(none)"}`);
   };
 
   return (

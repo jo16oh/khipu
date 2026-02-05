@@ -1,10 +1,12 @@
+type Id = string;
+
 type YRange = {
   top: number;
   bottom: number;
 };
 
 type SortedItem = {
-  id: string;
+  id: Id;
   top: number;
   bottom: number;
 };
@@ -16,20 +18,20 @@ type Listener = () => void;
  */
 export class SelectionManager {
   // Selection state
-  #selectedIds = new Set<string>();
+  #selectedIds = new Set<Id>();
   #isDragging = false;
-  #anchorId: string | null = null;
-  #lastClickedId: string | null = null;
+  #anchorId: Id | null = null;
+  #lastClickedId: Id | null = null;
   #hasLeftAnchor = false;
   #isInsideAnchor = false;
   #selectionRange: YRange | null = null;
   #lastClientY: number | null = null;
 
   // Item registry
-  #itemElements = new Map<string, HTMLElement>();
-  #itemRanges = new Map<string, YRange>();
-  #groupElements = new Map<string, HTMLElement>();
-  #groupRanges = new Map<string, YRange>();
+  #itemElements = new Map<Id, HTMLElement>();
+  #itemRanges = new Map<Id, YRange>();
+  #groupElements = new Map<Id, HTMLElement>();
+  #groupRanges = new Map<Id, YRange>();
   #sortedItems: SortedItem[] = [];
   #maxItemHeight = 0;
   #anchorRange: YRange | null = null;
@@ -39,7 +41,7 @@ export class SelectionManager {
   #containerElement: HTMLElement | null = null;
 
   // Listeners
-  #listeners = new Map<string, Set<Listener>>();
+  #listeners = new Map<Id, Set<Listener>>();
 
   constructor(threshold: number) {
     this.#threshold = threshold;
@@ -49,8 +51,8 @@ export class SelectionManager {
   // Getters
   // ============================================================================
 
-  get selectedIds() {
-    return this.#selectedIds;
+  isSelected(id: Id): boolean {
+    return this.#selectedIds.has(id);
   }
 
   // ============================================================================
@@ -61,20 +63,20 @@ export class SelectionManager {
     this.#containerElement = element;
   }
 
-  registerItem(id: string, element: HTMLElement): void {
+  registerItem(id: Id, element: HTMLElement): void {
     this.#itemElements.set(id, element);
   }
 
-  unregisterItem(id: string): void {
+  unregisterItem(id: Id): void {
     this.#itemElements.delete(id);
     this.#itemRanges.delete(id);
   }
 
-  registerGroup(id: string, element: HTMLElement): void {
+  registerGroup(id: Id, element: HTMLElement): void {
     this.#groupElements.set(id, element);
   }
 
-  unregisterGroup(id: string): void {
+  unregisterGroup(id: Id): void {
     this.#groupElements.delete(id);
     this.#groupRanges.delete(id);
   }
@@ -194,7 +196,7 @@ export class SelectionManager {
   // Drag Operations
   // ============================================================================
 
-  startDrag(id: string, clientY: number): void {
+  startDrag(id: Id, clientY: number): void {
     this.#refreshItemRanges();
 
     const mouseY = this.#getRelativeY(clientY);
@@ -261,7 +263,7 @@ export class SelectionManager {
   // Click Operations (for Shift+Click range selection)
   // ============================================================================
 
-  selectRangeTo(id: string): void {
+  selectRangeTo(id: Id): void {
     if (this.#lastClickedId !== null) {
       this.#selectRange(this.#lastClickedId, id);
     } else {
@@ -270,7 +272,7 @@ export class SelectionManager {
     }
   }
 
-  #selectRange(fromId: string, toId: string): void {
+  #selectRange(fromId: Id, toId: Id): void {
     this.#refreshItemRanges();
 
     const fromRange = this.#itemRanges.get(fromId);
@@ -297,7 +299,7 @@ export class SelectionManager {
     this.#setSelectedIds(newSelectedIds);
   }
 
-  toggleSelection(id: string): void {
+  toggleSelection(id: Id): void {
     this.#refreshItemRanges();
     this.#lastClickedId = id;
 
@@ -334,7 +336,7 @@ export class SelectionManager {
     this.#setSelectedIds(newSelectedIds);
   }
 
-  getTopLevelSelectedIds(): Set<string> {
+  currentSelection(): Id[] {
     this.#refreshItemRanges();
 
     // Sort selected items by top coordinate
@@ -347,13 +349,13 @@ export class SelectionManager {
     }
     selectedItems.sort((a, b) => a.top - b.top);
 
-    const result = new Set<string>();
+    const result: Id[] = [];
     let skipBoundary = -Infinity;
 
     for (const item of selectedItems) {
       if (item.top >= skipBoundary) {
         // This item is outside the previous group, so it's top-level
-        result.add(item.id);
+        result.push(item.id);
 
         // Update skip boundary to this group's bottom
         const groupRange = this.#groupRanges.get(item.id);
@@ -374,7 +376,7 @@ export class SelectionManager {
   // Internal State Setters
   // ============================================================================
 
-  #setSelectedIds(newSelectedIds: Set<string>): void {
+  #setSelectedIds(newSelectedIds: Set<Id>): void {
     const prevSelectedIds = this.#selectedIds;
     this.#selectedIds = newSelectedIds;
 
@@ -391,7 +393,7 @@ export class SelectionManager {
     }
   }
 
-  listenToSelectionChange(id: string, listener: Listener): () => void {
+  listenToSelectionChange(id: Id, listener: Listener): () => void {
     let listenerSet = this.#listeners.get(id);
     if (!listenerSet) {
       listenerSet = new Set();

@@ -122,7 +122,7 @@ function SelectionGroup({ id, children, ...restProps }: SelectionGroupProps) {
   // Subscribe to selection state for this specific id
   const isSelected = useSyncExternalStore(
     useCallback((listener) => manager.listenToSelectionChange(id, listener), [manager, id]),
-    () => manager.selectedIds.has(id),
+    () => manager.isSelected(id),
   );
 
   return (
