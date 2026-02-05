@@ -48,15 +48,47 @@ export class SelectionManager {
   }
 
   // ============================================================================
-  // Getters
+  // Public API - Queries
   // ============================================================================
 
   isSelected(id: Id): boolean {
     return this.#selectedIds.has(id);
   }
 
+  currentSelection(): Id[] {
+    this.#refreshItemRanges();
+
+    // Sort selected items by top coordinate
+    const selectedItems: SortedItem[] = [];
+    for (const id of this.#selectedIds) {
+      const range = this.#itemRanges.get(id);
+      if (range) {
+        selectedItems.push({ id, top: range.top, bottom: range.bottom });
+      }
+    }
+    selectedItems.sort((a, b) => a.top - b.top);
+
+    const result: Id[] = [];
+    let skipBoundary = -Infinity;
+
+    for (const item of selectedItems) {
+      if (item.top >= skipBoundary) {
+        // This item is outside the previous group, so it's top-level
+        result.push(item.id);
+
+        // Update skip boundary to this group's bottom
+        const groupRange = this.#groupRanges.get(item.id);
+        if (groupRange) {
+          skipBoundary = groupRange.bottom;
+        }
+      }
+    }
+
+    return result;
+  }
+
   // ============================================================================
-  // Container & Item Registration
+  // Public API - Registration
   // ============================================================================
 
   setContainerElement(element: HTMLElement | null): void {
@@ -82,118 +114,7 @@ export class SelectionManager {
   }
 
   // ============================================================================
-  // Coordinate Calculation
-  // ============================================================================
-
-  #getRelativeY(clientY: number): number {
-    const container = this.#containerElement;
-    if (!container) return clientY;
-    const containerRect = container.getBoundingClientRect();
-    return clientY - containerRect.top + container.scrollTop;
-  }
-
-  #refreshItemRanges(): void {
-    const container = this.#containerElement;
-    if (!container) return;
-
-    const containerRect = container.getBoundingClientRect();
-    const items: SortedItem[] = [];
-    let maxHeight = 0;
-
-    for (const [id, element] of this.#itemElements) {
-      const elementRect = element.getBoundingClientRect();
-      // Convert to container-relative coordinates (accounting for scroll)
-      const top = elementRect.top - containerRect.top + container.scrollTop;
-      const bottom = top + elementRect.height;
-      this.#itemRanges.set(id, { top, bottom });
-
-      items.push({ id, top, bottom });
-      const height = bottom - top;
-      if (height > maxHeight) maxHeight = height;
-    }
-
-    // Also refresh group ranges
-    for (const [id, element] of this.#groupElements) {
-      const elementRect = element.getBoundingClientRect();
-      const top = elementRect.top - containerRect.top + container.scrollTop;
-      const bottom = top + elementRect.height;
-      this.#groupRanges.set(id, { top, bottom });
-    }
-
-    // Sort by top coordinate for binary search
-    items.sort((a, b) => a.top - b.top);
-    this.#sortedItems = items;
-    this.#maxItemHeight = maxHeight;
-  }
-
-  // ============================================================================
-  // Selection Logic
-  // ============================================================================
-
-  /**
-   * Binary search to find the first index where item.top >= target
-   */
-  #lowerBoundByTop(target: number): number {
-    const items = this.#sortedItems;
-    let left = 0;
-    let right = items.length;
-    while (left < right) {
-      const mid = (left + right) >> 1;
-      // biome-ignore lint/style/noNonNullAssertion: mid is always within bounds
-      if (items[mid]!.top >= target) {
-        right = mid;
-      } else {
-        left = mid + 1;
-      }
-    }
-    return left;
-  }
-
-  #updateSelection(): void {
-    if (!this.#selectionRange) return;
-
-    const newSelectedIds = new Set<string>();
-    const { top: selTop, bottom: selBottom } = this.#selectionRange;
-
-    // Use binary search to narrow down the range of items to check
-    // Item intersects if: top < selBottom AND bottom > selTop
-    // bottom > selTop => top + height > selTop => top > selTop - height
-    // We use maxItemHeight as an upper bound for height
-    const startIndex = this.#lowerBoundByTop(selTop - this.#maxItemHeight);
-    const stopIndex = this.#lowerBoundByTop(selBottom);
-    const items = this.#sortedItems;
-
-    for (let i = startIndex; i < stopIndex; i++) {
-      // biome-ignore lint/style/noNonNullAssertion: i is within [startIndex, stopIndex) bounds
-      const item = items[i]!;
-      const isAnchor = item.id === this.#anchorId;
-
-      // For anchor element: don't apply threshold
-      // For other elements: apply threshold to shrink effective area
-      const effectiveTop = isAnchor ? item.top : item.top + this.#threshold;
-      const effectiveBottom = isAnchor ? item.bottom : item.bottom - this.#threshold;
-
-      // Check intersection
-      const intersects = selTop < effectiveBottom && selBottom > effectiveTop;
-
-      if (!intersects) continue;
-
-      // For anchor element: don't select until cursor has left, deselect when cursor returns
-      if (isAnchor && (!this.#hasLeftAnchor || this.#isInsideAnchor)) {
-        continue;
-      }
-
-      newSelectedIds.add(item.id);
-    }
-
-    // Only update if changed
-    if (!setsEqual(this.#selectedIds, newSelectedIds)) {
-      this.#setSelectedIds(newSelectedIds);
-    }
-  }
-
-  // ============================================================================
-  // Drag Operations
+  // Public API - Actions
   // ============================================================================
 
   startDrag(id: Id, clientY: number): void {
@@ -259,10 +180,6 @@ export class SelectionManager {
     this.#lastClientY = null;
   }
 
-  // ============================================================================
-  // Click Operations (for Shift+Click range selection)
-  // ============================================================================
-
   selectRangeTo(id: Id): void {
     if (this.#lastClickedId !== null) {
       this.#selectRange(this.#lastClickedId, id);
@@ -270,33 +187,6 @@ export class SelectionManager {
       this.#lastClickedId = id;
       this.#setSelectedIds(new Set([id]));
     }
-  }
-
-  #selectRange(fromId: Id, toId: Id): void {
-    this.#refreshItemRanges();
-
-    const fromRange = this.#itemRanges.get(fromId);
-    const toRange = this.#itemRanges.get(toId);
-    if (!fromRange || !toRange) return;
-
-    const rangeTop = Math.min(fromRange.top, toRange.top);
-    const rangeBottom = Math.max(fromRange.bottom, toRange.bottom);
-
-    const startIndex = this.#lowerBoundByTop(rangeTop - this.#maxItemHeight);
-    const stopIndex = this.#lowerBoundByTop(rangeBottom);
-
-    const items = this.#sortedItems;
-    const newSelectedIds = new Set<string>();
-
-    for (let i = startIndex; i < stopIndex; i++) {
-      // biome-ignore lint/style/noNonNullAssertion: i is within [startIndex, stopIndex) bounds
-      const item = items[i]!;
-      if (item.top < rangeBottom && item.bottom > rangeTop) {
-        newSelectedIds.add(item.id);
-      }
-    }
-
-    this.#setSelectedIds(newSelectedIds);
   }
 
   toggleSelection(id: Id): void {
@@ -336,62 +226,13 @@ export class SelectionManager {
     this.#setSelectedIds(newSelectedIds);
   }
 
-  currentSelection(): Id[] {
-    this.#refreshItemRanges();
-
-    // Sort selected items by top coordinate
-    const selectedItems: SortedItem[] = [];
-    for (const id of this.#selectedIds) {
-      const range = this.#itemRanges.get(id);
-      if (range) {
-        selectedItems.push({ id, top: range.top, bottom: range.bottom });
-      }
-    }
-    selectedItems.sort((a, b) => a.top - b.top);
-
-    const result: Id[] = [];
-    let skipBoundary = -Infinity;
-
-    for (const item of selectedItems) {
-      if (item.top >= skipBoundary) {
-        // This item is outside the previous group, so it's top-level
-        result.push(item.id);
-
-        // Update skip boundary to this group's bottom
-        const groupRange = this.#groupRanges.get(item.id);
-        if (groupRange) {
-          skipBoundary = groupRange.bottom;
-        }
-      }
-    }
-
-    return result;
-  }
-
   clearSelection(): void {
     this.#setSelectedIds(new Set());
   }
 
   // ============================================================================
-  // Internal State Setters
+  // Public API - Subscription
   // ============================================================================
-
-  #setSelectedIds(newSelectedIds: Set<Id>): void {
-    const prevSelectedIds = this.#selectedIds;
-    this.#selectedIds = newSelectedIds;
-
-    const changedIds = symmetricDifference(prevSelectedIds, newSelectedIds);
-
-    // Notify id-specific listeners
-    for (const id of changedIds) {
-      const listenerSet = this.#listeners.get(id);
-      if (listenerSet) {
-        for (const listener of listenerSet) {
-          listener();
-        }
-      }
-    }
-  }
 
   listenToSelectionChange(id: Id, listener: Listener): () => void {
     let listenerSet = this.#listeners.get(id);
@@ -410,6 +251,154 @@ export class SelectionManager {
         }
       }
     };
+  }
+
+  // ============================================================================
+  // Private - Internal
+  // ============================================================================
+
+  #getRelativeY(clientY: number): number {
+    const container = this.#containerElement;
+    if (!container) return clientY;
+    const containerRect = container.getBoundingClientRect();
+    return clientY - containerRect.top + container.scrollTop;
+  }
+
+  #refreshItemRanges(): void {
+    const container = this.#containerElement;
+    if (!container) return;
+
+    const containerRect = container.getBoundingClientRect();
+    const items: SortedItem[] = [];
+    let maxHeight = 0;
+
+    for (const [id, element] of this.#itemElements) {
+      const elementRect = element.getBoundingClientRect();
+      // Convert to container-relative coordinates (accounting for scroll)
+      const top = elementRect.top - containerRect.top + container.scrollTop;
+      const bottom = top + elementRect.height;
+      this.#itemRanges.set(id, { top, bottom });
+
+      items.push({ id, top, bottom });
+      const height = bottom - top;
+      if (height > maxHeight) maxHeight = height;
+    }
+
+    // Also refresh group ranges
+    for (const [id, element] of this.#groupElements) {
+      const elementRect = element.getBoundingClientRect();
+      const top = elementRect.top - containerRect.top + container.scrollTop;
+      const bottom = top + elementRect.height;
+      this.#groupRanges.set(id, { top, bottom });
+    }
+
+    // Sort by top coordinate for binary search
+    items.sort((a, b) => a.top - b.top);
+    this.#sortedItems = items;
+    this.#maxItemHeight = maxHeight;
+  }
+
+  #lowerBoundByTop(target: number): number {
+    const items = this.#sortedItems;
+    let left = 0;
+    let right = items.length;
+    while (left < right) {
+      const mid = (left + right) >> 1;
+      // biome-ignore lint/style/noNonNullAssertion: mid is always within bounds
+      if (items[mid]!.top >= target) {
+        right = mid;
+      } else {
+        left = mid + 1;
+      }
+    }
+    return left;
+  }
+
+  #updateSelection(): void {
+    if (!this.#selectionRange) return;
+
+    const newSelectedIds = new Set<Id>();
+    const { top: selTop, bottom: selBottom } = this.#selectionRange;
+
+    // Use binary search to narrow down the range of items to check
+    // Item intersects if: top < selBottom AND bottom > selTop
+    // bottom > selTop => top + height > selTop => top > selTop - height
+    // We use maxItemHeight as an upper bound for height
+    const startIndex = this.#lowerBoundByTop(selTop - this.#maxItemHeight);
+    const stopIndex = this.#lowerBoundByTop(selBottom);
+    const items = this.#sortedItems;
+
+    for (let i = startIndex; i < stopIndex; i++) {
+      // biome-ignore lint/style/noNonNullAssertion: i is within [startIndex, stopIndex) bounds
+      const item = items[i]!;
+      const isAnchor = item.id === this.#anchorId;
+
+      // For anchor element: don't apply threshold
+      // For other elements: apply threshold to shrink effective area
+      const effectiveTop = isAnchor ? item.top : item.top + this.#threshold;
+      const effectiveBottom = isAnchor ? item.bottom : item.bottom - this.#threshold;
+
+      // Check intersection
+      const intersects = selTop < effectiveBottom && selBottom > effectiveTop;
+
+      if (!intersects) continue;
+
+      // For anchor element: don't select until cursor has left, deselect when cursor returns
+      if (isAnchor && (!this.#hasLeftAnchor || this.#isInsideAnchor)) {
+        continue;
+      }
+
+      newSelectedIds.add(item.id);
+    }
+
+    // Only update if changed
+    if (!setsEqual(this.#selectedIds, newSelectedIds)) {
+      this.#setSelectedIds(newSelectedIds);
+    }
+  }
+
+  #selectRange(fromId: Id, toId: Id): void {
+    this.#refreshItemRanges();
+
+    const fromRange = this.#itemRanges.get(fromId);
+    const toRange = this.#itemRanges.get(toId);
+    if (!fromRange || !toRange) return;
+
+    const rangeTop = Math.min(fromRange.top, toRange.top);
+    const rangeBottom = Math.max(fromRange.bottom, toRange.bottom);
+
+    const startIndex = this.#lowerBoundByTop(rangeTop - this.#maxItemHeight);
+    const stopIndex = this.#lowerBoundByTop(rangeBottom);
+
+    const items = this.#sortedItems;
+    const newSelectedIds = new Set<Id>();
+
+    for (let i = startIndex; i < stopIndex; i++) {
+      // biome-ignore lint/style/noNonNullAssertion: i is within [startIndex, stopIndex) bounds
+      const item = items[i]!;
+      if (item.top < rangeBottom && item.bottom > rangeTop) {
+        newSelectedIds.add(item.id);
+      }
+    }
+
+    this.#setSelectedIds(newSelectedIds);
+  }
+
+  #setSelectedIds(newSelectedIds: Set<Id>): void {
+    const prevSelectedIds = this.#selectedIds;
+    this.#selectedIds = newSelectedIds;
+
+    const changedIds = symmetricDifference(prevSelectedIds, newSelectedIds);
+
+    // Notify id-specific listeners
+    for (const id of changedIds) {
+      const listenerSet = this.#listeners.get(id);
+      if (listenerSet) {
+        for (const listener of listenerSet) {
+          listener();
+        }
+      }
+    }
   }
 }
 
