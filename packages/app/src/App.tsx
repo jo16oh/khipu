@@ -1,6 +1,9 @@
 import "./App.css";
 import Demo from "./features/selection/Demo";
 
+/**
+ * @package
+ */
 function App() {
   return <Demo />;
 }

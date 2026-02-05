@@ -15,7 +15,10 @@ import { SelectionManager } from "./selection-manager";
 
 const SelectionContext = createContext<SelectionManager | null>(null);
 
-function useSelectionManager() {
+/**
+ * @public
+ */
+export function useSelectionManager() {
   const manager = useContext(SelectionContext);
 
   if (!manager) {
@@ -150,7 +153,7 @@ function SelectionItem({ id, children, onMouseDown, ...restProps }: SelectionIte
 }
 
 /**
- * @package
+ * @public
  */
 export const Selection = {
   Area: SelectionArea,
