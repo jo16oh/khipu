@@ -138,7 +138,11 @@ function SelectionItem({ id, children, onMouseDown, ...restProps }: SelectionIte
   const handleMouseDown = useCallback(
     (event: React.MouseEvent<HTMLDivElement>) => {
       if (event.button === 0) {
-        manager.startDrag(id, event.clientY);
+        if (event.shiftKey) {
+          manager.selectRangeTo(id);
+        } else {
+          manager.startDrag(id, event.clientY);
+        }
       }
       onMouseDown?.(event);
     },

@@ -19,6 +19,7 @@ export class SelectionManager {
   #selectedIds = new Set<string>();
   #isDragging = false;
   #anchorId: string | null = null;
+  #lastClickedId: string | null = null;
   #hasLeftAnchor = false;
   #isInsideAnchor = false;
   #selectionRange: YRange | null = null;
@@ -182,6 +183,7 @@ export class SelectionManager {
 
     this.#anchorRange = range ?? null;
     this.#anchorId = id;
+    this.#lastClickedId = id;
     this.#hasLeftAnchor = false;
     this.#isInsideAnchor = true;
     this.#selectionRange = { top: mouseY, bottom: mouseY };
@@ -234,6 +236,46 @@ export class SelectionManager {
     this.#selectionRange = null;
     this.#anchorRange = null;
     this.#lastClientY = null;
+  }
+
+  // ============================================================================
+  // Click Operations (for Shift+Click range selection)
+  // ============================================================================
+
+  selectRangeTo(id: string): void {
+    if (this.#lastClickedId !== null) {
+      this.#selectRange(this.#lastClickedId, id);
+    } else {
+      this.#lastClickedId = id;
+      this.#setSelectedIds(new Set([id]));
+    }
+  }
+
+  #selectRange(fromId: string, toId: string): void {
+    this.#refreshItemRanges();
+
+    const fromRange = this.#itemRanges.get(fromId);
+    const toRange = this.#itemRanges.get(toId);
+    if (!fromRange || !toRange) return;
+
+    const rangeTop = Math.min(fromRange.top, toRange.top);
+    const rangeBottom = Math.max(fromRange.bottom, toRange.bottom);
+
+    const startIndex = this.#lowerBoundByTop(rangeTop - this.#maxItemHeight);
+    const stopIndex = this.#lowerBoundByTop(rangeBottom);
+
+    const items = this.#sortedItems;
+    const newSelectedIds = new Set<string>();
+
+    for (let i = startIndex; i < stopIndex; i++) {
+      // biome-ignore lint/style/noNonNullAssertion: i is within [startIndex, stopIndex) bounds
+      const item = items[i]!;
+      if (item.top < rangeBottom && item.bottom > rangeTop) {
+        newSelectedIds.add(item.id);
+      }
+    }
+
+    this.#setSelectedIds(newSelectedIds);
   }
 
   clearSelection(): void {
