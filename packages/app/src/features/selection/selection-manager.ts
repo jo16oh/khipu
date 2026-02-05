@@ -58,33 +58,18 @@ export class SelectionManager {
   currentSelection(): Id[] {
     this.#refreshItemRanges();
 
-    // Sort selected items by top coordinate
-    const selectedItems: SortedItem[] = [];
+    // selectedIds already contains only top-level items
+    // Just sort by top coordinate and return
+    const selectedItems: { id: Id; top: number }[] = [];
     for (const id of this.#selectedIds) {
       const range = this.#itemRanges.get(id);
       if (range) {
-        selectedItems.push({ id, top: range.top, bottom: range.bottom });
+        selectedItems.push({ id, top: range.top });
       }
     }
     selectedItems.sort((a, b) => a.top - b.top);
 
-    const result: Id[] = [];
-    let skipBoundary = -Infinity;
-
-    for (const item of selectedItems) {
-      if (item.top >= skipBoundary) {
-        // This item is outside the previous group, so it's top-level
-        result.push(item.id);
-
-        // Update skip boundary to this group's bottom
-        const groupRange = this.#groupRanges.get(item.id);
-        if (groupRange) {
-          skipBoundary = groupRange.bottom;
-        }
-      }
-    }
-
-    return result;
+    return selectedItems.map((item) => item.id);
   }
 
   // ============================================================================
@@ -206,12 +191,8 @@ export class SelectionManager {
       // Check if the clicked item is inside this selected group
       const isContained = itemRange.top >= groupRange.top && itemRange.bottom <= groupRange.bottom;
       if (isContained) {
-        // Deselect all items within this group's range
-        for (const item of this.#sortedItems) {
-          if (item.top >= groupRange.top && item.bottom <= groupRange.bottom) {
-            newSelectedIds.delete(item.id);
-          }
-        }
+        // Since selectedIds only contains top-level items, just remove the parent
+        newSelectedIds.delete(selectedId);
         this.#setSelectedIds(newSelectedIds);
         return;
       }
@@ -221,6 +202,21 @@ export class SelectionManager {
     if (newSelectedIds.has(id)) {
       newSelectedIds.delete(id);
     } else {
+      // Remove any items that would be contained by the new item's group
+      // to maintain the invariant that selectedIds only contains top-level items
+      const newItemGroupRange = this.#groupRanges.get(id);
+      if (newItemGroupRange) {
+        for (const existingId of [...newSelectedIds]) {
+          const existingRange = this.#itemRanges.get(existingId);
+          if (
+            existingRange &&
+            existingRange.top >= newItemGroupRange.top &&
+            existingRange.bottom <= newItemGroupRange.bottom
+          ) {
+            newSelectedIds.delete(existingId);
+          }
+        }
+      }
       newSelectedIds.add(id);
     }
     this.#setSelectedIds(newSelectedIds);
@@ -317,20 +313,23 @@ export class SelectionManager {
   #updateSelection(): void {
     if (!this.#selectionRange) return;
 
-    const newSelectedIds = new Set<Id>();
     const { top: selTop, bottom: selBottom } = this.#selectionRange;
 
     // Use binary search to narrow down the range of items to check
-    // Item intersects if: top < selBottom AND bottom > selTop
-    // bottom > selTop => top + height > selTop => top > selTop - height
-    // We use maxItemHeight as an upper bound for height
     const startIndex = this.#lowerBoundByTop(selTop - this.#maxItemHeight);
     const stopIndex = this.#lowerBoundByTop(selBottom);
     const items = this.#sortedItems;
 
+    const newSelectedIds = new Set<Id>();
+    let skipBoundary = -Infinity;
+
     for (let i = startIndex; i < stopIndex; i++) {
       // biome-ignore lint/style/noNonNullAssertion: i is within [startIndex, stopIndex) bounds
       const item = items[i]!;
+
+      // Skip if inside a previously selected group (top-level filtering)
+      if (item.top < skipBoundary) continue;
+
       const isAnchor = item.id === this.#anchorId;
 
       // For anchor element: don't apply threshold
@@ -340,7 +339,6 @@ export class SelectionManager {
 
       // Check intersection
       const intersects = selTop < effectiveBottom && selBottom > effectiveTop;
-
       if (!intersects) continue;
 
       // For anchor element: don't select until cursor has left, deselect when cursor returns
@@ -349,6 +347,10 @@ export class SelectionManager {
       }
 
       newSelectedIds.add(item.id);
+      const groupRange = this.#groupRanges.get(item.id);
+      if (groupRange) {
+        skipBoundary = groupRange.bottom;
+      }
     }
 
     // Only update if changed
@@ -372,12 +374,22 @@ export class SelectionManager {
 
     const items = this.#sortedItems;
     const newSelectedIds = new Set<Id>();
+    let skipBoundary = -Infinity;
 
     for (let i = startIndex; i < stopIndex; i++) {
       // biome-ignore lint/style/noNonNullAssertion: i is within [startIndex, stopIndex) bounds
       const item = items[i]!;
+
+      // Skip if inside a previously selected group (top-level filtering)
+      if (item.top < skipBoundary) continue;
+
+      // Check intersection
       if (item.top < rangeBottom && item.bottom > rangeTop) {
         newSelectedIds.add(item.id);
+        const groupRange = this.#groupRanges.get(item.id);
+        if (groupRange) {
+          skipBoundary = groupRange.bottom;
+        }
       }
     }
 
