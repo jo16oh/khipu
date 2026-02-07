@@ -1,32 +1,17 @@
 /** biome-ignore-all lint/a11y/noStaticElementInteractions: these components needs mouse observation */
 import type React from "react";
 import {
-  createContext,
   type ReactNode,
   useCallback,
-  useContext,
   useEffect,
   useLayoutEffect,
   useMemo,
   useRef,
   useSyncExternalStore,
 } from "react";
+import { SelectionContext } from "./context";
+import { useSelectionManager } from "./hooks";
 import { SelectionManager } from "./selection-manager";
-
-const SelectionContext = createContext<SelectionManager | null>(null);
-
-/**
- * @public
- */
-export function useSelectionManager() {
-  const manager = useContext(SelectionContext);
-
-  if (!manager) {
-    throw new Error("Selection.Item must be used within a Selection.Area");
-  }
-
-  return manager;
-}
 
 type SelectionAreaProps = {
   threshold?: number;
