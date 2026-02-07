@@ -23,7 +23,6 @@
     "noImplicitOverride": true,
     /* Path aliases */
     "paths": {
-      "*": ["./*"],
       "@khipu/*": ["./libs/*/src"]
     },
     "types": ["vitest/globals"]
