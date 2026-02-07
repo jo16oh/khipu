@@ -5,6 +5,7 @@
     "skipLibCheck": true,
     "noEmit": true,
     "useDefineForClassFields": true,
+    "erasableSyntaxOnly": true,
     /* Module */
     "resolveJsonModule": true,
     "isolatedModules": true,
